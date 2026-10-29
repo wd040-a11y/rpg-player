@@ -1,0 +1,3682 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>RPG Story Player &amp; Extractor Pro v4</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+    :root {
+      --dialogue-base-size: 19px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0b0f17;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.8); }
+
+    .dialogue-box-pro {
+      min-height: 195px;
+      max-height: 310px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(9, 13, 22, 0.99) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.38);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: border-color 0.2s ease;
+    }
+    .dialogue-box-pro.scene-ended {
+      border-color: rgba(16, 185, 129, 0.65);
+    }
+    .dialogue-text-content {
+      font-size: var(--dialogue-base-size, 19px);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 4px;
+    }
+    .rpg-scale-up-1 { font-size: clamp(20px, calc(var(--dialogue-base-size, 19px) * 1.25), 25px); line-height: 1.38; font-weight: 600; }
+    .rpg-scale-up-2 { font-size: clamp(22px, calc(var(--dialogue-base-size, 19px) * 1.45), 29px); line-height: 1.3; font-weight: 700; }
+    .rpg-scale-down-1 { font-size: clamp(13px, calc(var(--dialogue-base-size, 19px) * 0.82), 16px); line-height: 1.45; opacity: 0.9; }
+    .rpg-scale-down-2 { font-size: clamp(12px, calc(var(--dialogue-base-size, 19px) * 0.72), 14px); line-height: 1.4; opacity: 0.85; }
+
+    .cg-stage {
+      position: relative;
+      background: radial-gradient(circle at center, #161f33 0%, #090d16 100%);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0b0f17] text-slate-100 pb-16 lg:pb-0">
+
+  <!-- Top Navigation & Game Switcher Bar -->
+  <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-4 py-2">
+    <div class="max-w-[1840px] mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600/25 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-xs flex-shrink-0">
+          v4
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[190px] sm:max-w-[290px] truncate"></select>
+            <button id="btnRenameCurrentGame" type="button" title="현재 게임 이름 수정" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300">✎</button>
+            <button id="btnSaveToIndexedDb" type="button" class="px-2 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/35 text-[11px] text-emerald-300 border border-emerald-500/30 font-semibold" title="현재 게임을 브라우저/아이폰 내부 영구 저장소(IndexedDB)에 저장하여 다음 접속 시 파일 선택 없이 바로 엽니다">
+              📲 기기에 영구저장
+            </button>
+            <button id="btnStorageInfo" type="button" class="px-2 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-[11px] text-amber-300 border border-amber-500/30 font-medium">
+              📱 아이폰 단독실행 안내
+            </button>
+          </div>
+          <p id="currentGameSubtitle" class="text-[11px] text-slate-400 truncate mt-0.5">
+            초상화(Faces) 크롭 · 다중 의상 스위처 · 전투/패배 분기 · 보이스/동영상 · 스마트 CG 확대 적용됨
+          </p>
+        </div>
+      </div>
+
+      <!-- Desktop Main Tabs -->
+      <div class="hidden md:flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800">
+        <button id="tabVnMode" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow">
+          스토리 뷰어
+        </button>
+        <button id="tabOrderMode" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+          🧭 인과관계 순서
+        </button>
+        <button id="tabScriptMode" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+          전체 대본
+        </button>
+        <button id="tabGalleryMode" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+          🖼 CG·동영상 갤러리
+        </button>
+        <button id="tabLibraryMode" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+          📂 게임 관리 (<span id="libCountText">1</span>)
+        </button>
+      </div>
+
+      <!-- Import / Export Action Buttons -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <label class="hidden sm:inline-flex cursor-pointer items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition">
+          <span>+ PC 폴더 열기</span>
+          <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden" />
+        </label>
+        <label class="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition">
+          <span>+ ZIP / iOS 파일 열기</span>
+          <input id="zipInput" type="file" accept=".zip,application/zip,application/octet-stream,*/*" multiple class="hidden" />
+        </label>
+        <button id="btnExportZip" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600/25 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40 transition" title="복호화된 실제 이미지·초상화·동영상 파일과 대본을 하나의 ZIP으로 묶어 내보냅니다 (아이폰 단독 사용 및 원본 삭제 가능)">
+          📦 완전체 Game.zip 내보내기
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- iOS Standalone & Storage Guide Modal -->
+  <div id="storageModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl max-h-[88dvh] overflow-y-auto text-xs leading-relaxed">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h4 class="text-sm font-bold text-amber-300">📱 데스크톱 없이 아이폰(iOS) 단독으로 이용하는 방법 &amp; 저장 구조</h4>
+        <button id="storageModalClose" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">닫기</button>
+      </div>
+
+      <div class="space-y-3 text-slate-300">
+        <div class="bg-slate-950/90 border border-emerald-500/30 rounded-xl p-3.5 space-y-2">
+          <div class="font-bold text-emerald-300">1. 데스크톱 PC를 켜두지 않고 아이폰 단독으로 쓰는 가장 확실한 방법</div>
+          <p>• <strong>1단계 (최초 1회 패키지 생성):</strong> PC에서 게임을 불러온 뒤 우측 상단 <strong>[📦 완전체 Game.zip 내보내기]</strong>를 누르면, 복호화된 표준 PNG 이미지·초상화·동영상과 대본이 모두 들어있는 단일 <code class="text-emerald-200">_Standalone.zip</code> 파일이 생성됩니다.</p>
+          <p>• <strong>2단계 (아이폰 단독 실행):</strong>
+            <br/>① 생성된 <code class="text-emerald-200">_Standalone.zip</code> 파일을 아이폰(iCloud Drive / 파일 앱 / 카카오톡 나에게 보내기 등)으로 옮깁니다.
+            <br/>② 이 플레이어를 GitHub Pages(동봉된 <code class="text-indigo-200">.github/workflows/deploy-pages.yml</code>로 자동 배포되는 내 웹 주소)로 접속하거나, 아이폰 무료 앱 <strong>Documents by Readdle</strong>에서 <code class="text-indigo-200">rpg_story_player_pro.html</code>을 열고 <strong>[+ ZIP / iOS 파일 열기]</strong>로 ZIP을 불러옵니다.
+            <br/>③ 상단의 <strong>[📲 기기에 영구저장]</strong> 버튼을 한 번 누르면 아이폰 내부 데이터베이스(IndexedDB)에 게임이 통째로 저장되어, 이후에는 <strong>PC가 꺼져 있든 인터넷이 없든 아이폰 단독으로 즉시 열람</strong>할 수 있습니다!</p>
+        </div>
+
+        <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+          <div class="font-bold text-sky-300">2. 원본 게임 파일 삭제 가능 여부</div>
+          <p>• <strong>[📦 완전체 Game.zip 내보내기]</strong>를 실행해 만든 ZIP 파일 안에는 실제 복호화된 이미지와 동영상 바이너리가 모두 포함됩니다. 따라서 <strong>내보낸 ZIP 파일만 보관하시면 수 기가바이트짜리 원본 게임 폴더는 완전히 삭제하셔도 됩니다.</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Rename Modal -->
+  <div id="editModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <h4 id="editModalTitle" class="text-sm font-bold text-white">이름 수정</h4>
+      <input id="editModalInput" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+      <div class="flex items-center justify-end gap-2">
+        <button id="editModalCancel" type="button" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">취소</button>
+        <button id="editModalSave" type="button" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen CG Lightbox Modal -->
+  <div id="cgLightboxModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+    <div class="max-w-5xl w-full flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div id="lightboxTitle" class="text-sm font-bold text-white font-mono truncate"></div>
+      <div class="flex items-center gap-2">
+        <button id="lightboxDeleteBtn" type="button" class="px-3 py-1.5 rounded-lg bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white">
+          🗑 이 미디어 영구 삭제
+        </button>
+        <button id="lightboxJumpBtn" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">
+          등장 이벤트로 이동 →
+        </button>
+        <button id="lightboxCloseBtn" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">
+          닫기 (ESC)
+        </button>
+      </div>
+    </div>
+    <div class="flex-1 flex items-center justify-center overflow-hidden max-h-[80dvh]">
+      <img id="lightboxImg" src="" alt="CG Preview" class="max-w-full max-h-[78dvh] object-contain rounded-xl border border-slate-800" />
+    </div>
+  </div>
+
+  <!-- Toast Banner -->
+  <div id="toastBanner" class="hidden bg-indigo-950/95 border-b border-indigo-500/40 px-4 py-2 text-xs text-indigo-200 text-center font-medium"></div>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-[1840px] w-full mx-auto px-2.5 sm:px-4 py-2 flex flex-col gap-2">
+
+    <!-- Smart Filter, Translation, Auto-Zoom Bar -->
+    <section class="bg-slate-900/80 border border-slate-800/90 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input id="chkAutoTranslateJp" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500" />
+          <span class="text-indigo-200 font-semibold">일본어 자동 번역</span>
+          <span id="translationStatusBadge" class="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 text-[10px]">준비됨</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none" title="작게 나오는 CG나 부분 크롭된 이미지를 뷰어 창 크기에 맞춰 큼직하게 자동 확대합니다">
+          <input id="chkSmartZoomCg" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500" />
+          <span class="text-emerald-300 font-semibold">🔍 작은 CG 화면 꽉 채우기(자동 여백크롭·확대)</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input id="chkMergeIdenticalEvents" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500" />
+          <span class="text-amber-300 font-semibold">동일 이벤트 병합</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input id="chkHideSystemHudEvents" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500" />
+          <span class="text-slate-300">UI/아이콘 더미 숨김</span>
+        </label>
+        <button id="btnRestoreHidden" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
+          삭제/숨김 복원 (<span id="hiddenCountBadge">0</span>)
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-400">주인공 호칭:</span>
+          <input id="protagonistNameInput" type="text" value="주인공" class="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-indigo-200" />
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-400">글자 크기:</span>
+          <input id="fontSizeSlider" type="range" min="15" max="25" value="19" class="w-20 accent-indigo-500" />
+          <span id="fontSizeLabel" class="text-indigo-300 font-mono w-8">19px</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Primary 3-Column Grid -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-[660px]">
+
+      <!-- Left Column: Places / Maps (2 cols) -->
+      <aside id="panelMaps" class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col overflow-hidden max-h-[82dvh]">
+        <div class="p-2.5 border-b border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">장소 (진행순 정렬)</h2>
+            <span id="mapCountBadge" class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">0</span>
+          </div>
+          <input id="mapSearchInput" type="text" placeholder="한국어 / 원문 / 대사 검색..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div id="mapListContainer" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+      </aside>
+
+      <!-- Middle Column: Events / Scenes (3 cols) -->
+      <aside id="panelEvents" class="lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col overflow-hidden max-h-[82dvh]">
+        <div class="p-2.5 border-b border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">스토리 이벤트 목록</h2>
+            <span id="eventCountBadge" class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">0</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="filterAllScenes" type="button" class="flex-1 py-1 rounded text-[11px] font-semibold bg-indigo-600/30 text-indigo-200 border border-indigo-500/40">전체 씬</button>
+            <button id="filterCgScenes" type="button" class="flex-1 py-1 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">CG/영상 씬</button>
+            <button id="filterBranchScenes" type="button" class="flex-1 py-1 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">분기/전투 씬</button>
+          </div>
+        </div>
+        <div id="eventListContainer" class="flex-1 overflow-y-auto p-2 space-y-1.5"></div>
+      </aside>
+
+      <!-- Right Column: Main Story Viewer (7 cols) -->
+      <section id="panelMainViewer" class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col overflow-hidden max-h-[82dvh]">
+
+        <!-- Active Event Top Bar -->
+        <div class="px-3.5 py-2 bg-slate-950/75 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="activeOrderBadge" class="px-2 py-0.5 text-[11px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">추천순서 #1</span>
+            <h3 id="activeEventTitle" class="text-xs sm:text-sm font-bold text-white truncate">이벤트를 선택하세요</h3>
+            <button id="btnRenameActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300" title="이름 수정">✎</button>
+            <button id="btnHideActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 text-[10px] text-rose-300 border border-rose-500/30" title="이 이벤트를 삭제하고 추천 순서를 자동으로 재정렬합니다">✕ 삭제</button>
+          </div>
+          <div id="pageTabsContainer" class="flex flex-wrap items-center gap-1"></div>
+        </div>
+
+        <!-- Story Causal Inference & Multi-Outfit / Layer Control Bar -->
+        <div class="px-3.5 py-1.5 bg-indigo-950/35 border-b border-indigo-500/20 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+          <div id="storyClueText" class="text-indigo-200 truncate">
+            🧭 진행 단서: 시작 맵 오프닝
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <!-- Multi-Outfit / Slot Variant Switcher (Allows switching ALL outfits prepared by the game!) -->
+            <div id="outfitSlotSwitcherBar" class="hidden flex items-center gap-1 bg-amber-950/60 border border-amber-500/40 rounded-lg px-2 py-0.5">
+              <span class="text-[10px] text-amber-300 font-semibold">👗 의상/파츠 변경:</span>
+              <div id="outfitSelectsContainer" class="flex items-center gap-1"></div>
+            </div>
+
+            <div class="relative">
+              <button id="btnToggleLayerDrawer" type="button" class="hidden px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-[10px]">
+                겹침 레이어 (0) ▾
+              </button>
+              <div id="cgLayerDrawer" class="hidden absolute right-0 mt-1 w-72 max-h-60 overflow-y-auto z-40 bg-slate-950 border border-slate-700 rounded-xl p-2.5 shadow-2xl space-y-1.5">
+                <div class="flex items-center justify-between text-[10px] text-slate-400 pb-1 border-b border-slate-800">
+                  <span>현재 합성된 Picture 레이어 (클릭 시 숨김/표시)</span>
+                  <button id="btnResetLayers" type="button" class="text-indigo-400 hover:underline">전체 켜기</button>
+                </div>
+                <div id="cgLayerPills" class="flex flex-col gap-1"></div>
+              </div>
+            </div>
+
+            <button id="btnJumpNextStoryEvent" type="button" class="px-2.5 py-0.5 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white font-semibold border border-emerald-500/40 transition flex-shrink-0">
+              다음 추론 스토리로 이동 →
+            </button>
+          </div>
+        </div>
+
+        <!-- VIEW 1: Visual Novel Story Viewer -->
+        <div id="viewVnContainer" class="flex-1 flex flex-col p-3 gap-2.5 overflow-y-auto">
+          <!-- CG & Movie Stage (With Auto-Crop Smart Zoom so tiny CGs fill the screen!) -->
+          <div id="cgStageContainer" class="cg-stage h-[250px] sm:h-[295px] flex-shrink-0 relative">
+            <canvas id="cgCanvas" width="816" height="624" class="w-full h-full object-contain cursor-pointer" title="클릭하면 전체화면으로 확대합니다"></canvas>
+            <video id="moviePlayer" controls playsinline class="hidden w-full h-full object-contain rounded-lg"></video>
+
+            <!-- Compact Top Bar inside CG Stage -->
+            <div class="absolute top-2 left-2 right-2 flex items-center justify-between gap-2 pointer-events-none">
+              <div class="pointer-events-auto px-2.5 py-0.5 rounded-lg bg-slate-950/80 border border-slate-700/70 text-[11px] text-slate-200 flex items-center gap-1.5 shadow">
+                <span id="cgStatusDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                <span id="cgStatusText" class="truncate max-w-[260px]">표시 중인 미디어 없음</span>
+              </div>
+              <div id="cgVariationContainer" class="hidden pointer-events-auto flex items-center gap-1 bg-slate-950/85 border border-slate-700/80 rounded-lg px-2 py-0.5 shadow">
+                <span class="text-[10px] text-slate-400">차분 프리셋:</span>
+                <select id="cgVariationSelect" class="bg-transparent text-[11px] font-mono text-indigo-300 focus:outline-none"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Branch / Choice / Battle Result Selection Panel -->
+          <div id="branchChoicePanel" class="hidden bg-indigo-950/55 border border-indigo-500/50 rounded-xl p-3 space-y-2 flex-shrink-0">
+            <div class="flex items-center justify-between text-xs">
+              <span id="branchPromptTitle" class="font-bold text-indigo-200">선택지 / 스토리·전투 분기</span>
+              <span class="text-[11px] text-indigo-300">원하는 루트를 선택하세요</span>
+            </div>
+            <div id="branchButtonsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+          </div>
+
+          <!-- End of Scene Notice Banner -->
+          <div id="sceneEndBanner" class="hidden bg-emerald-950/60 border border-emerald-500/50 rounded-xl px-3.5 py-2 flex items-center justify-between gap-2 flex-shrink-0">
+            <span class="text-xs font-bold text-emerald-200">✓ 이 이벤트의 마지막 대사입니다.</span>
+            <button id="btnNextEventFromEnd" type="button" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow transition">
+              다음 추천 이벤트로 바로 이동 →
+            </button>
+          </div>
+
+          <!-- Spacious Dialogue Box with Real Cropped Face Portrait & Voice/Transfer Action Bar -->
+          <div id="dialogueBoxPro" class="dialogue-box-pro flex-1 min-h-[195px] cursor-pointer" title="클릭 또는 Space 키를 누르면 다음 대사로 넘어갑니다">
+            <div class="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-slate-800/80">
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="speakerBadge" class="px-2.5 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 font-bold text-xs sm:text-sm">
+                  내레이션
+                </span>
+                <span id="sourceCommandTag" class="text-[11px] text-slate-400 font-mono"></span>
+                <!-- Voice / SE Playback Button when step has audio -->
+                <button id="btnPlayStepVoice" type="button" class="hidden px-2 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/40 text-sky-300 border border-sky-500/30 text-[11px] font-semibold" onclick="event.stopPropagation()">
+                  🔊 보이스/효과음 재생
+                </button>
+                <!-- Map Transfer Jump Button when step transfers player -->
+                <button id="btnTransferJump" type="button" class="hidden px-2.5 py-0.5 rounded bg-amber-500/25 hover:bg-amber-500 text-amber-200 hover:text-black border border-amber-500/40 text-[11px] font-bold transition" onclick="event.stopPropagation()">
+                  🚪 이동할 장소로 바로 점프 →
+                </button>
+              </div>
+              <span id="stepCounterText" class="text-xs font-mono text-slate-300">1 / 1</span>
+            </div>
+
+            <div class="flex items-start gap-3.5 flex-1 min-h-0">
+              <!-- Face Portrait Box (Renders real 4x2 cropped RPG Maker Face sheet!) -->
+              <div id="faceBox" class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-slate-800/90 border border-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-md">
+                <canvas id="faceCanvas" width="144" height="144" class="w-full h-full object-cover"></canvas>
+              </div>
+              <div id="dialogueText" class="dialogue-text-content text-slate-100 select-text"></div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 mt-1.5 border-t border-slate-800/80" onclick="event.stopPropagation()">
+              <div class="flex items-center gap-1.5">
+                <button id="btnFirstStep" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">처음</button>
+                <button id="btnPrevStep" type="button" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200">← 이전</button>
+                <button id="btnNextStep" type="button" class="px-4 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow">다음 대사 (Space / 터치) →</button>
+              </div>
+              <button id="btnSwitchToScript" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-indigo-300 border border-indigo-500/30">
+                전체 대본 펼치기
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: Symbolic Walkthrough Story Progression Roadmap -->
+        <div id="viewOrderContainer" class="hidden flex-1 flex flex-col p-4 overflow-y-auto space-y-3">
+          <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3.5 space-y-1">
+            <h4 class="text-xs sm:text-sm font-bold text-emerald-300">🧭 심볼릭 플레이 시뮬레이션 기반 스토리 진행 순서 (이벤트 삭제 시 자동 재연결)</h4>
+            <p class="text-[11px] text-slate-300">
+              시작 맵(<code class="text-emerald-200">startMapId</code>)에서 출발하여 각 이벤트의 <strong>첫 진입 조건</strong>, 이벤트가 켜는 <strong>스위치 인과 사슬(Switch Chain)</strong>, 그리고 <strong>장소 이동(Code 201 Transfer)</strong> 경로를 시뮬레이션해 정렬한 순서입니다. 중간 이벤트를 삭제하면 끊기지 않고 다음 순서로 자동 재정렬됩니다.
+            </p>
+          </div>
+          <div id="storyOrderTimeline" class="space-y-2 pb-6"></div>
+        </div>
+
+        <!-- VIEW 3: Full Script View -->
+        <div id="viewScriptContainer" class="hidden flex-1 flex flex-col p-4 overflow-y-auto space-y-3">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
+            <h4 class="text-xs font-bold text-indigo-300">전체 대본 스트림 모드 (대사 + 초상화 + 선택지/전투 분기 + 장소 이동 지문 통합 표시)</h4>
+          </div>
+          <div id="fullScriptList" class="space-y-2.5 pb-6"></div>
+        </div>
+
+        <!-- VIEW 4: CG & Movie Gallery -->
+        <div id="viewGalleryContainer" class="hidden flex-1 flex flex-col p-4 overflow-y-auto space-y-3">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-bold text-emerald-300">🖼 CG &amp; 동영상(Movies) 갤러리 · 등장 이벤트 100% 역추적 연결</h4>
+              <p class="text-[11px] text-slate-400">
+                맵 이벤트뿐만 아니라 <strong>공통 이벤트(CommonEvents)와 전투 이벤트(Troops)</strong>에서 호출되는 CG·차분·동영상까지 모두 등장 이벤트와 연결했습니다.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button id="btnPurgeUnusedCgs" type="button" class="px-2.5 py-1 rounded-lg bg-rose-900/50 hover:bg-rose-700 text-rose-200 text-xs font-semibold border border-rose-500/40 transition">
+                ⚡ 미사용 더미만 일괄 삭제
+              </button>
+              <input id="gallerySearchInput" type="text" placeholder="파일명 검색..." class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 w-36" />
+              <span id="galleryTotalBadge" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold">0개</span>
+            </div>
+          </div>
+          <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 pb-6"></div>
+        </div>
+
+        <!-- VIEW 5: Game Library Management -->
+        <div id="viewLibraryContainer" class="hidden flex-1 flex flex-col p-4 overflow-y-auto space-y-4">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm font-bold text-indigo-300">📂 게임 라이브러리 &amp; 기기 내부 영구 저장소(IndexedDB)</h4>
+              <p class="text-xs text-slate-400">불러온 게임을 기기(아이폰/PC 브라우저) 내부에 저장해 두면 다음부터는 폴더나 ZIP을 다시 열 필요 없이 즉시 실행됩니다.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+                + 새 게임 폴더 추가
+                <input id="libFolderInput" type="file" webkitdirectory directory multiple class="hidden" />
+              </label>
+            </div>
+          </div>
+          <div id="libraryCardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur border-t border-slate-800 grid grid-cols-5 py-1.5 px-1 text-[11px]">
+    <button id="mobNavMaps" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🗺 장소/씬</span></button>
+    <button id="mobNavVn" type="button" class="flex flex-col items-center py-1 text-indigo-400 font-bold"><span>💬 뷰어</span></button>
+    <button id="mobNavOrder" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🧭 순서추론</span></button>
+    <button id="mobNavGallery" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🖼 갤러리</span></button>
+    <button id="mobNavLibrary" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>📂 게임관리</span></button>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // 1. JAPANESE -> KOREAN DICTIONARY + NEURAL TRANSLATION ENGINE
+    // =========================================================================
+    const JP_KO_DICT = [
+      ["始まりの質問", "시작의 질문"],
+      ["青空町", "아오조라 마을"],
+      ["青空横丁", "아오조라 골목길"],
+      ["居酒屋", "선술집(이자카야)"],
+      ["渚", "나기사"],
+      ["種村邸", "타네무라 저택"],
+      ["裏町", "뒷골목 마을"],
+      ["繁華街", "번화가"],
+      ["おばけ団地", "유령 단지"],
+      ["刑務所", "교도소"],
+      ["バス停", "버스 정류장"],
+      ["公衆電話", "공중전화"],
+      ["駄菓子屋", "막과자 가게"],
+      ["地下", "지하"],
+      ["酒田アパート", "사카타 아파트"],
+      ["アパート", "아파트"],
+      ["ボーリング場", "볼링장"],
+      ["カラオケ", "가라오케(노래방)"],
+      ["映画館", "영화관"],
+      ["面会室", "면회실"],
+      ["室内", "실내"],
+      ["使用人の部屋", "사용인의 방"],
+      ["使用人", "사용인"],
+      ["天気・時間アイコン", "날씨·시간 아이콘"],
+      ["旅館", "여관"],
+      ["葵とカケル", "아오이와 카케루"],
+      ["グレグレ出現", "구레구레 출현"],
+      ["出現", "출현"],
+      ["天気", "날씨"],
+      ["時間", "시간"],
+      ["アイコン", "아이콘"],
+      ["日付", "날짜"],
+      ["帰還後イベ", "귀환 후 이벤트"],
+      ["帰還後", "귀환 후"],
+      ["商会調査", "상회 조사"],
+      ["面談その", "면담 그 "],
+      ["面談", "면담"],
+      ["調査", "조사"],
+      ["商会", "상회"],
+      ["街中屋内移動直後処理", "시내 실내 이동 직후 처리"],
+      ["NPCテンプレート", "NPC 템플릿"],
+      ["テンプレート", "템플릿"],
+      ["移動直後処理", "이동 직후 처리"],
+      ["初期設定", "초기 설정"],
+      ["自動実行", "자동 실행"],
+      ["並列処理", "병렬 처리"],
+      ["回想部屋", "회상 방"],
+      ["回想", "회상"],
+      ["オープニング", "오프닝"],
+      ["エンディング", "엔딩"],
+      ["宿屋", "여관"],
+      ["酒場", "주점"],
+      ["教会", "교회"],
+      ["王城", "왕성"],
+      ["街中", "시내"],
+      ["屋内", "실내"],
+      ["屋外", "야외"],
+      ["自宅", "자택"],
+      ["部屋", "방"],
+      ["寝室", "침실"],
+      ["浴室", "욕실"],
+      ["温泉", "온천"],
+      ["森", "숲"],
+      ["洞窟", "동굴"],
+      ["遺跡", "유적"],
+      ["ボス戦", "보스전"],
+      ["戦闘", "전투"],
+      ["勝利", "승리"],
+      ["敗北", "패배"],
+      ["会話", "대화"],
+      ["イベント", "이벤트"],
+      ["イベ", "이벤트"],
+      ["シーン", "씬"],
+      ["選択肢", "선택지"],
+      ["分岐", "분기"],
+      ["条件", "조건"],
+      ["好感度", "호감도"],
+      ["警察", "경찰"],
+      ["広場", "광장"],
+      ["路地裏", "뒷골목"],
+      ["学校", "학교"],
+      ["教室", "교실"],
+      ["保健室", "보건실"],
+      ["公園", "공원"],
+      ["駅前", "역앞"],
+      ["商店街", "상점가"],
+      ["移動", "이동"],
+      ["処理", "처리"],
+      ["直後", "직후"],
+      ["主人公", "주인공"]
+    ];
+
+    const liveTranslationCache = new Map();
+    try {
+      const saved = JSON.parse(localStorage.getItem("rpg_ko_trans_cache_v4") || "{}");
+      for (const [k, v] of Object.entries(saved)) liveTranslationCache.set(k, v);
+    } catch (e) {}
+
+    function saveTranslationCache() {
+      try {
+        const obj = {};
+        for (const [k, v] of liveTranslationCache.entries()) obj[k] = v;
+        localStorage.setItem("rpg_ko_trans_cache_v4", JSON.stringify(obj));
+      } catch (e) {}
+    }
+
+    function containsJapanese(str) {
+      return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(String(str || ""));
+    }
+
+    function dictionaryTranslate(str) {
+      let out = String(str || "");
+      for (const [jp, ko] of JP_KO_DICT) {
+        if (out.includes(jp)) out = out.split(jp).join(ko);
+      }
+      return out;
+    }
+
+    function translateJpName(rawName, customMap, key) {
+      if (customMap && key && customMap[key]) return customMap[key];
+      const str = String(rawName || "");
+      if (!state.autoTranslateJp || !containsJapanese(str)) return str;
+
+      const prefixMatch = str.match(/^((?:\d{3}|EV\d{3}(?:~EV\d{3})?):\s*)(.+)$/);
+      const prefix = prefixMatch ? prefixMatch[1] : "";
+      const body = prefixMatch ? prefixMatch[2] : str;
+
+      if (liveTranslationCache.has(body)) {
+        const ko = liveTranslationCache.get(body);
+        return ko !== body ? `${prefix}${ko} (${body})` : str;
+      }
+
+      const dictResult = dictionaryTranslate(body);
+      if (dictResult !== body) {
+        return `${prefix}${dictResult} (${body})`;
+      }
+      return str;
+    }
+
+    let translationQueueRunning = false;
+    async function triggerBackgroundNeuralTranslation(project) {
+      if (translationQueueRunning || !project) return;
+      const toTranslate = new Set();
+
+      for (const m of (project.maps || [])) {
+        const cleanM = String(m.name || "").replace(/^\d{3}:\s*/, "").trim();
+        if (containsJapanese(cleanM) && !liveTranslationCache.has(cleanM)) toTranslate.add(cleanM);
+        for (const ev of (m.events || [])) {
+          const cleanE = String(ev.name || "").replace(/^EV\d{3}(?:~EV\d{3})?:\s*/, "").trim();
+          if (containsJapanese(cleanE) && !liveTranslationCache.has(cleanE)) toTranslate.add(cleanE);
+        }
+      }
+
+      const list = Array.from(toTranslate);
+      if (list.length === 0) return;
+
+      translationQueueRunning = true;
+      const badge = document.getElementById("translationStatusBadge");
+
+      try {
+        for (let i = 0; i < list.length; i += 15) {
+          const chunk = list.slice(i, i + 15);
+          if (badge) badge.textContent = `일→한 번역중 (${Math.min(i + chunk.length, list.length)}/${list.length})`;
+          const joined = chunk.join("\n");
+          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=ko&dt=t&q=${encodeURIComponent(joined)}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            const translatedFull = (data[0] || []).map(x => x[0]).join("");
+            const lines = translatedFull.split("\n");
+            chunk.forEach((orig, idx) => {
+              const tr = (lines[idx] || "").trim();
+              if (tr) liveTranslationCache.set(orig, tr);
+            });
+            saveTranslationCache();
+            renderMapsList();
+            renderEventsList();
+            renderPageTabs();
+          }
+        }
+        if (badge) badge.textContent = `번역 완료 (${liveTranslationCache.size}건)`;
+      } catch (e) {
+        if (badge) badge.textContent = `내장 사전 적용됨`;
+      } finally {
+        translationQueueRunning = false;
+      }
+    }
+
+    // =========================================================================
+    // 2. DEMO SVG & FACE SHEET GENERATOR (Demonstrates v4 Portrait & Outfit Switcher)
+    // =========================================================================
+    function createDemoSvgDataUrl(title, subtitle, bg1, bg2, accent) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="816" height="624" viewBox="0 0 816 624">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${bg1}"/>
+            <stop offset="100%" stop-color="${bg2}"/>
+          </linearGradient>
+        </defs>
+        <rect width="816" height="624" fill="url(#g)"/>
+        <circle cx="408" cy="255" r="165" fill="${accent}" fill-opacity="0.2" stroke="${accent}" stroke-opacity="0.5" stroke-width="3"/>
+        <circle cx="408" cy="205" r="54" fill="${accent}" fill-opacity="0.9"/>
+        <path d="M295 400 Q408 250 521 400 Z" fill="${accent}" fill-opacity="0.72"/>
+        <rect x="118" y="445" width="580" height="92" rx="14" fill="#090d16" fill-opacity="0.86" stroke="${accent}" stroke-opacity="0.55"/>
+        <text x="408" y="483" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="21" font-weight="bold">${title}</text>
+        <text x="408" y="514" text-anchor="middle" fill="${accent}" font-family="sans-serif" font-size="14">${subtitle}</text>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    function createDemoFaceSheetDataUrl() {
+      // Creates a standard RPG Maker 4x2 Face Sheet (576x288, each cell 144x144)
+      const colors = ["#6366f1", "#10b981", "#f43f5e", "#f59e0b", "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6"];
+      const exprs = ["기본 표정", "미소", "홍조/당황", "놀람", "진지함", "눈감음", "윙크", "결의"];
+      let cells = "";
+      for (let idx = 0; idx < 8; idx++) {
+        const col = idx % 4;
+        const row = Math.floor(idx / 4);
+        const x = col * 144;
+        const y = row * 144;
+        const c = colors[idx];
+        cells += `
+          <g transform="translate(${x},${y})">
+            <rect width="144" height="144" fill="#0f172a"/>
+            <circle cx="72" cy="60" r="34" fill="${c}"/>
+            <path d="M30 138 Q72 86 114 138 Z" fill="${c}" fill-opacity="0.8"/>
+            <circle cx="60" cy="54" r="4" fill="#ffffff"/>
+            <circle cx="84" cy="54" r="4" fill="#ffffff"/>
+            <rect x="8" y="114" width="128" height="22" rx="6" fill="#090d16" fill-opacity="0.8"/>
+            <text x="72" y="129" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="11" font-weight="bold">초상화 #${idx}: ${exprs[idx]}</text>
+          </g>
+        `;
+      }
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="576" height="288" viewBox="0 0 576 288">${cells}</svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    function buildInitialLibrary() {
+      const demoFaceSheet = createDemoFaceSheetDataUrl();
+      const faceAssets = {
+        "Aoi_Face": { name: "Aoi_Face", blobUrl: demoFaceSheet }
+      };
+
+      const cgs = {
+        "旅館 葵とカケル1": {
+          name: "旅館 葵とカケル1",
+          folder: "img/pictures",
+          mediaType: "image",
+          label: "여관 아오이와 카케루 이벤트 CG 1 (스마트 자동 줌 적용)",
+          groupPrefix: "旅館 葵とカケル",
+          diffLabel: "1 (기본 의상)",
+          blobUrl: createDemoSvgDataUrl(
+            "旅館 葵とカケル1 (스마트 자동 꽉 채우기 적용됨)",
+            "작게 표시되던 CG의 여백을 자동 계산하여 뷰어 화면에 꽉 차게 확대 렌더링합니다!",
+            "#1e1b4b", "#31102f", "#fb7185"
+          ),
+          usedIn: { mapId: 124, eventId: 23, pageIdx: 0 }
+        },
+        "旅館 葵とカケル2": {
+          name: "旅館 葵とカケル2",
+          folder: "img/pictures",
+          mediaType: "image",
+          label: "여관 아오이와 카케루 이벤트 CG 2 (유카타 의상 차분)",
+          groupPrefix: "旅館 葵とカケル",
+          diffLabel: "2 (유카타 차분)",
+          blobUrl: createDemoSvgDataUrl(
+            "旅館 葵とカケル2 (유카타 의상 차분)",
+            "상단 [👗 의상/파츠 변경] 및 [차분 프리셋]에서 모든 준비된 의상을 즉시 바꿔볼 수 있습니다!",
+            "#064e3b", "#0f172a", "#34d399"
+          ),
+          usedIn: { mapId: 124, eventId: 23, pageIdx: 0 }
+        },
+        "旅館 葵とカケル3": {
+          name: "旅館 葵とカケル3",
+          folder: "img/pictures",
+          mediaType: "image",
+          label: "여관 아오이와 카케루 이벤트 CG 3 (해제 차분)",
+          groupPrefix: "旅館 葵とカケル",
+          diffLabel: "3 (해제 차분)",
+          blobUrl: createDemoSvgDataUrl(
+            "旅館 葵とカケル3 (의상 해제 차분)",
+            "같은 프리픽스를 공유하는 모든 차분 CG도 자동으로 등장 이벤트와 연결되어 더미로 오판되지 않습니다",
+            "#4c0519", "#1e1b4b", "#f43f5e"
+          ),
+          usedIn: { mapId: 124, eventId: 23, pageIdx: 0 }
+        }
+      };
+
+      const game1 = {
+        id: "demo_v4_main",
+        title: "아오조라 연대기 (v4 초상화·다중의상·스마트확대 데모)",
+        engine: "RPG Maker MV / MZ / VX Ace",
+        startMapId: 124,
+        actors: { 1: "신도 아오이", 2: "카케루", 10: "타네무라 원장" },
+        variables: { 1: "아오이" },
+        faceAssets,
+        cgAssets: cgs,
+        audioAssets: {},
+        maps: [
+          {
+            id: 124,
+            name: "124: 始まりの質問",
+            events: [
+              {
+                id: 1,
+                name: "EV001: 오프닝 시대 선택 (\\ac 가운데 정렬 & 화자 \\N[10] 치환 검증)",
+                storyOrder: 1,
+                storyReason: "시작 맵(124) 오프닝 자동 실행 → 완료 시 스위치 #0088 ON",
+                pages: [
+                  {
+                    pageIndex: 1,
+                    conditionLabel: "단계 1",
+                    steps: [
+                      {
+                        type: "dialogue",
+                        speaker: "마을 의사 \\N[10]",
+                        faceName: "Aoi_Face",
+                        faceIndex: 0,
+                        rawText: "\\ac어느 시대부터 이야기를 시작하겠습니까?\n\\ac\\c[18]※유년기부터 시작하는 것을 강력히 권장합니다\\c[0]\n(※ 스크린샷에 보였던 '\\ac' 제어문자를 실제 가운데 정렬 스타일로 변환하여 깔끔하게 표시하고, 화자 이름 칸의 '마을 의사 \\N[10]'도 실제 액터 이름으로 치환합니다!)",
+                        source: "Code 101/401 (\\ac 정렬 & 화자 제어문자 치환 검증)",
+                        pictureSnapshot: {}
+                      },
+                      {
+                        type: "dialogue",
+                        speaker: "신도 아오이",
+                        faceName: "Aoi_Face",
+                        faceIndex: 1,
+                        transferMapId: 1,
+                        rawText: "대사창 왼쪽의 초상화(Face) 영역을 확인해 보세요!\n이제 `img/faces/` 시트에서 4x2 규격(Index 0~7)의 실제 캐릭터 얼굴 초상화를 정확히 크롭하여 대사마다 표정이 실시간으로 바뀝니다.\n또한 상단에 [🚪 이동할 장소로 바로 점프 →] 버튼이 활성화되어 실제 게임처럼 다음 맵으로 이동할 수 있습니다!",
+                        source: "Code 101/401 + Code 201 (초상화 크롭 & 장소 이동 연동)",
+                        pictureSnapshot: {}
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 23,
+                name: "EV023: 여관 이벤트 (작은 CG 자동 확대 & 다중 의상 스위처)",
+                storyOrder: 2,
+                storyReason: "선행 이벤트(EV001) 완료 시 켜지는 스위치 #0088 성립 후 진행",
+                pages: [
+                  {
+                    pageIndex: 1,
+                    conditionLabel: "단계 1",
+                    steps: [
+                      {
+                        type: "dialogue",
+                        speaker: "신도 아오이",
+                        faceName: "Aoi_Face",
+                        faceIndex: 2,
+                        rawText: "「...카오리도 꽤 장난 아니었지만~」\n1) 작게 표시되던 CG('旅館 葵とカケル1')가 이제 뷰어 크기에 맞춰 큼직하게 자동 확대됩니다.\n2) 뷰어 상단 바의 [👗 의상/파츠 변경] 드롭다운에서 조건 분기마다 준비되어 있던 다른 의상(기본 의상 / 유카타 차분 / 해제 차분)을 모두 자유롭게 바꿔볼 수 있습니다!",
+                        source: "Code 101/401 (스마트 줌 & 다중 의상 스위처 검증)",
+                        pictureSnapshot: {
+                          1: {
+                            key: "旅館 葵とカケル1",
+                            x: 240,
+                            y: 180,
+                            origin: 0,
+                            scaleX: 100,
+                            scaleY: 100,
+                            opacity: 255,
+                            variants: ["旅館 葵とカケル1", "旅館 葵とカケル2", "旅館 葵とカケル3"]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: 1,
+            name: "001: 青空町",
+            events: [
+              {
+                id: 10,
+                name: "EV010: 전투 이벤트 (승리/패배 분기 Code 301/601/603 지원)",
+                storyOrder: 3,
+                storyReason: "124번 맵에서 장소 이동(Code 201) 후 진입",
+                pages: [
+                  {
+                    pageIndex: 1,
+                    conditionLabel: "단계 1",
+                    steps: [
+                      {
+                        type: "branch",
+                        branchTitle: "⚔️ 전투 결과 분기 (Code 301 Battle Processing: 승리 시 / 패배 시)",
+                        options: [
+                          {
+                            label: "⚔️ 전투 승리 시 (Code 601 When Win)",
+                            preview: "적을 물리치고 앞으로 나아간다!",
+                            steps: [
+                              {
+                                type: "dialogue",
+                                speaker: "신도 아오이",
+                                faceName: "Aoi_Face",
+                                faceIndex: 7,
+                                rawText: "「휴, 겨우 이겼네! 이제 다음 구역으로 가자.」",
+                                source: "Code 601 (When Win)",
+                                pictureSnapshot: {}
+                              }
+                            ]
+                          },
+                          {
+                            label: "💔 전투 패배 시 이벤트 (Code 603 When Lose)",
+                            preview: "패배 시 발생하는 특수 이벤트 씬을 감상합니다.",
+                            steps: [
+                              {
+                                type: "dialogue",
+                                speaker: "신도 아오이",
+                                faceName: "Aoi_Face",
+                                faceIndex: 2,
+                                rawText: "「으윽… 힘이 빠져서 움직일 수가 없어…」\n기존에는 일반 선택지(102)와 조건분기(111)만 처리하여 전투 패배(Code 603)에 들어있는 이벤트 씬들이 통째로 누락되었지만, 이제 전투 승리/패배 분기도 완벽히 열람할 수 있습니다!",
+                                source: "Code 603 (When Lose)",
+                                pictureSnapshot: {
+                                  1: { key: "旅館 葵とカケル3", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+
+      return [game1];
+    }
+
+    // =========================================================================
+    // 3. GLOBAL STATE & INDEXED-DB ENGINE (For iPhone Standalone Persistence!)
+    // =========================================================================
+    const initialLib = buildInitialLibrary();
+    const state = {
+      library: initialLib,
+      activeGameId: initialLib[0].id,
+      project: initialLib[0],
+      activeTab: "vn",
+      selectedMapId: 124,
+      selectedEventId: 1,
+      selectedPageIdx: 0,
+      sceneFilter: "all",
+      autoTranslateJp: true,
+      smartZoomCg: true,
+      mergeIdenticalEvents: true,
+      hideSystemHudEvents: true,
+      protagonistName: "아오이",
+      fontSize: 19,
+      customMapNames: {},
+      customEventNames: {},
+      hiddenMaps: new Set(),
+      hiddenEvents: new Set(),
+      deletedCgKeys: new Set(),
+      activeSteps: [],
+      currentStepIndex: 0,
+      activePictureSlots: {},
+      slotVariantOverrides: {}, // { slotNum: selectedVariantKey }
+      selectedVariationOverride: null,
+      hiddenLayers: new Set(),
+      editModalCallback: null,
+      lightboxCgKey: null,
+      activeAudioObj: null
+    };
+
+    // IndexedDB Helper for saving games permanently inside iPhone Safari / Desktop Browser
+    function openGameDb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) return reject(new Error("IndexedDB not supported"));
+        const req = window.indexedDB.open("RPGStoryPlayerProDB_v4", 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("games")) {
+            db.createObjectStore("games", { keyPath: "id" });
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function saveCurrentGameToIndexedDb() {
+      try {
+        showToast("현재 게임을 기기 내부 영구 저장소(IndexedDB)에 저장하고 있습니다...");
+        const db = await openGameDb();
+        const serializable = JSON.parse(JSON.stringify(state.project));
+        // Convert active blob/lazy files for small/medium projects or keep metadata
+        const tx = db.transaction("games", "readwrite");
+        tx.objectStore("games").put(serializable);
+        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+        showToast(`'${state.project.title}' 게임이 기기에 영구 저장되었습니다! 다음 접속 시 자동 로드됩니다.`);
+      } catch (e) {
+        showToast(`기기 저장 안내: ${e.message}`);
+      }
+    }
+
+    async function loadSavedGamesFromIndexedDb() {
+      try {
+        const db = await openGameDb();
+        const tx = db.transaction("games", "readonly");
+        const req = tx.objectStore("games").getAll();
+        const games = await new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+        if (Array.isArray(games) && games.length > 0) {
+          for (const g of games) {
+            if (!state.library.some(x => x.id === g.id)) {
+              state.library.unshift(g);
+            }
+          }
+          switchActiveGame(state.library[0].id);
+        }
+      } catch (e) {}
+    }
+
+    const RPG_COLORS = {
+      0: "#ffffff", 1: "#20a0d6", 2: "#ff784c", 3: "#66cc40",
+      4: "#99ccff", 5: "#ccc0ff", 6: "#ffffa0", 7: "#808080",
+      8: "#c0c0c0", 9: "#2080cc", 10: "#ff3810", 11: "#00a010",
+      12: "#3e9ade", 13: "#a098ff", 14: "#ffcc20", 15: "#000000",
+      16: "#84aaff", 17: "#ffff40", 18: "#ff2020", 19: "#202040",
+      20: "#e08040", 21: "#f0c040", 22: "#4080c0", 23: "#40c0f0",
+      24: "#80ff80", 25: "#c08080", 26: "#8080ff", 27: "#ff80ff",
+      28: "#00a040", 29: "#00e060", 30: "#a060e0", 31: "#c080ff"
+    };
+
+    function showToast(msg) {
+      const banner = document.getElementById("toastBanner");
+      banner.textContent = msg;
+      banner.classList.remove("hidden");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => banner.classList.add("hidden"), 4500);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function openEditModal(title, currentVal, onSave) {
+      const modal = document.getElementById("editModal");
+      document.getElementById("editModalTitle").textContent = title;
+      const inputEl = document.getElementById("editModalInput");
+      inputEl.value = currentVal || "";
+      state.editModalCallback = onSave;
+      modal.classList.remove("hidden");
+      inputEl.focus();
+    }
+
+    // =========================================================================
+    // 4. CONTROL CHARACTER PARSER v4 (Fixes \ac, \ar, and Speaker \N[10]!)
+    // =========================================================================
+    function replaceActorAndVarCodes(str) {
+      let s = String(str || "");
+      // \N[n] Actor name
+      s = s.replace(/\\[nN]\[(\d+)\]/g, (_, id) => {
+        const actorName = state.project.actors && state.project.actors[Number(id)];
+        return actorName || "";
+      });
+      // \P[n] Party member
+      s = s.replace(/\\[pP]\[(\d+)\]/g, (_, id) => {
+        const actorName = state.project.actors && state.project.actors[Number(id)];
+        return actorName || state.protagonistName || "";
+      });
+      // \V[n] Variable
+      s = s.replace(/\\[vV]\[(\d+)\]/g, (_, id) => {
+        const v = state.project.variables && state.project.variables[Number(id)];
+        if (v !== undefined && v !== 0 && v !== "0" && v !== "") return String(v);
+        return state.protagonistName || (state.project.actors && state.project.actors[1]) || "주인공";
+      });
+      return s;
+    }
+
+    function cleanSpeakerName(rawSpeaker) {
+      let s = replaceActorAndVarCodes(rawSpeaker);
+      // Strip any control codes inside speaker name (\C[n], \FFF[...], \ac, etc.)
+      s = s.replace(/\\[A-Za-z_]{1,15}\[[^\]]*\]/g, "");
+      s = s.replace(/\\[A-Za-z_]{1,8}(?![A-Za-z0-9_])/g, "");
+      s = s.trim();
+      return translateJpName(s || "내레이션");
+    }
+
+    function formatRpgText(rawText, defaultSpeaker) {
+      let text = String(rawText || "");
+      let extractedSpeaker = defaultSpeaker || "";
+
+      const speakerRegex = /\\(?:[nN]|name|kw)<([^>]+)>|<name:([^>]+)>/g;
+      let match;
+      while ((match = speakerRegex.exec(text)) !== null) {
+        extractedSpeaker = match[1] || match[2] || extractedSpeaker;
+      }
+      text = text.replace(speakerRegex, "");
+
+      text = replaceActorAndVarCodes(text);
+
+      if (state.protagonistName) {
+        text = text.replace(/([가-힣],\s*)0([!?.\s])/g, `$1${state.protagonistName}$2`);
+      }
+
+      text = text.replace(/\\rb\[([^,\]]+),([^\]]+)\]/gi, "$1($2)");
+
+      // Strip all bracketed plugin codes except \C[n] and \FS[n]
+      text = text.replace(/\\(?!c\[|C\[|fs\[|FS\[)[A-Za-z_]{1,15}\[[^\]]*\]/g, "");
+      text = text.replace(/\\[.|!^><]/g, "");
+      text = text.replace(/<(?:WordWrap|br|line)>/gi, "");
+
+      // Process line by line to support \ac (Align Center) and \ar (Align Right)!
+      const rawLines = text.split("\n");
+      let scaleLevel = 0;
+      let currentColor = null;
+
+      function openSpan() {
+        const classes = [];
+        if (scaleLevel === 1) classes.push("rpg-scale-up-1");
+        else if (scaleLevel >= 2) classes.push("rpg-scale-up-2");
+        else if (scaleLevel === -1) classes.push("rpg-scale-down-1");
+        else if (scaleLevel <= -2) classes.push("rpg-scale-down-2");
+        const style = currentColor ? `color:${currentColor};` : "";
+        return `<span class="${classes.join(" ")}" style="${style}">`;
+      }
+
+      const renderedLines = rawLines.map(line => {
+        let alignClass = "";
+        if (/\\ac(?![a-zA-Z0-9_])/i.test(line)) {
+          alignClass = "text-center block w-full";
+          line = line.replace(/\\ac(?![a-zA-Z0-9_])/gi, "");
+        } else if (/\\ar(?![a-zA-Z0-9_])/i.test(line)) {
+          alignClass = "text-right block w-full";
+          line = line.replace(/\\ar(?![a-zA-Z0-9_])/gi, "");
+        } else if (/\\al(?![a-zA-Z0-9_])/i.test(line)) {
+          line = line.replace(/\\al(?![a-zA-Z0-9_])/gi, "");
+        }
+
+        // Strip any remaining unbracketed 1~6 letter escape codes like \fr, \fb, \fi, \clear, \wait, \nw
+        line = line.replace(/\\(?!c\[|C\[|fs\[|FS\[|\{|\})[a-zA-Z]{1,8}(?![a-zA-Z0-9_\[])/g, "");
+
+        let lineHtml = openSpan();
+        let i = 0;
+        while (i < line.length) {
+          if (line[i] === "\\") {
+            const rest = line.slice(i);
+            const colorMatch = rest.match(/^\\[cC]\[(\d+)\]/);
+            if (colorMatch) {
+              const code = Number(colorMatch[1]);
+              currentColor = code === 0 ? null : (RPG_COLORS[code] || "#fbbf24");
+              lineHtml += `</span>` + openSpan();
+              i += colorMatch[0].length;
+              continue;
+            }
+            const fsMatch = rest.match(/^\\FS\[(\d+)\]/i);
+            if (fsMatch) {
+              const px = Number(fsMatch[1]);
+              scaleLevel = px >= 30 ? 2 : (px >= 24 ? 1 : (px <= 15 ? -1 : 0));
+              lineHtml += `</span>` + openSpan();
+              i += fsMatch[0].length;
+              continue;
+            }
+            if (rest.startsWith("\\{")) {
+              scaleLevel = Math.min(2, scaleLevel + 1);
+              lineHtml += `</span>` + openSpan();
+              i += 2;
+              continue;
+            }
+            if (rest.startsWith("\\}")) {
+              scaleLevel = Math.max(-2, scaleLevel - 1);
+              lineHtml += `</span>` + openSpan();
+              i += 2;
+              continue;
+            }
+          }
+          lineHtml += escapeHtml(line[i]);
+          i++;
+        }
+        lineHtml += "</span>";
+        return alignClass ? `<span class="${alignClass}">${lineHtml}</span>` : lineHtml;
+      });
+
+      return {
+        speaker: cleanSpeakerName(extractedSpeaker),
+        html: renderedLines.join("<br/>")
+      };
+    }
+
+    // =========================================================================
+    // 5. ASSET RESOLVER (Fixed dictionary parameter so parsing links 100% of CGs!)
+    // =========================================================================
+    function resolveAssetInDict(rawName, dict, ignoreDeleted = false) {
+      if (!rawName || !dict) return null;
+      if (dict[rawName] && (ignoreDeleted || !state.deletedCgKeys.has(rawName))) return dict[rawName];
+
+      const cleanTarget = String(rawName)
+        .normalize("NFC")
+        .toLowerCase()
+        .replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogg|m4a|rpgmvo)$/i, "")
+        .split("/")
+        .pop()
+        .trim();
+
+      for (const [k, v] of Object.entries(dict)) {
+        if (!ignoreDeleted && state.deletedCgKeys.has(k)) continue;
+        const cleanK = k.normalize("NFC").toLowerCase().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogg|m4a|rpgmvo)$/i, "").split("/").pop().trim();
+        if (cleanK === cleanTarget) return v;
+      }
+
+      const prefixTarget = cleanTarget.replace(/\\v\[\d+\]|\$\{[^}]+\}|_\d+$/gi, "");
+      if (prefixTarget.length >= 3) {
+        for (const [k, v] of Object.entries(dict)) {
+          if (!ignoreDeleted && state.deletedCgKeys.has(k)) continue;
+          const cleanK = k.normalize("NFC").toLowerCase();
+          if (cleanK.startsWith(prefixTarget)) return v;
+        }
+      }
+      return null;
+    }
+
+    function resolveCgAssetSmart(rawName) {
+      return resolveAssetInDict(rawName, state.project.cgAssets, false);
+    }
+
+    function getVariationPrefix(name) {
+      const s = String(name || "");
+      const m = s.match(/^(.+?)(?:_[0-9a-zA-Z()]{1,12}|\s*\d+)$/);
+      return m ? m[1] : s;
+    }
+
+    function getShortVariationLabel(fullKey, prefix) {
+      if (!fullKey) return "";
+      if (fullKey.startsWith(prefix) && fullKey.length > prefix.length) {
+        return fullKey.slice(prefix.length).replace(/^[_-\s]+/, "");
+      }
+      return fullKey;
+    }
+
+    // =========================================================================
+    // 6. SMART AUTO-CROP / AUTO-ZOOM CG COMPOSITOR & 4x2 FACE PORTRAIT RENDERER
+    // =========================================================================
+    const imageCache = new Map();
+    const offscreenCanvas = document.createElement("canvas");
+    offscreenCanvas.width = 816;
+    offscreenCanvas.height = 624;
+
+    async function ensureAssetBlobUrl(asset) {
+      if (!asset) return null;
+      if (asset.blobUrl) return asset.blobUrl;
+      if (asset.lazyFile) {
+        try {
+          const lower = (asset.lazyFile.name || "").toLowerCase();
+          if (/\.(rpgmvp|png_)$/i.test(lower)) {
+            const buf = new Uint8Array(await asset.lazyFile.arrayBuffer());
+            const dec = decryptRpgmvpBytes(buf);
+            asset.blobUrl = URL.createObjectURL(new Blob([dec], { type: "image/png" }));
+          } else if (/\.(rpgmvo|ogg_)$/i.test(lower)) {
+            const buf = new Uint8Array(await asset.lazyFile.arrayBuffer());
+            const dec = decryptRpgmvoBytes(buf);
+            asset.blobUrl = URL.createObjectURL(new Blob([dec], { type: "audio/ogg" }));
+          } else {
+            asset.blobUrl = URL.createObjectURL(asset.lazyFile);
+          }
+          return asset.blobUrl;
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    function loadCachedImage(url) {
+      if (imageCache.has(url)) return Promise.resolve(imageCache.get(url));
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          imageCache.set(url, img);
+          resolve(img);
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    // Compute non-transparent pixel bounding box on offscreen canvas so small CGs can be zoomed to fill the stage!
+    function getNonEmptyBoundingBox(ctx, w, h) {
+      try {
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let minX = w, minY = h, maxX = 0, maxY = 0;
+        let found = false;
+        for (let y = 0; y < h; y += 2) {
+          for (let x = 0; x < w; x += 2) {
+            const alpha = data[(y * w + x) * 4 + 3];
+            if (alpha > 15) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              found = true;
+            }
+          }
+        }
+        if (!found) return null;
+        const bw = Math.max(16, maxX - minX + 4);
+        const bh = Math.max(16, maxY - minY + 4);
+        return { x: Math.max(0, minX - 2), y: Math.max(0, minY - 2), w: Math.min(w, bw), h: Math.min(h, bh) };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function renderActiveCgStage() {
+      const canvas = document.getElementById("cgCanvas");
+      const moviePlayer = document.getElementById("moviePlayer");
+      if (!canvas || !moviePlayer) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const statusDot = document.getElementById("cgStatusDot");
+      const statusTextEl = document.getElementById("cgStatusText");
+      const varContainer = document.getElementById("cgVariationContainer");
+      const varSelect = document.getElementById("cgVariationSelect");
+      const btnToggleLayer = document.getElementById("btnToggleLayerDrawer");
+      const layerPills = document.getElementById("cgLayerPills");
+      const outfitBar = document.getElementById("outfitSlotSwitcherBar");
+      const outfitSelectsBox = document.getElementById("outfitSelectsContainer");
+
+      const slotEntries = Object.entries(state.activePictureSlots || {})
+        .map(([slot, spec]) => {
+          const obj = typeof spec === "string" ? { key: spec, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } : spec;
+          return [Number(slot), obj];
+        })
+        .filter(([, obj]) => obj && obj.key && (obj.opacity === undefined || obj.opacity > 0))
+        .sort((a, b) => a[0] - b[0]);
+
+      if (slotEntries.length === 0) {
+        moviePlayer.pause();
+        moviePlayer.classList.add("hidden");
+        canvas.classList.remove("hidden");
+        statusDot.className = "w-2 h-2 rounded-full bg-slate-500";
+        statusTextEl.textContent = "표시 중인 CG 없음";
+        varContainer.classList.add("hidden");
+        btnToggleLayer.classList.add("hidden");
+        outfitBar.classList.add("hidden");
+        layerPills.innerHTML = "";
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "500 14px 'Noto Sans KR', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("현재 대사에 지정된 CG나 동영상이 없습니다", w / 2, h / 2);
+        return;
+      }
+
+      const topSlot = slotEntries[slotEntries.length - 1][0];
+      const topObj = slotEntries[slotEntries.length - 1][1];
+      const topKey = state.selectedVariationOverride || state.slotVariantOverrides[topSlot] || topObj.key;
+      const topAsset = resolveCgAssetSmart(topKey);
+
+      if (topAsset && topAsset.mediaType === "video") {
+        const videoUrl = await ensureAssetBlobUrl(topAsset);
+        canvas.classList.add("hidden");
+        moviePlayer.classList.remove("hidden");
+        if (videoUrl && moviePlayer.src !== videoUrl) {
+          moviePlayer.src = videoUrl;
+          moviePlayer.play().catch(() => {});
+        }
+        statusDot.className = "w-2 h-2 rounded-full bg-sky-400";
+        statusTextEl.textContent = `🎬 동영상 재생: movies/${topAsset.name}`;
+        varContainer.classList.add("hidden");
+        btnToggleLayer.classList.add("hidden");
+        outfitBar.classList.add("hidden");
+        return;
+      }
+
+      moviePlayer.pause();
+      moviePlayer.classList.add("hidden");
+      canvas.classList.remove("hidden");
+
+      statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+      statusTextEl.textContent = topAsset
+        ? `${topAsset.folder || "img/pictures"}/${topAsset.name} (레이어 ${slotEntries.length}개)`
+        : `${topKey} (레이어 ${slotEntries.length}개)`;
+
+      // Render Multi-Outfit / Slot Variants Switcher Bar if any slot has multiple outfit options!
+      const slotsWithVariants = slotEntries.filter(([, spec]) => Array.isArray(spec.variants) && spec.variants.length > 1);
+      if (slotsWithVariants.length > 0) {
+        outfitBar.classList.remove("hidden");
+        outfitSelectsBox.innerHTML = slotsWithVariants.map(([slotNum, spec]) => {
+          const curVal = state.slotVariantOverrides[slotNum] || spec.key;
+          return `
+            <select data-slot-var="${slotNum}" class="bg-slate-900 border border-amber-500/40 rounded px-1.5 py-0.5 text-[10px] font-mono text-amber-200">
+              ${spec.variants.map(vKey => `<option value="${escapeHtml(vKey)}" ${vKey === curVal ? "selected" : ""}>#${slotNum}: ${escapeHtml(vKey)}</option>`).join("")}
+            </select>
+          `;
+        }).join("");
+        outfitSelectsBox.querySelectorAll("[data-slot-var]").forEach(sel => {
+          sel.addEventListener("change", (e) => {
+            const sNum = Number(sel.getAttribute("data-slot-var"));
+            state.slotVariantOverrides[sNum] = e.target.value;
+            renderActiveCgStage();
+          });
+        });
+      } else {
+        outfitBar.classList.add("hidden");
+      }
+
+      // Draw onto offscreen canvas first, then Smart-Zoom onto main canvas!
+      const offCtx = offscreenCanvas.getContext("2d");
+      offCtx.clearRect(0, 0, w, h);
+
+      let drewAny = false;
+      const singleLayerMode = (slotEntries.length === 1);
+
+      for (let idx = 0; idx < slotEntries.length; idx++) {
+        if (state.hiddenLayers.has(idx)) continue;
+        const [slotNum, spec] = slotEntries[idx];
+        const effectiveKey = (slotNum === topSlot && state.selectedVariationOverride)
+          ? state.selectedVariationOverride
+          : (state.slotVariantOverrides[slotNum] || spec.key);
+        const asset = resolveCgAssetSmart(effectiveKey);
+        if (!asset) continue;
+        const url = await ensureAssetBlobUrl(asset);
+        if (!url) continue;
+        const img = await loadCachedImage(url);
+        if (img && img.width > 0) {
+          offCtx.save();
+          offCtx.globalAlpha = Math.max(0, Math.min(1, (spec.opacity ?? 255) / 255));
+
+          if (singleLayerMode && state.smartZoomCg) {
+            // Single CG with Smart Zoom: always scale to fill the 816x624 canvas cleanly!
+            const scale = Math.min(w / img.width, h / img.height);
+            const dw = img.width * scale;
+            const dh = img.height * scale;
+            offCtx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+          } else {
+            const sx = (spec.scaleX ?? 100) / 100;
+            const sy = (spec.scaleY ?? 100) / 100;
+            const dw = img.width * sx;
+            const dh = img.height * sy;
+            if ((spec.x || spec.y) && img.width <= w && img.height <= h) {
+              const dx = spec.origin === 1 ? spec.x - dw / 2 : spec.x;
+              const dy = spec.origin === 1 ? spec.y - dh / 2 : spec.y;
+              offCtx.drawImage(img, dx, dy, dw, dh);
+            } else {
+              const fitScale = Math.min(w / img.width, h / img.height);
+              const fw = img.width * fitScale * sx;
+              const fh = img.height * fitScale * sy;
+              const fx = (w - fw) / 2;
+              const fy = (h - fh) / 2;
+              offCtx.drawImage(img, fx, fy, fw, fh);
+            }
+          }
+          offCtx.restore();
+          drewAny = true;
+        }
+      }
+
+      if (!drewAny) {
+        ctx.fillStyle = "#111827";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "500 14px 'Noto Sans KR', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`CG 리소스(${topKey})를 찾을 수 없습니다.`, w / 2, h / 2);
+      } else if (state.smartZoomCg) {
+        // Auto-Crop empty margins and zoom the artwork to fill 96% of the stage!
+        const bbox = getNonEmptyBoundingBox(offCtx, w, h);
+        if (bbox && (bbox.w < w * 0.85 || bbox.h < h * 0.85)) {
+          const zoomScale = Math.min((w * 0.96) / bbox.w, (h * 0.96) / bbox.h);
+          const zw = bbox.w * zoomScale;
+          const zh = bbox.h * zoomScale;
+          ctx.drawImage(offscreenCanvas, bbox.x, bbox.y, bbox.w, bbox.h, (w - zw) / 2, (h - zh) / 2, zw, zh);
+        } else {
+          ctx.drawImage(offscreenCanvas, 0, 0);
+        }
+      } else {
+        ctx.drawImage(offscreenCanvas, 0, 0);
+      }
+
+      // Variation preset dropdown
+      if (topAsset) {
+        const allKeys = Object.keys(state.project.cgAssets || {}).filter(k => !state.deletedCgKeys.has(k));
+        const prefix = topAsset.groupPrefix || getVariationPrefix(topAsset.name);
+        const siblings = allKeys.filter(k => {
+          const a = state.project.cgAssets[k];
+          const kPrefix = (a && a.groupPrefix) || getVariationPrefix(k);
+          return kPrefix === prefix;
+        });
+
+        if (siblings.length > 1) {
+          varContainer.classList.remove("hidden");
+          varSelect.innerHTML = siblings.map(k => {
+            const a = state.project.cgAssets[k];
+            const shortLabel = (a && a.diffLabel) || getShortVariationLabel(k, prefix) || k;
+            return `<option value="${escapeHtml(k)}" ${k === topAsset.name ? "selected" : ""}>${escapeHtml(shortLabel)}</option>`;
+          }).join("");
+        } else {
+          varContainer.classList.add("hidden");
+        }
+      } else {
+        varContainer.classList.add("hidden");
+      }
+
+      btnToggleLayer.classList.remove("hidden");
+      btnToggleLayer.textContent = `겹침 레이어 (${slotEntries.length}) ▾`;
+      layerPills.innerHTML = slotEntries.map(([slotNum, spec], idx) => {
+        const isHidden = state.hiddenLayers.has(idx);
+        const shownKey = state.slotVariantOverrides[slotNum] || spec.key;
+        return `<button type="button" data-layer-idx="${idx}" class="w-full text-left px-2.5 py-1 rounded text-[11px] font-mono border transition flex items-center justify-between ${
+          isHidden
+            ? "bg-slate-900 border-slate-800 text-slate-500 line-through"
+            : "bg-indigo-950/60 border-indigo-500/40 text-indigo-200"
+        }">
+          <span class="truncate">#${slotNum}: ${escapeHtml(shownKey)}</span>
+          <span class="text-[10px] ml-1">${isHidden ? "숨김" : "표시중"}</span>
+        </button>`;
+      }).join("");
+
+      layerPills.querySelectorAll("[data-layer-idx]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const idx = Number(btn.getAttribute("data-layer-idx"));
+          if (state.hiddenLayers.has(idx)) state.hiddenLayers.delete(idx);
+          else state.hiddenLayers.add(idx);
+          renderActiveCgStage();
+        });
+      });
+    }
+
+    // Renders Real RPG Maker 4x2 Cropped Character Face Portrait (`img/faces/`)!
+    async function renderFacePortrait(step, speakerName) {
+      const c = document.getElementById("faceCanvas");
+      if (!c) return;
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      if (step && step.faceName) {
+        const faceAsset = resolveAssetInDict(step.faceName, state.project.faceAssets, true);
+        if (faceAsset) {
+          const url = await ensureAssetBlobUrl(faceAsset);
+          if (url) {
+            const img = await loadCachedImage(url);
+            if (img && img.width > 0) {
+              const fIdx = Number(step.faceIndex || 0);
+              // Standard RPG Maker Face sheet is a 4 columns x 2 rows grid (unless single face image)
+              if (img.width >= img.height * 1.5) {
+                const cellW = img.width / 4;
+                const cellH = img.height / 2;
+                const sx = (fIdx % 4) * cellW;
+                const sy = Math.floor(fIdx / 4) * cellH;
+                ctx.drawImage(img, sx, sy, cellW, cellH, 0, 0, c.width, c.height);
+              } else {
+                ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, c.width, c.height);
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      // Fallback stylish initial avatar when the event doesn't specify a face graphic
+      const grad = ctx.createLinearGradient(0, 0, c.width, c.height);
+      grad.addColorStop(0, (step && step.faceColor) || "#6366f1");
+      grad.addColorStop(1, "#1e1b4b");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = "rgba(255,255,255,0.94)";
+      ctx.font = "bold 36px 'Noto Sans KR', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const cleanName = String(speakerName || "대사").replace(/\([^)]*\)/g, "").trim();
+      ctx.fillText(cleanName.charAt(0) || "대", c.width / 2, c.height / 2 - 10);
+
+      ctx.font = "14px 'Noto Sans KR', sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.82)";
+      ctx.fillText(cleanName.slice(0, 6), c.width / 2, c.height - 22);
+    }
+
+    // =========================================================================
+    // 7. CONTENT STATS, VALID PAGES, & SYMBOLIC WALKTHROUGH ORDER ENGINE
+    // =========================================================================
+    function analyzeStepsStats(steps) {
+      let dialogueCount = 0;
+      let cgKeysSet = new Set();
+      let branchCount = 0;
+      for (const s of (steps || [])) {
+        if (s.type === "dialogue") {
+          dialogueCount++;
+          if (s.pictureSnapshot) {
+            Object.values(s.pictureSnapshot).forEach(v => {
+              const k = typeof v === "string" ? v : v?.key;
+              if (k && !state.deletedCgKeys.has(k)) cgKeysSet.add(k);
+            });
+          }
+        } else if (s.type === "cg" || s.type === "movie") {
+          if (s.cgKey && !state.deletedCgKeys.has(s.cgKey)) cgKeysSet.add(s.cgKey);
+        } else if (s.type === "branch") {
+          branchCount++;
+          for (const opt of (s.options || [])) {
+            const sub = analyzeStepsStats(opt.steps || []);
+            dialogueCount += sub.dialogueCount;
+            sub.cgKeys.forEach(k => cgKeysSet.add(k));
+            branchCount += sub.branchCount;
+          }
+        }
+      }
+      return { dialogueCount, cgCount: cgKeysSet.size, cgKeys: cgKeysSet, branchCount };
+    }
+
+    function getValidPages(event) {
+      const allPages = (event && event.pages) || [];
+      return allPages.filter(p => {
+        const st = analyzeStepsStats(p.steps);
+        return st.dialogueCount > 0 || st.cgCount > 0;
+      });
+    }
+
+    function getEventContentSignature(ev) {
+      const validPages = getValidPages(ev);
+      if (validPages.length === 0) return "EMPTY";
+      const parts = validPages.map(p => {
+        const texts = (p.steps || []).map(s => {
+          if (s.type === "dialogue") return s.rawText;
+          if (s.type === "branch") return JSON.stringify(s.options?.map(o => o.label));
+          return s.cgKey || "";
+        }).join("|");
+        return `${ev.storyReason || ""}::${texts}`;
+      });
+      return parts.join("||");
+    }
+
+    function isHudOrSystemDummyEvent(ev, st) {
+      if (st.dialogueCount > 0) return false;
+      const name = String(ev.name || "");
+      if (/アイコン|日付|時間|天気|時計|ゲージ|HUD|UI|移動直後|テンプレート|초기화|아이콘/i.test(name)) {
+        return true;
+      }
+      return st.dialogueCount === 0 && st.cgCount > 0 && ev.isParallelOrHud;
+    }
+
+    function getFilteredAndMergedEvents(map) {
+      if (!map || !Array.isArray(map.events)) return [];
+      const rawEvents = map.events.filter(ev => {
+        if (state.hiddenEvents.has(`${state.activeGameId}_e_${map.id}_${ev.id}`)) return false;
+        const validPages = getValidPages(ev);
+        if (validPages.length === 0) return false;
+        const st = analyzeStepsStats(validPages[0].steps);
+        if (state.hideSystemHudEvents && isHudOrSystemDummyEvent(ev, st)) return false;
+        if (state.sceneFilter === "cg" && st.cgCount === 0) return false;
+        if (state.sceneFilter === "branch" && st.branchCount === 0) return false;
+        return true;
+      });
+
+      let result = [];
+      if (state.mergeIdenticalEvents) {
+        const sigMap = new Map();
+        for (const ev of rawEvents) {
+          const sig = getEventContentSignature(ev);
+          if (sig !== "EMPTY" && sigMap.has(sig)) {
+            const existing = sigMap.get(sig);
+            existing.mergedIds = existing.mergedIds || [existing.id];
+            if (!existing.mergedIds.includes(ev.id)) existing.mergedIds.push(ev.id);
+          } else {
+            const cloneEv = { ...ev, mergedIds: ev.mergedIds ? [...ev.mergedIds] : [ev.id] };
+            sigMap.set(sig, cloneEv);
+            result.push(cloneEv);
+          }
+        }
+      } else {
+        result = rawEvents;
+      }
+
+      result.sort((a, b) => (a.storyOrder || a.id) - (b.storyOrder || b.id));
+      return result;
+    }
+
+    function getDisplayMapName(m) {
+      const key = `${state.activeGameId}_m_${m.id}`;
+      return translateJpName(m.name, state.customMapNames, key);
+    }
+
+    function getDisplayEventName(mapId, ev) {
+      const key = `${state.activeGameId}_e_${mapId}_${ev.id}`;
+      if (state.customEventNames[key]) return state.customEventNames[key];
+      let baseName = translateJpName(ev.name, state.customEventNames, key);
+      if (ev.mergedIds && ev.mergedIds.length > 1 && !baseName.includes("병합됨")) {
+        const firstId = String(ev.mergedIds[0]).padStart(3, "0");
+        const lastId = String(ev.mergedIds[ev.mergedIds.length - 1]).padStart(3, "0");
+        baseName = baseName.replace(/^EV\d{3}:/, `EV${firstId}~EV${lastId}:`) + ` (동일 ${ev.mergedIds.length}개 병합됨)`;
+      }
+      return baseName;
+    }
+
+    // =========================================================================
+    // 8. UI RENDERERS
+    // =========================================================================
+    function renderLibraryHeaderSelect() {
+      const sel = document.getElementById("gameLibrarySelect");
+      document.getElementById("libCountText").textContent = String(state.library.length);
+      sel.innerHTML = state.library.map(g => `
+        <option value="${escapeHtml(g.id)}" ${g.id === state.activeGameId ? "selected" : ""}>
+          🎮 ${escapeHtml(g.title)} (${(g.maps || []).length}맵)
+        </option>
+      `).join("");
+    }
+
+    function switchActiveGame(gameId) {
+      const found = state.library.find(g => g.id === gameId);
+      if (!found) return;
+      state.activeGameId = found.id;
+      state.project = found;
+      state.activePictureSlots = {};
+      state.slotVariantOverrides = {};
+      state.selectedVariationOverride = null;
+      const firstMap = (found.maps || [])[0];
+      state.selectedMapId = firstMap ? firstMap.id : 1;
+      renderLibraryHeaderSelect();
+      renderMapsList();
+      const firstEvs = getFilteredAndMergedEvents(firstMap);
+      if (firstEvs[0]) selectEvent(firstEvs[0].id);
+      renderGalleryView();
+      renderLibraryTab();
+      renderStoryOrderTimeline();
+      triggerBackgroundNeuralTranslation(found);
+    }
+
+    function getCurrentMap() {
+      return (state.project.maps || []).find(m => m.id === state.selectedMapId) || (state.project.maps || [])[0];
+    }
+
+    function getCurrentEvent() {
+      const map = getCurrentMap();
+      if (!map) return null;
+      const mergedList = getFilteredAndMergedEvents(map);
+      return mergedList.find(e => e.id === state.selectedEventId) || (map.events || []).find(e => e.id === state.selectedEventId) || mergedList[0];
+    }
+
+    function updateHiddenCountBadge() {
+      const total = state.hiddenMaps.size + state.hiddenEvents.size + state.deletedCgKeys.size;
+      document.getElementById("hiddenCountBadge").textContent = String(total);
+    }
+
+    function renderMapsList() {
+      const container = document.getElementById("mapListContainer");
+      const query = (document.getElementById("mapSearchInput").value || "").trim().toLowerCase();
+
+      const maps = (state.project.maps || []).filter(m => {
+        if (state.hiddenMaps.has(`${state.activeGameId}_m_${m.id}`)) return false;
+        const validEvs = getFilteredAndMergedEvents(m);
+        if (validEvs.length === 0 && !query) return false;
+        const dispName = getDisplayMapName(m).toLowerCase();
+        if (!query) return true;
+        if (dispName.includes(query) || m.name.toLowerCase().includes(query)) return true;
+        return validEvs.some(ev => getDisplayEventName(m.id, ev).toLowerCase().includes(query));
+      });
+
+      document.getElementById("mapCountBadge").textContent = `${maps.length}개 장소`;
+
+      container.innerHTML = maps.map(m => {
+        const isSelected = m.id === state.selectedMapId;
+        const disp = getDisplayMapName(m);
+        const isStartMap = m.id === state.project.startMapId;
+        return `
+          <div class="group flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs transition ${
+            isSelected ? "bg-indigo-600 text-white font-semibold shadow" : "bg-slate-950/60 hover:bg-slate-800/80 text-slate-300"
+          }">
+            <button type="button" data-map-id="${m.id}" class="flex-1 text-left truncate flex items-center gap-1.5 min-w-0" title="${escapeHtml(disp)}">
+              ${isStartMap ? `<span class="px-1 py-0.2 rounded bg-emerald-500/30 text-emerald-200 text-[9px] font-bold flex-shrink-0">시작</span>` : ""}
+              <span class="truncate">${escapeHtml(disp)}</span>
+            </button>
+            <button type="button" data-rename-map="${m.id}" title="장소 이름 수정" class="opacity-70 hover:opacity-100 px-1 text-[10px]">✎</button>
+            <button type="button" data-hide-map="${m.id}" title="이 장소 삭제/숨김" class="opacity-70 hover:opacity-100 px-1 text-[10px] text-rose-300">✕</button>
+          </div>
+        `;
+      }).join("");
+
+      container.querySelectorAll("[data-map-id]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedMapId = Number(btn.getAttribute("data-map-id"));
+          const map = getCurrentMap();
+          const evs = getFilteredAndMergedEvents(map);
+          if (evs[0]) selectEvent(evs[0].id);
+          renderMapsList();
+        });
+      });
+
+      container.querySelectorAll("[data-rename-map]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const mapId = Number(btn.getAttribute("data-rename-map"));
+          const m = (state.project.maps || []).find(x => x.id === mapId);
+          if (!m) return;
+          const key = `${state.activeGameId}_m_${mapId}`;
+          openEditModal("장소(맵) 이름 수정", getDisplayMapName(m), (newVal) => {
+            if (newVal.trim()) state.customMapNames[key] = newVal.trim();
+            renderMapsList();
+            renderStoryOrderTimeline();
+          });
+        });
+      });
+
+      container.querySelectorAll("[data-hide-map]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const mapId = Number(btn.getAttribute("data-hide-map"));
+          state.hiddenMaps.add(`${state.activeGameId}_m_${mapId}`);
+          updateHiddenCountBadge();
+          renderMapsList();
+          renderStoryOrderTimeline();
+          showToast("해당 장소를 삭제(숨김)하고 스토리 순서를 자동으로 재정렬했습니다.");
+        });
+      });
+    }
+
+    function renderEventsList() {
+      const map = getCurrentMap();
+      const container = document.getElementById("eventListContainer");
+      if (!map) {
+        container.innerHTML = "";
+        return;
+      }
+
+      const events = getFilteredAndMergedEvents(map);
+      document.getElementById("eventCountBadge").textContent = `${events.length}개 이벤트`;
+
+      container.innerHTML = events.map((ev, orderIdx) => {
+        const validPages = getValidPages(ev);
+        const st = validPages.reduce((acc, p) => {
+          const s = analyzeStepsStats(p.steps);
+          acc.d += s.dialogueCount;
+          s.cgKeys.forEach(k => acc.c.add(k));
+          acc.b += s.branchCount;
+          return acc;
+        }, { d: 0, c: new Set(), b: 0 });
+
+        const isSelected = ev.id === state.selectedEventId;
+        const dispName = getDisplayEventName(map.id, ev);
+
+        return `
+          <div class="p-2.5 rounded-xl border transition space-y-1.5 ${
+            isSelected
+              ? "bg-indigo-950/75 border-indigo-500/70 text-white shadow"
+              : "bg-slate-950/60 border-slate-800/80 hover:border-slate-700 text-slate-300"
+          }">
+            <div class="flex items-start justify-between gap-1">
+              <button type="button" data-ev-id="${ev.id}" class="flex-1 text-left text-xs font-semibold leading-snug">
+                <span class="text-emerald-400 font-mono mr-1">#${orderIdx + 1}</span>
+                ${escapeHtml(dispName)}
+              </button>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" data-rename-ev="${ev.id}" title="이벤트 이름 수정" class="px-1 text-[10px] text-slate-400 hover:text-white">✎</button>
+                <button type="button" data-hide-ev="${ev.id}" title="이벤트 삭제 (순서 자동 재정렬)" class="px-1 text-[10px] text-rose-400 hover:text-rose-200">✕</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">대사 ${st.d}줄</span>
+              ${st.c.size > 0 ? `<span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">미디어 ${st.c.size}개</span>` : ""}
+              ${st.b > 0 ? `<span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">분기 ${st.b}</span>` : ""}
+              ${validPages.length > 1 ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">단계 ${validPages.length}개</span>` : ""}
+            </div>
+            ${ev.storyReason ? `<div class="text-[10px] text-indigo-300/80 truncate">🧭 ${escapeHtml(ev.storyReason)}</div>` : ""}
+          </div>
+        `;
+      }).join("");
+
+      container.querySelectorAll("[data-ev-id]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectEvent(Number(btn.getAttribute("data-ev-id")));
+          if (window.innerWidth < 1024) switchMainTab("vn");
+        });
+      });
+
+      container.querySelectorAll("[data-rename-ev]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const evId = Number(btn.getAttribute("data-rename-ev"));
+          const ev = events.find(x => x.id === evId);
+          if (!ev) return;
+          const key = `${state.activeGameId}_e_${map.id}_${evId}`;
+          openEditModal("이벤트 이름 수정", getDisplayEventName(map.id, ev), (newVal) => {
+            if (newVal.trim()) state.customEventNames[key] = newVal.trim();
+            renderEventsList();
+            renderPageTabs();
+            renderStoryOrderTimeline();
+          });
+        });
+      });
+
+      container.querySelectorAll("[data-hide-ev]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const evId = Number(btn.getAttribute("data-hide-ev"));
+          const targetEv = events.find(x => x.id === evId);
+          const idsToHide = (targetEv && targetEv.mergedIds) ? targetEv.mergedIds : [evId];
+          idsToHide.forEach(id => state.hiddenEvents.add(`${state.activeGameId}_e_${map.id}_${id}`));
+          updateHiddenCountBadge();
+          renderEventsList();
+          renderStoryOrderTimeline();
+          showToast("이벤트를 삭제하고 남은 이벤트들의 추론 순서를 빈자리 없이 재연결했습니다.");
+        });
+      });
+    }
+
+    function selectEvent(eventId) {
+      state.selectedEventId = eventId;
+      const ev = getCurrentEvent();
+      if (!ev) return;
+      state.selectedPageIdx = 0;
+      loadPageSteps(ev, 0);
+      renderEventsList();
+      renderPageTabs();
+      renderCurrentStep();
+      renderFullScriptView();
+    }
+
+    function loadPageSteps(ev, validPageIdx) {
+      state.activePictureSlots = {};
+      state.slotVariantOverrides = {};
+      state.selectedVariationOverride = null;
+      state.hiddenLayers.clear();
+      document.getElementById("cgLayerDrawer").classList.add("hidden");
+
+      const validPages = getValidPages(ev);
+      const page = validPages[validPageIdx] || validPages[0];
+      state.activeSteps = page ? JSON.parse(JSON.stringify(page.steps || [])) : [];
+      state.currentStepIndex = 0;
+    }
+
+    function renderPageTabs() {
+      const map = getCurrentMap();
+      const ev = getCurrentEvent();
+      const tabBox = document.getElementById("pageTabsContainer");
+      if (!ev || !map) {
+        tabBox.innerHTML = "";
+        return;
+      }
+
+      const timeline = buildStoryTimeline();
+      const foundRank = timeline.find(t => t.mapId === map.id && t.eventId === ev.id);
+      document.getElementById("activeOrderBadge").textContent = foundRank ? `추천순서 #${foundRank.rank}` : `EV${String(ev.id).padStart(3, "0")}`;
+      document.getElementById("activeEventTitle").textContent = getDisplayEventName(map.id, ev);
+      document.getElementById("storyClueText").textContent = `🧭 진행 단서: ${ev.storyReason || "일반 이벤트"}`;
+
+      const validPages = getValidPages(ev);
+      if (validPages.length <= 1) {
+        tabBox.innerHTML = "";
+        return;
+      }
+
+      tabBox.innerHTML = validPages.map((p, idx) => {
+        const st = analyzeStepsStats(p.steps);
+        const isCurrent = idx === state.selectedPageIdx;
+        return `
+          <button type="button" data-page-idx="${idx}" class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition ${
+            isCurrent
+              ? "bg-indigo-600 border-indigo-400 text-white"
+              : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+          }">
+            단계 ${idx + 1} (대사 ${st.dialogueCount}·CG ${st.cgCount})
+          </button>
+        `;
+      }).join("");
+
+      tabBox.querySelectorAll("[data-page-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedPageIdx = Number(btn.getAttribute("data-page-idx"));
+          loadPageSteps(ev, state.selectedPageIdx);
+          renderPageTabs();
+          renderCurrentStep();
+          renderFullScriptView();
+        });
+      });
+    }
+
+    function syncPictureSlotsAtStep(stepIndex) {
+      state.activePictureSlots = {};
+      const steps = state.activeSteps || [];
+      for (let i = 0; i <= stepIndex && i < steps.length; i++) {
+        const s = steps[i];
+        if (s.pictureSnapshot) {
+          for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
+            if (val === null) delete state.activePictureSlots[slot];
+            else state.activePictureSlots[slot] = val;
+          }
+        }
+        if (s.type === "cg" || s.type === "movie") {
+          state.activePictureSlots[s.slot || 1] = {
+            key: s.cgKey,
+            x: s.x || 0,
+            y: s.y || 0,
+            origin: s.origin || 0,
+            scaleX: s.scaleX ?? 100,
+            scaleY: s.scaleY ?? 100,
+            opacity: s.opacity ?? 255
+          };
+        }
+      }
+    }
+
+    function renderCurrentStep() {
+      const steps = state.activeSteps || [];
+      const branchPanel = document.getElementById("branchChoicePanel");
+      const branchGrid = document.getElementById("branchButtonsGrid");
+      const sceneEndBanner = document.getElementById("sceneEndBanner");
+      const dialogueBox = document.getElementById("dialogueBoxPro");
+      const dialogueEl = document.getElementById("dialogueText");
+      const speakerBadge = document.getElementById("speakerBadge");
+      const sourceTag = document.getElementById("sourceCommandTag");
+      const counterEl = document.getElementById("stepCounterText");
+      const btnVoice = document.getElementById("btnPlayStepVoice");
+      const btnTransfer = document.getElementById("btnTransferJump");
+
+      btnVoice.classList.add("hidden");
+      btnTransfer.classList.add("hidden");
+
+      if (steps.length === 0) {
+        branchPanel.classList.add("hidden");
+        sceneEndBanner.classList.add("hidden");
+        dialogueBox.classList.remove("scene-ended");
+        speakerBadge.textContent = "안내";
+        sourceTag.textContent = "";
+        counterEl.textContent = "0 / 0";
+        dialogueEl.innerHTML = `<span class="text-slate-400">표시할 대사가 없습니다.</span>`;
+        state.activePictureSlots = {};
+        renderActiveCgStage();
+        return;
+      }
+
+      syncPictureSlotsAtStep(state.currentStepIndex);
+      renderActiveCgStage();
+
+      const isLastStep = state.currentStepIndex >= steps.length - 1;
+      const step = steps[state.currentStepIndex];
+      counterEl.textContent = `${state.currentStepIndex + 1} / ${steps.length}`;
+
+      if (isLastStep && step.type !== "branch") {
+        sceneEndBanner.classList.remove("hidden");
+        dialogueBox.classList.add("scene-ended");
+      } else {
+        sceneEndBanner.classList.add("hidden");
+        dialogueBox.classList.remove("scene-ended");
+      }
+
+      // Show Voice playback button if step has audioKey
+      if (step.audioKey) {
+        btnVoice.classList.remove("hidden");
+        btnVoice.textContent = `🔊 ${step.audioKey}`;
+        btnVoice.onclick = async (e) => {
+          e.stopPropagation();
+          const audioAsset = resolveAssetInDict(step.audioKey, state.project.audioAssets, true);
+          if (audioAsset) {
+            const url = await ensureAssetBlobUrl(audioAsset);
+            if (url) {
+              if (state.activeAudioObj) state.activeAudioObj.pause();
+              state.activeAudioObj = new Audio(url);
+              state.activeAudioObj.play().catch(() => {});
+            }
+          }
+        };
+      }
+
+      // Show Transfer Map Jump button if step has transferMapId
+      if (step.transferMapId) {
+        const destMap = (state.project.maps || []).find(m => m.id === Number(step.transferMapId));
+        if (destMap) {
+          btnTransfer.classList.remove("hidden");
+          btnTransfer.textContent = `🚪 장소 이동: ${getDisplayMapName(destMap)} 점프 →`;
+          btnTransfer.onclick = (e) => {
+            e.stopPropagation();
+            state.selectedMapId = destMap.id;
+            renderMapsList();
+            const firstEvs = getFilteredAndMergedEvents(destMap);
+            if (firstEvs[0]) selectEvent(firstEvs[0].id);
+            showToast(`장소 이동 연출을 따라 '${getDisplayMapName(destMap)}' 맵으로 이동했습니다!`);
+          };
+        }
+      }
+
+      if (step.type === "cg" || step.type === "movie") {
+        branchPanel.classList.add("hidden");
+        speakerBadge.textContent = step.type === "movie" ? "🎬 동영상 연출" : "CG 단독 연출";
+        sourceTag.textContent = step.source || "";
+        dialogueEl.innerHTML = `<span class="text-emerald-300 font-semibold">[미디어 표시: ${escapeHtml(step.cgKey)}]</span>`;
+        renderFacePortrait(null, "CG");
+        return;
+      }
+
+      if (step.type === "dialogue") {
+        branchPanel.classList.add("hidden");
+        const parsed = formatRpgText(step.rawText, step.speaker);
+        speakerBadge.textContent = parsed.speaker;
+        sourceTag.textContent = step.source || "";
+        dialogueEl.innerHTML = parsed.html;
+        renderFacePortrait(step, parsed.speaker);
+        return;
+      }
+
+      if (step.type === "branch") {
+        branchPanel.classList.remove("hidden");
+        document.getElementById("branchPromptTitle").textContent = step.branchTitle || "선택지 / 스토리 분기";
+        speakerBadge.textContent = "분기 선택";
+        sourceTag.textContent = "";
+        dialogueEl.innerHTML = `<span class="text-indigo-200 font-medium">위쪽의 선택지 버튼 중 하나를 선택해 스토리를 이어가세요.</span>`;
+        renderFacePortrait(null, "분기");
+
+        const options = step.options || [];
+        branchGrid.innerHTML = options.map((opt, idx) => {
+          const st = analyzeStepsStats(opt.steps);
+          return `
+            <button type="button" data-branch-opt="${idx}" class="text-left p-3 rounded-xl bg-slate-900/95 hover:bg-indigo-900/60 border border-indigo-500/40 hover:border-indigo-400 transition space-y-1 shadow">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-white">${escapeHtml(translateJpName(opt.label))}</span>
+                <span class="px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 text-[10px] font-semibold flex-shrink-0">
+                  대사 ${st.dialogueCount}줄 · 미디어 ${st.cgCount}개
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">${escapeHtml(opt.preview || "")}</p>
+            </button>
+          `;
+        }).join("");
+
+        branchGrid.querySelectorAll("[data-branch-opt]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const optIdx = Number(btn.getAttribute("data-branch-opt"));
+            const chosen = options[optIdx];
+            if (!chosen) return;
+            const newSteps = JSON.parse(JSON.stringify(chosen.steps || []));
+            state.activeSteps.splice(state.currentStepIndex, 1, ...newSteps);
+            renderCurrentStep();
+          });
+        });
+      }
+    }
+
+    // =========================================================================
+    // 9. TIMELINE, FULL SCRIPT, GALLERY, LIBRARY
+    // =========================================================================
+    function buildStoryTimeline() {
+      const items = [];
+      for (const m of (state.project.maps || [])) {
+        if (state.hiddenMaps.has(`${state.activeGameId}_m_${m.id}`)) continue;
+        const evs = getFilteredAndMergedEvents(m);
+        for (const ev of evs) {
+          const validPages = getValidPages(ev);
+          if (!validPages.length) continue;
+          const st = analyzeStepsStats(validPages[0].steps);
+          if (st.dialogueCount === 0 && st.cgCount === 0) continue;
+          items.push({
+            mapId: m.id,
+            mapName: getDisplayMapName(m),
+            eventId: ev.id,
+            eventName: getDisplayEventName(m.id, ev),
+            storyOrder: ev.storyOrder || (m.id * 1000 + ev.id),
+            storyReason: ev.storyReason || `장소 #${m.id} 스토리`,
+            stats: st
+          });
+        }
+      }
+      items.sort((a, b) => a.storyOrder - b.storyOrder);
+      // Dynamically re-number 1..N after any deletion so there are NEVER gaps in the sequence!
+      items.forEach((it, idx) => { it.rank = idx + 1; });
+      return items;
+    }
+
+    function advanceNextStoryEvent() {
+      const map = getCurrentMap();
+      const ev = getCurrentEvent();
+      const timeline = buildStoryTimeline();
+      if (!timeline.length) return;
+      const curIdx = timeline.findIndex(t => map && ev && t.mapId === map.id && t.eventId === ev.id);
+      const nextItem = timeline[(curIdx + 1) % timeline.length];
+      if (nextItem) {
+        state.selectedMapId = nextItem.mapId;
+        renderMapsList();
+        selectEvent(nextItem.eventId);
+        showToast(`다음 추론 스토리(#${nextItem.rank}: ${nextItem.eventName})로 이동했습니다.`);
+      }
+    }
+
+    function renderStoryOrderTimeline() {
+      const timeline = buildStoryTimeline();
+      const box = document.getElementById("storyOrderTimeline");
+      if (!timeline.length) {
+        box.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">추론 가능한 이벤트가 없습니다.</div>`;
+        return;
+      }
+
+      box.innerHTML = timeline.map(item => `
+        <div class="bg-slate-950/85 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 transition">
+          <div class="space-y-1 min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold font-mono">추천 #${item.rank}</span>
+              <span class="text-xs text-slate-400">${escapeHtml(item.mapName)}</span>
+              <span class="text-xs sm:text-sm font-bold text-white truncate">${escapeHtml(item.eventName)}</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-[11px] text-indigo-300">
+              <span>🧭 ${escapeHtml(item.storyReason)}</span>
+              <span class="text-slate-500">|</span>
+              <span class="text-slate-300">대사 ${item.stats.dialogueCount}줄 · 미디어 ${item.stats.cgCount}개</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" data-timeline-map="${item.mapId}" data-timeline-ev="${item.eventId}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow transition">
+              감상하기 →
+            </button>
+          </div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll("[data-timeline-ev]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedMapId = Number(btn.getAttribute("data-timeline-map"));
+          renderMapsList();
+          selectEvent(Number(btn.getAttribute("data-timeline-ev")));
+          switchMainTab("vn");
+        });
+      });
+    }
+
+    function renderFullScriptView() {
+      const ev = getCurrentEvent();
+      const container = document.getElementById("fullScriptList");
+      if (!ev) {
+        container.innerHTML = "";
+        return;
+      }
+      const validPages = getValidPages(ev);
+      const page = validPages[state.selectedPageIdx] || validPages[0];
+      if (!page || !page.steps || !page.steps.length) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">이 이벤트에는 대사가 없습니다.</div>`;
+        return;
+      }
+
+      function renderNodes(steps) {
+        return (steps || []).map(s => {
+          if (s.type === "dialogue") {
+            const parsed = formatRpgText(s.rawText, s.speaker);
+            const snapKeys = s.pictureSnapshot ? Object.values(s.pictureSnapshot).map(v => typeof v === "string" ? v : v?.key).filter(Boolean) : [];
+            return `
+              <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3 space-y-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-xs font-bold">${escapeHtml(parsed.speaker)}</span>
+                    ${s.faceName ? `<span class="text-[10px] text-slate-400 font-mono">초상화: ${escapeHtml(s.faceName)}[${s.faceIndex || 0}]</span>` : ""}
+                  </div>
+                  ${snapKeys.length ? `<span class="text-[10px] text-emerald-300 font-mono">🖼 CG: ${escapeHtml(snapKeys.slice(0, 3).join(", "))}</span>` : ""}
+                </div>
+                <div class="text-slate-100 leading-relaxed" style="font-size: var(--dialogue-base-size, 19px);">${parsed.html}</div>
+              </div>
+            `;
+          }
+          if (s.type === "branch") {
+            return `
+              <div class="border-l-4 border-amber-500 bg-amber-950/15 rounded-r-xl p-3 space-y-2.5">
+                <div class="text-xs font-bold text-amber-300">❖ ${escapeHtml(s.branchTitle || "선택지 / 분기")}</div>
+                <div class="space-y-2.5 pl-2">
+                  ${(s.options || []).map(opt => `
+                    <div class="bg-slate-900/80 border border-amber-500/30 rounded-xl p-3 space-y-2">
+                      <div class="text-xs font-bold text-amber-200">▶ ${escapeHtml(translateJpName(opt.label))}</div>
+                      <div class="space-y-2">${renderNodes(opt.steps)}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            `;
+          }
+          return "";
+        }).join("");
+      }
+
+      container.innerHTML = renderNodes(page.steps);
+    }
+
+    async function renderGalleryView() {
+      const q = (document.getElementById("gallerySearchInput")?.value || "").trim().toLowerCase();
+      const assets = Object.values(state.project.cgAssets || {}).filter(a => {
+        if (state.deletedCgKeys.has(a.name)) return false;
+        if (!q) return true;
+        return a.name.toLowerCase().includes(q) || (a.label || "").toLowerCase().includes(q);
+      });
+
+      document.getElementById("galleryTotalBadge").textContent = `총 ${assets.length}개`;
+      const grid = document.getElementById("galleryGrid");
+
+      const visibleAssets = assets.slice(0, 120);
+      for (const a of visibleAssets) {
+        if (!a.blobUrl && a.lazyFile) {
+          await ensureAssetBlobUrl(a);
+        }
+      }
+
+      grid.innerHTML = visibleAssets.map(a => `
+        <div class="bg-slate-950/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl overflow-hidden flex flex-col justify-between transition group">
+          <div data-lightbox-cg="${escapeHtml(a.name)}" class="cursor-pointer relative h-36 bg-slate-900 flex items-center justify-center overflow-hidden">
+            ${a.mediaType === "video" && a.blobUrl
+              ? `<video src="${a.blobUrl}" class="w-full h-full object-contain" muted playsinline></video>`
+              : a.blobUrl
+                ? `<img src="${a.blobUrl}" alt="${escapeHtml(a.name)}" loading="lazy" class="w-full h-full object-contain group-hover:scale-105 transition duration-200" />`
+                : `<div class="text-xs text-slate-500">미리보기 준비중</div>`
+            }
+            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/75 text-[10px] ${a.usedIn ? "text-emerald-300" : "text-amber-300"} font-mono">
+              ${a.mediaType === "video" ? (a.usedIn ? "🎬 동영상 (연결됨)" : "🎬 동영상") : (a.usedIn ? "✓ 이벤트 연결됨" : "미사용 후보")}
+            </span>
+            <button type="button" data-del-cg="${escapeHtml(a.name)}" class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded bg-rose-700/90 hover:bg-rose-600 text-white text-[10px] font-bold shadow">
+              🗑 삭제
+            </button>
+          </div>
+          <div class="p-2.5 space-y-2">
+            <div class="text-xs font-bold text-white truncate font-mono" title="${escapeHtml(a.name)}">${escapeHtml(translateJpName(a.name))}</div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-open-cg-vn="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-indigo-600/25 hover:bg-indigo-600 text-indigo-200 hover:text-white text-[11px] font-semibold border border-indigo-500/30 transition">
+                뷰어 표시
+              </button>
+              ${a.usedIn ? `
+                <button type="button" data-jump-cg-ev="${a.usedIn.mapId},${a.usedIn.eventId}" class="flex-1 py-1 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/30 transition">
+                  등장 씬 이동
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      grid.querySelectorAll("[data-del-cg]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const key = btn.getAttribute("data-del-cg");
+          state.deletedCgKeys.add(key);
+          updateHiddenCountBadge();
+          renderGalleryView();
+          renderActiveCgStage();
+          showToast(`'${key}' 미디어를 삭제했습니다.`);
+        });
+      });
+
+      grid.querySelectorAll("[data-lightbox-cg]").forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.getAttribute("data-lightbox-cg");
+          const asset = state.project.cgAssets[key];
+          if (!asset || !asset.blobUrl) return;
+          state.lightboxCgKey = key;
+          document.getElementById("lightboxTitle").textContent = `${asset.folder || "img/pictures"}/${asset.name}`;
+          document.getElementById("lightboxImg").src = asset.blobUrl;
+          document.getElementById("cgLightboxModal").classList.remove("hidden");
+        });
+      });
+
+      grid.querySelectorAll("[data-open-cg-vn]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const key = btn.getAttribute("data-open-cg-vn");
+          state.activePictureSlots = { 1: { key, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } };
+          state.selectedVariationOverride = null;
+          switchMainTab("vn");
+          renderActiveCgStage();
+        });
+      });
+
+      grid.querySelectorAll("[data-jump-cg-ev]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const [mId, eId] = btn.getAttribute("data-jump-cg-ev").split(",").map(Number);
+          state.selectedMapId = mId;
+          renderMapsList();
+          selectEvent(eId);
+          switchMainTab("vn");
+        });
+      });
+    }
+
+    function renderLibraryTab() {
+      const grid = document.getElementById("libraryCardsGrid");
+      grid.innerHTML = state.library.map(g => {
+        const isCurrent = g.id === state.activeGameId;
+        const cgCount = Object.keys(g.cgAssets || {}).filter(k => !state.deletedCgKeys.has(k)).length;
+        const mapCount = (g.maps || []).length;
+        return `
+          <div class="p-4 rounded-xl border transition space-y-3 ${
+            isCurrent ? "bg-indigo-950/50 border-indigo-500" : "bg-slate-950/80 border-slate-800"
+          }">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">${escapeHtml(g.engine || "RPG Maker")}</span>
+                  ${isCurrent ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">현재 열람 중</span>` : ""}
+                </div>
+                <h5 class="text-sm font-bold text-white mt-1">${escapeHtml(g.title)}</h5>
+              </div>
+              <div class="text-xs text-slate-400 font-mono">맵 ${mapCount}개 · 미디어 ${cgCount}개</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button type="button" data-lib-select="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">이 게임 열기</button>
+              <button type="button" data-lib-rename="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">✎ 이름 변경</button>
+              ${state.library.length > 1 ? `<button type="button" data-lib-delete="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-xs text-rose-300 border border-rose-500/30">🗑 삭제</button>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      grid.querySelectorAll("[data-lib-select]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          switchActiveGame(btn.getAttribute("data-lib-select"));
+          switchMainTab("vn");
+        });
+      });
+
+      grid.querySelectorAll("[data-lib-rename]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const gId = btn.getAttribute("data-lib-rename");
+          const g = state.library.find(x => x.id === gId);
+          if (!g) return;
+          openEditModal("게임 이름 변경", g.title, (newVal) => {
+            if (newVal.trim()) g.title = newVal.trim();
+            renderLibraryHeaderSelect();
+            renderLibraryTab();
+          });
+        });
+      });
+
+      grid.querySelectorAll("[data-lib-delete]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const gId = btn.getAttribute("data-lib-delete");
+          if (state.library.length <= 1) return;
+          state.library = state.library.filter(x => x.id !== gId);
+          if (state.activeGameId === gId) switchActiveGame(state.library[0].id);
+          else { renderLibraryHeaderSelect(); renderLibraryTab(); }
+        });
+      });
+    }
+
+    // =========================================================================
+    // 10. REAL PARSER v4 (Collects All Outfits, Parses Battle Branches 301/601/603, Faces, Movies, CommonEvents & Troops!)
+    // =========================================================================
+    const PNG_HEADER_16 = new Uint8Array([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52
+    ]);
+    const OGG_HEADER_14 = new Uint8Array([
+      0x4F, 0x67, 0x67, 0x53, 0x00, 0x02, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ]);
+
+    function decryptRpgmvpBytes(u8) {
+      if (u8.length > 32 && u8[0] === 0x52 && u8[1] === 0x50 && u8[2] === 0x47 && u8[3] === 0x4D && u8[4] === 0x56) {
+        const body = u8.slice(16);
+        for (let i = 0; i < 16; i++) body[i] = PNG_HEADER_16[i];
+        return body;
+      }
+      return u8;
+    }
+
+    function decryptRpgmvoBytes(u8) {
+      if (u8.length > 32 && u8[0] === 0x52 && u8[1] === 0x50 && u8[2] === 0x47 && u8[3] === 0x4D && u8[4] === 0x56) {
+        const body = u8.slice(16);
+        for (let i = 0; i < 14; i++) body[i] = OGG_HEADER_14[i];
+        return body;
+      }
+      return u8;
+    }
+
+    function mergePictureSnapshotsWithVariants(targetPending, branchPending) {
+      for (const [slot, bSpec] of Object.entries(branchPending)) {
+        if (!bSpec || !bSpec.key) continue;
+        if (!targetPending[slot]) {
+          targetPending[slot] = { ...bSpec, variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key] };
+        } else {
+          const existing = targetPending[slot];
+          existing.variants = existing.variants || [existing.key];
+          if (!existing.variants.includes(bSpec.key)) existing.variants.push(bSpec.key);
+          if (Array.isArray(bSpec.variants)) {
+            bSpec.variants.forEach(v => {
+              if (!existing.variants.includes(v)) existing.variants.push(v);
+            });
+          }
+        }
+      }
+    }
+
+    function parseMvEventCommandsV4(list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth = 0, pendingPictures = {}) {
+      if (!Array.isArray(list) || depth > 4) return [];
+      const steps = [];
+      let i = 0;
+      let pendingAudioKey = null;
+      let pendingTransferMapId = null;
+
+      while (i < list.length) {
+        const cmd = list[i];
+        if (!cmd) { i++; continue; }
+        const code = cmd.code;
+        const p = cmd.parameters || [];
+
+        // 121: Control Switches
+        if (code === 121 && metaTracker) {
+          const startSw = Number(p[0]) || 0;
+          const endSw = Number(p[1]) || startSw;
+          if (p[2] === 0 && startSw > 0 && endSw - startSw <= 20) {
+            for (let sId = startSw; sId <= endSw; sId++) metaTracker.turnsOnSwitches.add(sId);
+          }
+          i++;
+          continue;
+        }
+
+        // 201: Transfer Player
+        if (code === 201) {
+          if (p[0] === 0 && p[1]) {
+            const targetMapId = Number(p[1]);
+            if (metaTracker) metaTracker.transfersToMaps.add(targetMapId);
+            pendingTransferMapId = targetMapId;
+            // If transfer happens at the end after dialogues, attach to previous dialogue step if any
+            if (steps.length > 0 && steps[steps.length - 1].type === "dialogue") {
+              steps[steps.length - 1].transferMapId = targetMapId;
+            }
+          }
+          i++;
+          continue;
+        }
+
+        // 241/245/249/250: Play BGM/BGS/ME/SE (Voice/Audio tracking!)
+        if (code === 250 || code === 249) {
+          const audioObj = p[0];
+          if (audioObj && audioObj.name) {
+            pendingAudioKey = String(audioObj.name).trim();
+          }
+          i++;
+          continue;
+        }
+
+        // 231: Show Picture
+        if (code === 231) {
+          const slotNum = Number(p[0]) || 1;
+          const picName = String(p[1] || "").trim();
+          const origin = Number(p[2]) || 0;
+          const isDirectCoord = (Number(p[3]) || 0) === 0;
+          const x = isDirectCoord ? (Number(p[4]) || 0) : 0;
+          const y = isDirectCoord ? (Number(p[5]) || 0) : 0;
+          const scaleX = Number(p[6] ?? 100);
+          const scaleY = Number(p[7] ?? 100);
+          const opacity = Number(p[8] ?? 255);
+
+          if (picName) {
+            if (usageTracker) usageTracker(picName);
+            const prevVariants = pendingPictures[slotNum]?.variants || [];
+            if (!prevVariants.includes(picName)) prevVariants.push(picName);
+            pendingPictures[slotNum] = { key: picName, origin, x, y, scaleX, scaleY, opacity, variants: prevVariants };
+          }
+          i++;
+          continue;
+        }
+
+        // 232: Move Picture
+        if (code === 232) {
+          const slotNum = Number(p[0]) || 1;
+          if (pendingPictures[slotNum]) {
+            const isDirectCoord = (Number(p[3]) || 0) === 0;
+            if (isDirectCoord) {
+              pendingPictures[slotNum].x = Number(p[4]) || 0;
+              pendingPictures[slotNum].y = Number(p[5]) || 0;
+            }
+            pendingPictures[slotNum].scaleX = Number(p[6] ?? 100);
+            pendingPictures[slotNum].scaleY = Number(p[7] ?? 100);
+            pendingPictures[slotNum].opacity = Number(p[8] ?? 255);
+          }
+          i++;
+          continue;
+        }
+
+        // 235: Erase Picture
+        if (code === 235) {
+          const slotNum = Number(p[0]) || 1;
+          pendingPictures[slotNum] = null;
+          i++;
+          continue;
+        }
+
+        // 261: Play Movie
+        if (code === 261) {
+          const movieName = String(p[0] || "").trim();
+          if (movieName) {
+            if (usageTracker) usageTracker(movieName);
+            steps.push({
+              type: "movie",
+              slot: 1,
+              cgKey: movieName,
+              source: "Code 261 (Play Movie)"
+            });
+          }
+          i++;
+          continue;
+        }
+
+        // 101: Show Text (Extracts Face Portrait p[0], Face Index p[1], Speaker p[4]!)
+        if (code === 101) {
+          const faceName = String(p[0] || "").trim();
+          const faceIndex = Number(p[1] || 0);
+          const speakerFromParam = p[4] || "";
+          const lines = [];
+          i++;
+          while (i < list.length && list[i] && list[i].code === 401) {
+            lines.push(list[i].parameters[0] || "");
+            i++;
+          }
+          const snapshotCopy = JSON.parse(JSON.stringify(pendingPictures));
+          for (const k of Object.keys(pendingPictures)) {
+            if (pendingPictures[k] === null) delete pendingPictures[k];
+          }
+          steps.push({
+            type: "dialogue",
+            speaker: speakerFromParam || "대사",
+            faceName,
+            faceIndex,
+            faceColor: "#6366f1",
+            audioKey: pendingAudioKey,
+            transferMapId: pendingTransferMapId,
+            rawText: lines.join("\n"),
+            source: "Code 101/401",
+            pictureSnapshot: snapshotCopy
+          });
+          pendingAudioKey = null;
+          pendingTransferMapId = null;
+          continue;
+        }
+
+        // 102: Show Choices
+        if (code === 102) {
+          const choiceLabels = Array.isArray(p[0]) ? p[0] : [];
+          const indent = cmd.indent;
+          const options = [];
+          let currentChoiceLabel = "";
+          let currentChoiceCmds = [];
+          i++;
+
+          const flushChoice = () => {
+            if (!currentChoiceCmds.length) return;
+            const subPending = JSON.parse(JSON.stringify(pendingPictures));
+            const subSteps = parseMvEventCommandsV4(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, subPending);
+            const st = analyzeStepsStats(subSteps);
+            if (st.dialogueCount > 0) {
+              options.push({
+                label: `선택: ${currentChoiceLabel}`,
+                preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                steps: subSteps
+              });
+            } else {
+              mergePictureSnapshotsWithVariants(pendingPictures, subPending);
+            }
+          };
+
+          while (i < list.length) {
+            const cur = list[i];
+            if (!cur) { i++; continue; }
+            if (cur.indent === indent && cur.code === 402) {
+              flushChoice();
+              const cIdx = Number(cur.parameters?.[0] || 0);
+              currentChoiceLabel = cur.parameters?.[1] || choiceLabels[cIdx] || `선택지 #${cIdx + 1}`;
+              currentChoiceCmds = [];
+              i++;
+              continue;
+            }
+            if (cur.indent === indent && cur.code === 403) {
+              flushChoice();
+              currentChoiceLabel = "취소 시";
+              currentChoiceCmds = [];
+              i++;
+              continue;
+            }
+            if (cur.indent === indent && cur.code === 404) {
+              flushChoice();
+              i++;
+              break;
+            }
+            currentChoiceCmds.push(cur);
+            i++;
+          }
+
+          if (options.length === 1) steps.push(...options[0].steps);
+          else if (options.length > 1) {
+            steps.push({ type: "branch", branchTitle: "플레이어 선택지 (Code 102)", options });
+          }
+          continue;
+        }
+
+        // 301: Battle Processing -> 601 (When Win), 602 (When Escape), 603 (When Lose), 604 (End)
+        if (code === 301) {
+          const indent = cmd.indent;
+          const options = [];
+          let curBattleLabel = "";
+          let curBattleCmds = [];
+          i++;
+
+          const flushBattle = () => {
+            if (!curBattleCmds.length) return;
+            const subPending = JSON.parse(JSON.stringify(pendingPictures));
+            const subSteps = parseMvEventCommandsV4(curBattleCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, subPending);
+            const st = analyzeStepsStats(subSteps);
+            if (st.dialogueCount > 0 || st.cgCount > 0) {
+              options.push({
+                label: curBattleLabel,
+                preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                steps: subSteps
+              });
+            }
+          };
+
+          while (i < list.length) {
+            const cur = list[i];
+            if (!cur) { i++; continue; }
+            if (cur.indent === indent && cur.code === 601) {
+              flushBattle();
+              curBattleLabel = "⚔️ 전투 승리 시 (When Win)";
+              curBattleCmds = [];
+              i++;
+              continue;
+            }
+            if (cur.indent === indent && cur.code === 602) {
+              flushBattle();
+              curBattleLabel = "🏃 전투 도주 시 (When Escape)";
+              curBattleCmds = [];
+              i++;
+              continue;
+            }
+            if (cur.indent === indent && cur.code === 603) {
+              flushBattle();
+              curBattleLabel = "💔 전투 패배 시 이벤트 (When Lose)";
+              curBattleCmds = [];
+              i++;
+              continue;
+            }
+            if (cur.indent === indent && cur.code === 604) {
+              flushBattle();
+              i++;
+              break;
+            }
+            curBattleCmds.push(cur);
+            i++;
+          }
+
+          if (options.length === 1) steps.push(...options[0].steps);
+          else if (options.length > 1) {
+            steps.push({ type: "branch", branchTitle: "⚔️ 전투 결과 분기 (승리 / 패배 이벤트)", options });
+          }
+          continue;
+        }
+
+        // 111: Conditional Branch (Collects ALL Outfit/Part Variations when 0 dialogue!)
+        if (code === 111) {
+          const indent = cmd.indent;
+          const thenCmds = [];
+          const elseCmds = [];
+          let inElse = false;
+          i++;
+          while (i < list.length) {
+            const cur = list[i];
+            if (!cur) { i++; continue; }
+            if (cur.indent === indent && cur.code === 411) { inElse = true; i++; continue; }
+            if (cur.indent === indent && cur.code === 412) { i++; break; }
+            if (!inElse) thenCmds.push(cur);
+            else elseCmds.push(cur);
+            i++;
+          }
+
+          const thenPending = JSON.parse(JSON.stringify(pendingPictures));
+          const elsePending = JSON.parse(JSON.stringify(pendingPictures));
+          const thenSteps = parseMvEventCommandsV4(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, thenPending);
+          const elseSteps = parseMvEventCommandsV4(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, elsePending);
+
+          const thenSt = analyzeStepsStats(thenSteps);
+          const elseSt = analyzeStepsStats(elseSteps);
+
+          // If neither branch has dialogue, merge ALL outfit/expression variants from BOTH branches into pendingPictures!
+          if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
+            mergePictureSnapshotsWithVariants(pendingPictures, thenPending);
+            mergePictureSnapshotsWithVariants(pendingPictures, elsePending);
+            continue;
+          }
+          if (elseSt.dialogueCount === 0) {
+            mergePictureSnapshotsWithVariants(pendingPictures, thenPending);
+            mergePictureSnapshotsWithVariants(pendingPictures, elsePending);
+            steps.push(...thenSteps);
+            continue;
+          }
+          if (thenSt.dialogueCount === 0) {
+            mergePictureSnapshotsWithVariants(pendingPictures, elsePending);
+            mergePictureSnapshotsWithVariants(pendingPictures, thenPending);
+            steps.push(...elseSteps);
+            continue;
+          }
+
+          steps.push({
+            type: "branch",
+            branchTitle: "스토리 조건 분기 (양쪽 모두 대사 존재)",
+            options: [
+              {
+                label: "조건 성립 루트",
+                preview: (thenSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                steps: thenSteps
+              },
+              {
+                label: "그외 조건 루트",
+                preview: (elseSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                steps: elseSteps
+              }
+            ]
+          });
+          continue;
+        }
+
+        // 117: Call Common Event
+        if (code === 117) {
+          const ceId = Number(p[0]);
+          if (metaTracker) metaTracker.calledCommonEvents.add(ceId);
+          const ce = commonEventsMap[ceId];
+          if (ce && Array.isArray(ce.list)) {
+            steps.push(...parseMvEventCommandsV4(ce.list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, pendingPictures));
+          }
+          i++;
+          continue;
+        }
+
+        // 355/356/357 Script/Plugin (Scans against actual cgAssetsDict including movies & spaces!)
+        if (code === 355 || code === 356 || code === 357) {
+          let scriptText = JSON.stringify(p);
+          if (code === 355) {
+            scriptText = String(p[0] || "");
+            while (i + 1 < list.length && list[i + 1].code === 655) {
+              i++;
+              scriptText += "\n" + String(list[i].parameters[0] || "");
+            }
+          }
+          const ceMatch = scriptText.match(/reserveCommonEvent\(\s*(\d+)\s*\)/i);
+          if (ceMatch) {
+            const ceId = Number(ceMatch[1]);
+            if (metaTracker) metaTracker.calledCommonEvents.add(ceId);
+            if (commonEventsMap[ceId]) {
+              steps.push(...parseMvEventCommandsV4(commonEventsMap[ceId].list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, depth + 1, pendingPictures));
+            }
+          }
+
+          // Check if any asset name in cgAssetsDict appears in scriptText
+          if (cgAssetsDict) {
+            const normScript = scriptText.normalize("NFC").toLowerCase();
+            for (const [assetKey, assetObj] of Object.entries(cgAssetsDict)) {
+              if (assetKey.length >= 3 && normScript.includes(assetKey.normalize("NFC").toLowerCase())) {
+                if (usageTracker) usageTracker(assetKey);
+                if (assetObj.mediaType === "video") {
+                  steps.push({ type: "movie", slot: 1, cgKey: assetKey, source: `Code ${code} (Plugin Movie)` });
+                } else {
+                  pendingPictures[1] = { key: assetKey, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [assetKey] };
+                }
+                break;
+              }
+            }
+          }
+          i++;
+          continue;
+        }
+
+        i++;
+      }
+
+      if (steps.length === 0 && Object.keys(pendingPictures).length > 0 && depth === 0) {
+        const validKeys = Object.entries(pendingPictures).filter(([, v]) => v && v.key);
+        if (validKeys.length > 0) {
+          const topEntry = validKeys[validKeys.length - 1][1];
+          steps.push({
+            type: "cg",
+            slot: 1,
+            cgKey: topEntry.key,
+            pictureSnapshot: JSON.parse(JSON.stringify(pendingPictures)),
+            source: "단독 CG 연출"
+          });
+        }
+      }
+
+      return steps;
+    }
+
+    async function handleLocalFilesLoad(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      if (files.length === 1 && /\.zip$/i.test(files[0].name)) {
+        return handleZipFileLoad(files[0]);
+      }
+      showToast(`총 ${files.length}개 파일을 정밀 스캔 중입니다 (CG, 초상화 Faces, 동영상 Movies, 오디오 포함)...`);
+
+      const jsonFiles = {};
+      const cgAssets = {};
+      const faceAssets = {};
+      const audioAssets = {};
+
+      for (const f of files) {
+        const rel = (f.webkitRelativePath || f.name).replace(/\\/g, "/");
+        const lower = rel.toLowerCase();
+
+        if (lower.endsWith(".json") && (lower.includes("/data/") || !lower.includes("/"))) {
+          try {
+            const txt = await f.text();
+            jsonFiles[rel.split("/").pop().toLowerCase()] = JSON.parse(txt);
+          } catch (e) {}
+        } else if (
+          lower.includes("faces/") &&
+          /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)
+        ) {
+          const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+          faceAssets[rawName] = { name: rawName, lazyFile: f, blobUrl: null };
+        } else if (
+          (lower.includes("pictures/") || lower.includes("parallaxes/") || lower.includes("titles1/")) &&
+          /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)
+        ) {
+          const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+          const prefix = getVariationPrefix(rawName);
+          cgAssets[rawName] = {
+            name: rawName,
+            folder: lower.includes("pictures/") ? "img/pictures" : "img/parallaxes",
+            mediaType: "image",
+            label: rawName,
+            groupPrefix: prefix,
+            diffLabel: getShortVariationLabel(rawName, prefix) || rawName,
+            lazyFile: f,
+            blobUrl: null
+          };
+        } else if (
+          lower.includes("movies/") &&
+          /\.(webm|mp4|ogv|mov)$/i.test(lower)
+        ) {
+          const rawName = rel.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
+          cgAssets[rawName] = {
+            name: rawName,
+            folder: "movies",
+            mediaType: "video",
+            label: `🎬 ${rawName}`,
+            groupPrefix: rawName,
+            diffLabel: "동영상",
+            lazyFile: f,
+            blobUrl: URL.createObjectURL(f)
+          };
+        } else if (
+          (lower.includes("audio/se/") || lower.includes("audio/me/") || lower.includes("voice/")) &&
+          /\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i.test(lower)
+        ) {
+          const rawName = rel.split("/").pop().replace(/\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i, "");
+          audioAssets[rawName] = { name: rawName, lazyFile: f, blobUrl: null };
+        }
+      }
+
+      registerParsedGameProject(jsonFiles, cgAssets, faceAssets, audioAssets, files[0]?.webkitRelativePath?.split("/")[0] || "로컬 게임 프로젝트");
+    }
+
+    async function handleZipFileLoad(file) {
+      if (!file || !window.JSZip) return;
+      showToast(`ZIP 패키지(${file.name})를 로드하고 있습니다...`);
+      try {
+        const zip = await window.JSZip.loadAsync(file);
+
+        // Check if this is an exported Standalone Game.zip with story_package.json + embedded media!
+        if (zip.files["story_package.json"]) {
+          const pkgJson = JSON.parse(await zip.files["story_package.json"].async("string"));
+          // Re-hydrate embedded media files inside the exported ZIP!
+          for (const [k, asset] of Object.entries(pkgJson.cgAssets || {})) {
+            if (asset.zipPath && zip.files[asset.zipPath]) {
+              const u8 = await zip.files[asset.zipPath].async("uint8array");
+              const mime = asset.mediaType === "video" ? "video/webm" : "image/png";
+              asset.blobUrl = URL.createObjectURL(new Blob([u8], { type: mime }));
+            }
+          }
+          for (const [k, fAsset] of Object.entries(pkgJson.faceAssets || {})) {
+            if (fAsset.zipPath && zip.files[fAsset.zipPath]) {
+              const u8 = await zip.files[fAsset.zipPath].async("uint8array");
+              fAsset.blobUrl = URL.createObjectURL(new Blob([u8], { type: "image/png" }));
+            }
+          }
+          pkgJson.id = "game_" + Date.now();
+          state.library.unshift(pkgJson);
+          switchActiveGame(pkgJson.id);
+          showToast(`'${pkgJson.title}' 완전체 패키지를 로드했습니다!`);
+          return;
+        }
+
+        const jsonFiles = {};
+        const cgAssets = {};
+        const faceAssets = {};
+        const audioAssets = {};
+
+        for (const path of Object.keys(zip.files)) {
+          const entry = zip.files[path];
+          if (entry.dir) continue;
+          const lower = path.toLowerCase();
+          if (lower.endsWith(".json")) {
+            try {
+              jsonFiles[path.split("/").pop().toLowerCase()] = JSON.parse(await entry.async("string"));
+            } catch (e) {}
+          } else if (lower.includes("faces/") && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
+            const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const u8 = await entry.async("uint8array");
+            const dec = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(u8) : u8;
+            faceAssets[rawName] = {
+              name: rawName,
+              blobUrl: URL.createObjectURL(new Blob([dec], { type: "image/png" }))
+            };
+          } else if (
+            (lower.includes("pictures/") || lower.includes("parallaxes/")) &&
+            /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)
+          ) {
+            const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const u8 = await entry.async("uint8array");
+            const dec = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(u8) : u8;
+            const blobUrl = URL.createObjectURL(new Blob([dec], { type: "image/png" }));
+            const prefix = getVariationPrefix(rawName);
+            cgAssets[rawName] = {
+              name: rawName,
+              folder: "img/pictures",
+              mediaType: "image",
+              label: rawName,
+              groupPrefix: prefix,
+              diffLabel: getShortVariationLabel(rawName, prefix) || rawName,
+              blobUrl
+            };
+          } else if (lower.includes("movies/") && /\.(webm|mp4|ogv|mov)$/i.test(lower)) {
+            const rawName = path.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
+            const u8 = await entry.async("uint8array");
+            const mime = lower.endsWith(".mp4") ? "video/mp4" : "video/webm";
+            const blobUrl = URL.createObjectURL(new Blob([u8], { type: mime }));
+            cgAssets[rawName] = {
+              name: rawName,
+              folder: "movies",
+              mediaType: "video",
+              label: `🎬 ${rawName}`,
+              groupPrefix: rawName,
+              diffLabel: "동영상",
+              blobUrl
+            };
+          }
+        }
+        registerParsedGameProject(jsonFiles, cgAssets, faceAssets, audioAssets, file.name.replace(/\.zip$/i, ""));
+      } catch (err) {
+        showToast(`ZIP 로드 오류: ${err.message}`);
+      }
+    }
+
+    function registerParsedGameProject(jsonFiles, cgAssets, faceAssets, audioAssets, fallbackTitle) {
+      const sys = jsonFiles["system.json"] || {};
+      const mapInfos = jsonFiles["mapinfos.json"] || {};
+      const commonEventsArr = jsonFiles["commonevents.json"] || [];
+      const troopsArr = jsonFiles["troops.json"] || [];
+      const actorsArr = jsonFiles["actors.json"] || [];
+
+      const commonEventsMap = {};
+      if (Array.isArray(commonEventsArr)) {
+        commonEventsArr.forEach(ce => { if (ce && ce.id) commonEventsMap[ce.id] = ce; });
+      }
+      const actorsMap = {};
+      if (Array.isArray(actorsArr)) {
+        actorsArr.forEach(ac => { if (ac && ac.id && ac.name) actorsMap[ac.id] = ac.name; });
+      }
+      if (actorsMap[1]) {
+        state.protagonistName = actorsMap[1];
+        document.getElementById("protagonistNameInput").value = actorsMap[1];
+      }
+
+      // Helper to mark both an asset AND all its prefix variations as usedIn!
+      const prefixToAssetKeys = new Map();
+      for (const [k, a] of Object.entries(cgAssets)) {
+        const pfx = a.groupPrefix || getVariationPrefix(k);
+        if (!prefixToAssetKeys.has(pfx)) prefixToAssetKeys.set(pfx, []);
+        prefixToAssetKeys.get(pfx).push(k);
+      }
+
+      function markAssetAndSiblingsUsed(rawKey, locObj) {
+        const asset = resolveAssetInDict(rawKey, cgAssets, true);
+        if (!asset) return;
+        if (!asset.usedIn) asset.usedIn = locObj;
+        const pfx = asset.groupPrefix || getVariationPrefix(asset.name);
+        const siblings = prefixToAssetKeys.get(pfx) || [];
+        for (const sibKey of siblings) {
+          if (cgAssets[sibKey] && !cgAssets[sibKey].usedIn) {
+            cgAssets[sibKey].usedIn = locObj;
+          }
+        }
+      }
+
+      const startMapId = Number(sys.startMapId) || 1;
+      const globalCalledCommonEvents = new Set();
+      const rawMapRecords = new Map();
+
+      for (const [fname, data] of Object.entries(jsonFiles)) {
+        const m = fname.match(/^map(\d+)\.json$/i);
+        if (!m || !data || !Array.isArray(data.events)) continue;
+        const mapId = Number(m[1]);
+        const mapTitle = (mapInfos[mapId] && mapInfos[mapId].name) || data.displayName || `Map ${String(mapId).padStart(3, "0")}`;
+        const events = [];
+
+        for (const ev of data.events) {
+          if (!ev) continue;
+          const metaTracker = { turnsOnSwitches: new Set(), transfersToMaps: new Set(), calledCommonEvents: new Set() };
+          let entryPageSwitchReq = null;
+          let entryPageAutorun = false;
+          let isParallel = false;
+
+          const pages = (ev.pages || []).map((p, idx) => {
+            if (p.trigger === 4) isParallel = true;
+            const steps = parseMvEventCommandsV4(
+              p.list || [],
+              commonEventsMap,
+              cgAssets,
+              (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId, eventId: ev.id, pageIdx: idx }),
+              metaTracker,
+              0,
+              {}
+            );
+            const st = analyzeStepsStats(steps);
+            // Record entry condition of the FIRST non-empty page!
+            if ((st.dialogueCount > 0 || st.cgCount > 0) && entryPageSwitchReq === null) {
+              if (p.trigger === 3) entryPageAutorun = true;
+              const c = p.conditions || {};
+              if (c.switch1Valid && c.switch1Id) entryPageSwitchReq = Number(c.switch1Id);
+              else if (c.switch2Valid && c.switch2Id) entryPageSwitchReq = Number(c.switch2Id);
+              else entryPageSwitchReq = 0; // 0 means no switch required!
+            }
+            return { pageIndex: idx + 1, conditionLabel: `단계 ${idx + 1}`, steps };
+          });
+
+          metaTracker.calledCommonEvents.forEach(id => globalCalledCommonEvents.add(id));
+
+          const totalStats = pages.reduce((acc, p) => {
+            const st = analyzeStepsStats(p.steps);
+            acc.d += st.dialogueCount;
+            acc.c += st.cgCount;
+            return acc;
+          }, { d: 0, c: 0 });
+
+          events.push({
+            id: ev.id,
+            name: `EV${String(ev.id).padStart(3, "0")}: ${ev.name || `EV${String(ev.id).padStart(3, "0")}`}`,
+            isParallelOrHud: isParallel || totalStats.d === 0,
+            entryPageSwitchReq: entryPageSwitchReq || 0,
+            entryPageAutorun,
+            turnsOnSwitches: Array.from(metaTracker.turnsOnSwitches),
+            transfersToMaps: Array.from(metaTracker.transfersToMaps),
+            totalDialogue: totalStats.d,
+            storyOrder: 999999,
+            storyReason: "",
+            pages
+          });
+        }
+
+        if (events.length > 0) {
+          rawMapRecords.set(mapId, { id: mapId, name: `${String(mapId).padStart(3, "0")}: ${mapTitle}`, events });
+        }
+      }
+
+      // Also scan uncalled standalone CommonEvents.json & Troops.json so NO CG or Movie is ever orphaned!
+      const standaloneCeEvents = [];
+      for (const ce of Object.values(commonEventsMap)) {
+        if (!ce || globalCalledCommonEvents.has(ce.id)) continue;
+        const metaTracker = { turnsOnSwitches: new Set(), transfersToMaps: new Set(), calledCommonEvents: new Set() };
+        const steps = parseMvEventCommandsV4(
+          ce.list || [],
+          commonEventsMap,
+          cgAssets,
+          (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0 }),
+          metaTracker,
+          0,
+          {}
+        );
+        const st = analyzeStepsStats(steps);
+        if (st.dialogueCount > 0 || st.cgCount > 0) {
+          standaloneCeEvents.push({
+            id: ce.id,
+            name: `CE${String(ce.id).padStart(3, "0")}: ${ce.name || "공통 이벤트"}`,
+            isParallelOrHud: st.dialogueCount === 0,
+            entryPageSwitchReq: ce.switchId || 0,
+            entryPageAutorun: false,
+            turnsOnSwitches: Array.from(metaTracker.turnsOnSwitches),
+            transfersToMaps: Array.from(metaTracker.transfersToMaps),
+            totalDialogue: st.dialogueCount,
+            storyOrder: 800000 + ce.id,
+            storyReason: "공통 스토리/회상 이벤트 (CommonEvents)",
+            pages: [{ pageIndex: 1, conditionLabel: "단계 1", steps }]
+          });
+        }
+      }
+      if (standaloneCeEvents.length > 0) {
+        rawMapRecords.set(9000, { id: 9000, name: "900: 공통 스토리 & 회상 (CommonEvents)", events: standaloneCeEvents });
+      }
+
+      // Scan Troops.json (Battle Events)
+      const troopEvents = [];
+      if (Array.isArray(troopsArr)) {
+        for (const tr of troopsArr) {
+          if (!tr || !tr.id || !Array.isArray(tr.pages)) continue;
+          const pages = tr.pages.map((p, idx) => {
+            const steps = parseMvEventCommandsV4(
+              p.list || [],
+              commonEventsMap,
+              cgAssets,
+              (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9500, eventId: tr.id, pageIdx: idx }),
+              null,
+              0,
+              {}
+            );
+            return { pageIndex: idx + 1, conditionLabel: `턴/전투단계 ${idx + 1}`, steps };
+          });
+          const hasContent = pages.some(p => {
+            const st = analyzeStepsStats(p.steps);
+            return st.dialogueCount > 0 || st.cgCount > 0;
+          });
+          if (hasContent) {
+            troopEvents.push({
+              id: tr.id,
+              name: `BTL${String(tr.id).padStart(3, "0")}: ${tr.name || "전투 이벤트"}`,
+              isParallelOrHud: false,
+              entryPageSwitchReq: 0,
+              entryPageAutorun: false,
+              turnsOnSwitches: [],
+              transfersToMaps: [],
+              totalDialogue: 1,
+              storyOrder: 850000 + tr.id,
+              storyReason: "전투/보스전 이벤트 (Troops)",
+              pages
+            });
+          }
+        }
+      }
+      if (troopEvents.length > 0) {
+        rawMapRecords.set(9500, { id: 9500, name: "950: 전투 & 보스전 스토리 (Troops)", events: troopEvents });
+      }
+
+      // =====================================================================
+      // SYMBOLIC WALKTHROUGH SIMULATOR (Infers Map & Event Order via BFS!)
+      // =====================================================================
+      const mapVisitRank = new Map();
+      const mapQueue = [startMapId];
+      mapVisitRank.set(startMapId, 1);
+
+      while (mapQueue.length > 0) {
+        const curMId = mapQueue.shift();
+        const curM = rawMapRecords.get(curMId);
+        if (!curM) continue;
+        for (const ev of curM.events) {
+          for (const nextMId of (ev.transfersToMaps || [])) {
+            if (rawMapRecords.has(nextMId) && !mapVisitRank.has(nextMId)) {
+              mapVisitRank.set(nextMId, mapVisitRank.size + 1);
+              mapQueue.push(nextMId);
+            }
+          }
+        }
+      }
+
+      // Record which event turns ON which switch so we can show exact causal parent!
+      const switchUnlockedBy = new Map(); // switchId -> { mapId, evName, rank }
+      let globalStepRank = 1;
+
+      const sortedMaps = Array.from(rawMapRecords.values()).sort((a, b) => {
+        const rA = mapVisitRank.get(a.id) || (1000 + a.id);
+        const rB = mapVisitRank.get(b.id) || (1000 + b.id);
+        return rA - rB;
+      });
+
+      for (const m of sortedMaps) {
+        const mRank = mapVisitRank.get(m.id) || (500 + m.id);
+        // Sort events within map: Autorun with no switch -> No switch -> Switch required ascending
+        m.events.sort((a, b) => {
+          if (a.totalDialogue === 0 && b.totalDialogue > 0) return 1;
+          if (a.totalDialogue > 0 && b.totalDialogue === 0) return -1;
+          const aScore = (a.entryPageAutorun && a.entryPageSwitchReq === 0 ? -1000 : 0) + (a.entryPageSwitchReq * 10) + a.id;
+          const bScore = (b.entryPageAutorun && b.entryPageSwitchReq === 0 ? -1000 : 0) + (b.entryPageSwitchReq * 10) + b.id;
+          return aScore - bScore;
+        });
+
+        for (const ev of m.events) {
+          if (ev.totalDialogue === 0) {
+            ev.storyOrder = 950000 + m.id * 100 + ev.id;
+            ev.storyReason = "대사 없음 (시스템/단독 연출)";
+            continue;
+          }
+          ev.storyOrder = globalStepRank++;
+          for (const swId of (ev.turnsOnSwitches || [])) {
+            if (!switchUnlockedBy.has(swId)) {
+              switchUnlockedBy.set(swId, { mapId: m.id, evId: ev.id, evName: ev.name });
+            }
+          }
+        }
+      }
+
+      // Second pass: write crystal-clear human-readable causal reason on every event!
+      for (const m of sortedMaps) {
+        for (const ev of m.events) {
+          if (ev.totalDialogue === 0 || m.id >= 9000) continue;
+          const parts = [];
+          if (m.id === startMapId && ev.entryPageAutorun && ev.entryPageSwitchReq === 0) {
+            parts.push("시작 맵 오프닝 자동 실행");
+          } else if (ev.entryPageSwitchReq > 0) {
+            const parent = switchUnlockedBy.get(ev.entryPageSwitchReq);
+            if (parent) {
+              parts.push(`선행: #${String(parent.mapId).padStart(3, "0")}맵 EV${String(parent.evId).padStart(3, "0")} 완료(스위치 #${ev.entryPageSwitchReq} ON) 후 해금`);
+            } else {
+              parts.push(`스위치 #${String(ev.entryPageSwitchReq).padStart(4, "0")} ON 조건`);
+            }
+          } else if (ev.entryPageAutorun) {
+            parts.push("맵 진입 시 자동 실행(Autorun)");
+          } else {
+            parts.push("조건 없이 즉시 대화 가능");
+          }
+
+          if (ev.turnsOnSwitches && ev.turnsOnSwitches.length > 0) {
+            parts.push(`완료 시 스위치 #${ev.turnsOnSwitches.slice(0, 2).join(", #")} ON`);
+          }
+          if (ev.transfersToMaps && ev.transfersToMaps.length > 0) {
+            parts.push(`장소 이동 → #${String(ev.transfersToMaps[0]).padStart(3, "0")}번 맵`);
+          }
+          ev.storyReason = parts.join(" · ");
+        }
+      }
+
+      if (sortedMaps.length === 0) {
+        showToast("유효한 MapXXX.json 데이터를 찾지 못했습니다.");
+        return;
+      }
+
+      const newGame = {
+        id: "game_" + Date.now(),
+        title: sys.gameTitle || fallbackTitle,
+        engine: "RPG Maker MV/MZ",
+        startMapId,
+        actors: actorsMap,
+        variables: {},
+        faceAssets,
+        cgAssets,
+        audioAssets,
+        maps: sortedMaps
+      };
+
+      state.library.unshift(newGame);
+      switchActiveGame(newGame.id);
+      showToast(`'${newGame.title}' 분석 완료! (초상화 ${Object.keys(faceAssets).length}종 · CG/동영상 ${Object.keys(cgAssets).length}개 연결됨)`);
+    }
+
+    // =========================================================================
+    // 11. EVENT LISTENERS & FULL STANDALONE ZIP EXPORT (WITH ACTUAL BINARIES!)
+    // =========================================================================
+    function switchMainTab(tab) {
+      state.activeTab = tab;
+      const desktopTabs = {
+        vn: ["tabVnMode", "viewVnContainer"],
+        order: ["tabOrderMode", "viewOrderContainer"],
+        script: ["tabScriptMode", "viewScriptContainer"],
+        gallery: ["tabGalleryMode", "viewGalleryContainer"],
+        library: ["tabLibraryMode", "viewLibraryContainer"]
+      };
+      for (const [k, [btnId, viewId]] of Object.entries(desktopTabs)) {
+        const btn = document.getElementById(btnId);
+        const view = document.getElementById(viewId);
+        if (btn && view) {
+          if (k === tab) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow";
+            view.classList.remove("hidden");
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white";
+            view.classList.add("hidden");
+          }
+        }
+      }
+
+      if (window.innerWidth < 1024) {
+        const pMaps = document.getElementById("panelMaps");
+        const pEvents = document.getElementById("panelEvents");
+        const pMain = document.getElementById("panelMainViewer");
+        if (tab === "maps_mobile") {
+          pMaps.classList.remove("hidden");
+          pEvents.classList.remove("hidden");
+          pMain.classList.add("hidden");
+        } else {
+          pMaps.classList.add("hidden");
+          pEvents.classList.add("hidden");
+          pMain.classList.remove("hidden");
+        }
+      }
+
+      if (tab === "order") renderStoryOrderTimeline();
+      if (tab === "script") renderFullScriptView();
+      if (tab === "gallery") renderGalleryView();
+      if (tab === "library") renderLibraryTab();
+    }
+
+    function stepForward() {
+      if (state.currentStepIndex < state.activeSteps.length - 1) {
+        state.currentStepIndex++;
+        renderCurrentStep();
+      } else {
+        document.getElementById("sceneEndBanner").classList.remove("hidden");
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadSavedGamesFromIndexedDb();
+
+      document.getElementById("tabVnMode").addEventListener("click", () => switchMainTab("vn"));
+      document.getElementById("tabOrderMode").addEventListener("click", () => switchMainTab("order"));
+      document.getElementById("tabScriptMode").addEventListener("click", () => switchMainTab("script"));
+      document.getElementById("tabGalleryMode").addEventListener("click", () => switchMainTab("gallery"));
+      document.getElementById("tabLibraryMode").addEventListener("click", () => switchMainTab("library"));
+      document.getElementById("btnSwitchToScript").addEventListener("click", () => switchMainTab("script"));
+
+      document.getElementById("mobNavMaps").addEventListener("click", () => switchMainTab("maps_mobile"));
+      document.getElementById("mobNavVn").addEventListener("click", () => switchMainTab("vn"));
+      document.getElementById("mobNavOrder").addEventListener("click", () => switchMainTab("order"));
+      document.getElementById("mobNavGallery").addEventListener("click", () => switchMainTab("gallery"));
+      document.getElementById("mobNavLibrary").addEventListener("click", () => switchMainTab("library"));
+
+      document.getElementById("btnSaveToIndexedDb").addEventListener("click", () => saveCurrentGameToIndexedDb());
+      document.getElementById("btnStorageInfo").addEventListener("click", () => {
+        document.getElementById("storageModal").classList.remove("hidden");
+      });
+      document.getElementById("storageModalClose").addEventListener("click", () => {
+        document.getElementById("storageModal").classList.add("hidden");
+      });
+
+      document.getElementById("btnToggleLayerDrawer").addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.getElementById("cgLayerDrawer").classList.toggle("hidden");
+      });
+      document.getElementById("btnResetLayers").addEventListener("click", () => {
+        state.hiddenLayers.clear();
+        renderActiveCgStage();
+      });
+
+      document.getElementById("cgVariationSelect").addEventListener("change", (e) => {
+        state.selectedVariationOverride = e.target.value;
+        renderActiveCgStage();
+      });
+
+      document.getElementById("btnPurgeUnusedCgs").addEventListener("click", () => {
+        let count = 0;
+        for (const [k, asset] of Object.entries(state.project.cgAssets || {})) {
+          if (!asset.usedIn && !state.deletedCgKeys.has(k)) {
+            state.deletedCgKeys.add(k);
+            count++;
+          }
+        }
+        updateHiddenCountBadge();
+        renderGalleryView();
+        showToast(count > 0 ? `어느 이벤트에서도 쓰이지 않는 순수 미사용 더미 미디어 ${count}개를 삭제했습니다!` : `현재 미사용 더미 미디어가 없습니다.`);
+      });
+
+      document.getElementById("lightboxDeleteBtn").addEventListener("click", () => {
+        if (!state.lightboxCgKey) return;
+        state.deletedCgKeys.add(state.lightboxCgKey);
+        document.getElementById("cgLightboxModal").classList.add("hidden");
+        updateHiddenCountBadge();
+        renderGalleryView();
+        renderActiveCgStage();
+        showToast(`'${state.lightboxCgKey}' 미디어를 삭제했습니다.`);
+      });
+
+      document.getElementById("gameLibrarySelect").addEventListener("change", (e) => switchActiveGame(e.target.value));
+      document.getElementById("btnRenameCurrentGame").addEventListener("click", () => {
+        openEditModal("현재 게임 이름 수정", state.project.title, (newVal) => {
+          if (newVal.trim()) {
+            state.project.title = newVal.trim();
+            renderLibraryHeaderSelect();
+            renderLibraryTab();
+          }
+        });
+      });
+
+      document.getElementById("btnRenameActiveEvent").addEventListener("click", () => {
+        const map = getCurrentMap();
+        const ev = getCurrentEvent();
+        if (!map || !ev) return;
+        const key = `${state.activeGameId}_e_${map.id}_${ev.id}`;
+        openEditModal("현재 이벤트 이름 수정", getDisplayEventName(map.id, ev), (newVal) => {
+          if (newVal.trim()) state.customEventNames[key] = newVal.trim();
+          renderEventsList();
+          renderPageTabs();
+          renderStoryOrderTimeline();
+        });
+      });
+
+      document.getElementById("btnHideActiveEvent").addEventListener("click", () => {
+        const map = getCurrentMap();
+        const ev = getCurrentEvent();
+        if (!map || !ev) return;
+        const idsToHide = ev.mergedIds || [ev.id];
+        idsToHide.forEach(id => state.hiddenEvents.add(`${state.activeGameId}_e_${map.id}_${id}`));
+        updateHiddenCountBadge();
+        renderEventsList();
+        renderStoryOrderTimeline();
+        const remaining = getFilteredAndMergedEvents(map);
+        if (remaining[0]) selectEvent(remaining[0].id);
+        showToast("이벤트를 삭제하고 전체 스토리 추천 순서를 재정렬했습니다.");
+      });
+
+      document.getElementById("btnRestoreHidden").addEventListener("click", () => {
+        state.hiddenMaps.clear();
+        state.hiddenEvents.clear();
+        state.deletedCgKeys.clear();
+        updateHiddenCountBadge();
+        renderMapsList();
+        renderEventsList();
+        renderGalleryView();
+        renderStoryOrderTimeline();
+        showToast("삭제/숨김 처리했던 모든 항목을 복원했습니다.");
+      });
+
+      document.getElementById("editModalCancel").addEventListener("click", () => {
+        document.getElementById("editModal").classList.add("hidden");
+      });
+      document.getElementById("editModalSave").addEventListener("click", () => {
+        const val = document.getElementById("editModalInput").value;
+        document.getElementById("editModal").classList.add("hidden");
+        if (state.editModalCallback) state.editModalCallback(val);
+      });
+
+      document.getElementById("cgCanvas").addEventListener("click", () => {
+        const slots = Object.values(state.activePictureSlots || {});
+        const topObj = slots[slots.length - 1];
+        const topKey = state.selectedVariationOverride || (typeof topObj === "string" ? topObj : topObj?.key);
+        const asset = resolveCgAssetSmart(topKey);
+        if (!asset || !asset.blobUrl) return;
+        state.lightboxCgKey = asset.name;
+        document.getElementById("lightboxTitle").textContent = `${asset.folder || "img/pictures"}/${asset.name}`;
+        document.getElementById("lightboxImg").src = asset.blobUrl;
+        document.getElementById("cgLightboxModal").classList.remove("hidden");
+      });
+      document.getElementById("lightboxCloseBtn").addEventListener("click", () => {
+        document.getElementById("cgLightboxModal").classList.add("hidden");
+      });
+      document.getElementById("lightboxJumpBtn").addEventListener("click", () => {
+        const asset = state.project.cgAssets[state.lightboxCgKey];
+        document.getElementById("cgLightboxModal").classList.add("hidden");
+        if (asset && asset.usedIn) {
+          state.selectedMapId = asset.usedIn.mapId;
+          renderMapsList();
+          selectEvent(asset.usedIn.eventId);
+          switchMainTab("vn");
+        }
+      });
+
+      document.getElementById("dialogueBoxPro").addEventListener("click", () => stepForward());
+      document.getElementById("btnFirstStep").addEventListener("click", () => {
+        const ev = getCurrentEvent();
+        if (ev) loadPageSteps(ev, state.selectedPageIdx);
+        renderCurrentStep();
+      });
+      document.getElementById("btnPrevStep").addEventListener("click", () => {
+        if (state.currentStepIndex > 0) {
+          state.currentStepIndex--;
+          renderCurrentStep();
+        }
+      });
+      document.getElementById("btnNextStep").addEventListener("click", () => stepForward());
+      document.getElementById("btnNextEventFromEnd").addEventListener("click", () => advanceNextStoryEvent());
+      document.getElementById("btnJumpNextStoryEvent").addEventListener("click", () => advanceNextStoryEvent());
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("cgLightboxModal").classList.add("hidden");
+          document.getElementById("editModal").classList.add("hidden");
+          document.getElementById("storageModal").classList.add("hidden");
+          document.getElementById("cgLayerDrawer").classList.add("hidden");
+          return;
+        }
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+        if (e.key === " " || e.code === "Space") {
+          e.preventDefault();
+          if (state.activeTab === "vn") stepForward();
+        } else if (e.key === "ArrowRight") {
+          if (state.activeTab === "vn") { e.preventDefault(); stepForward(); }
+        } else if (e.key === "ArrowLeft") {
+          if (state.activeTab === "vn" && state.currentStepIndex > 0) {
+            e.preventDefault();
+            state.currentStepIndex--;
+            renderCurrentStep();
+          }
+        }
+      });
+
+      document.getElementById("chkAutoTranslateJp").addEventListener("change", (e) => {
+        state.autoTranslateJp = e.target.checked;
+        if (state.autoTranslateJp) triggerBackgroundNeuralTranslation(state.project);
+        renderMapsList();
+        renderEventsList();
+        renderPageTabs();
+        renderCurrentStep();
+        renderStoryOrderTimeline();
+      });
+      document.getElementById("chkSmartZoomCg").addEventListener("change", (e) => {
+        state.smartZoomCg = e.target.checked;
+        renderActiveCgStage();
+      });
+      document.getElementById("chkMergeIdenticalEvents").addEventListener("change", (e) => {
+        state.mergeIdenticalEvents = e.target.checked;
+        renderEventsList();
+        renderStoryOrderTimeline();
+      });
+      document.getElementById("chkHideSystemHudEvents").addEventListener("change", (e) => {
+        state.hideSystemHudEvents = e.target.checked;
+        renderMapsList();
+        renderEventsList();
+        renderStoryOrderTimeline();
+      });
+      document.getElementById("protagonistNameInput").addEventListener("input", (e) => {
+        state.protagonistName = e.target.value.trim() || "주인공";
+        renderCurrentStep();
+        renderFullScriptView();
+      });
+      document.getElementById("fontSizeSlider").addEventListener("input", (e) => {
+        const val = Number(e.target.value);
+        state.fontSize = val;
+        document.documentElement.style.setProperty("--dialogue-base-size", `${val}px`);
+        document.getElementById("fontSizeLabel").textContent = `${val}px`;
+      });
+
+      const setSceneFilter = (f) => {
+        state.sceneFilter = f;
+        ["filterAllScenes", "filterCgScenes", "filterBranchScenes"].forEach(id => {
+          const btn = document.getElementById(id);
+          const active = (id === "filterAllScenes" && f === "all") ||
+                         (id === "filterCgScenes" && f === "cg") ||
+                         (id === "filterBranchScenes" && f === "branch");
+          btn.className = active
+            ? "flex-1 py-1 rounded text-[11px] font-semibold bg-indigo-600/30 text-indigo-200 border border-indigo-500/40"
+            : "flex-1 py-1 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 hover:text-slate-200";
+        });
+        renderEventsList();
+      };
+      document.getElementById("filterAllScenes").addEventListener("click", () => setSceneFilter("all"));
+      document.getElementById("filterCgScenes").addEventListener("click", () => setSceneFilter("cg"));
+      document.getElementById("filterBranchScenes").addEventListener("click", () => setSceneFilter("branch"));
+
+      document.getElementById("mapSearchInput").addEventListener("input", () => renderMapsList());
+      document.getElementById("gallerySearchInput").addEventListener("input", () => renderGalleryView());
+
+      document.getElementById("folderInput").addEventListener("change", (e) => handleLocalFilesLoad(e.target.files));
+      document.getElementById("libFolderInput").addEventListener("change", (e) => handleLocalFilesLoad(e.target.files));
+      document.getElementById("zipInput").addEventListener("change", (e) => {
+        if (!e.target.files || !e.target.files.length) return;
+        if (e.target.files.length === 1 && /\.zip$/i.test(e.target.files[0].name)) {
+          handleZipFileLoad(e.target.files[0]);
+        } else {
+          handleLocalFilesLoad(e.target.files);
+        }
+      });
+
+      // Full Standalone Export Game.zip (ACTUALLY packs decrypted PNGs, Faces, and Movies into the ZIP!)
+      document.getElementById("btnExportZip").addEventListener("click", async () => {
+        if (!window.JSZip) return;
+        showToast("복호화된 이미지·초상화·동영상 바이너리를 모두 포함하여 완전체 Game.zip을 생성하고 있습니다...");
+        const zip = new window.JSZip();
+        const exportProj = JSON.parse(JSON.stringify(state.project));
+
+        for (const delKey of state.deletedCgKeys) {
+          if (exportProj.cgAssets) delete exportProj.cgAssets[delKey];
+        }
+
+        // Pack actual binary bytes of CGs/Movies into the ZIP so iPhone can open it 100% standalone!
+        for (const [k, origAsset] of Object.entries(state.project.cgAssets || {})) {
+          if (state.deletedCgKeys.has(k) || !exportProj.cgAssets[k]) continue;
+          try {
+            const url = await ensureAssetBlobUrl(origAsset);
+            if (url && !url.startsWith("data:")) {
+              const resp = await fetch(url);
+              const buf = await resp.arrayBuffer();
+              const ext = origAsset.mediaType === "video" ? "webm" : "png";
+              const zPath = `media/cg_${k}.${ext}`;
+              zip.file(zPath, buf);
+              exportProj.cgAssets[k].zipPath = zPath;
+              delete exportProj.cgAssets[k].blobUrl;
+            }
+          } catch (e) {}
+        }
+
+        // Pack actual binary bytes of Face Sheets into the ZIP!
+        for (const [k, origFace] of Object.entries(state.project.faceAssets || {})) {
+          if (!exportProj.faceAssets || !exportProj.faceAssets[k]) continue;
+          try {
+            const url = await ensureAssetBlobUrl(origFace);
+            if (url && !url.startsWith("data:")) {
+              const resp = await fetch(url);
+              const buf = await resp.arrayBuffer();
+              const zPath = `media/face_${k}.png`;
+              zip.file(zPath, buf);
+              exportProj.faceAssets[k].zipPath = zPath;
+              delete exportProj.faceAssets[k].blobUrl;
+            }
+          } catch (e) {}
+        }
+
+        zip.file("story_package.json", JSON.stringify(exportProj, null, 2));
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${(state.project.title || "Game").replace(/[^a-zA-Z0-9가-힣_-]/g, "_")}_Standalone.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("완전체 Game.zip 저장이 완료되었습니다! (아이폰 단독 열람 및 원본 게임 삭제 가능)");
+      });
+
+      // Initial render
+      renderLibraryHeaderSelect();
+      renderMapsList();
+      selectEvent(1);
+      renderGalleryView();
+      renderLibraryTab();
+      renderStoryOrderTimeline();
+      triggerBackgroundNeuralTranslation(state.project);
+    });
+  </script>
+</body>
+</html>
