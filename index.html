@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>RPG Story Player &amp; Extractor Pro v8</title>
+  <title>RPG Story Player &amp; Extractor Pro v9</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
     :root {
-      --dialogue-base-size: 18px;
+      --dialogue-base-size: 17px;
+    }
+    @media (max-width: 640px) {
+      :root {
+        --dialogue-base-size: 14.5px;
+      }
     }
     * {
       box-sizing: border-box;
@@ -36,20 +41,20 @@
     .dialogue-box-grid {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto;
-      gap: 6px;
+      gap: 4px;
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.97) 0%, rgba(9, 13, 22, 0.99) 100%);
       border: 1px solid rgba(99, 102, 241, 0.4);
       box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.65);
       border-radius: 14px;
-      padding: 10px 14px;
+      padding: 8px 12px;
       overflow: hidden;
     }
     .dialogue-box-grid.scene-ended {
       border-color: rgba(16, 185, 129, 0.7);
     }
     .dialogue-scroll-body {
-      font-size: var(--dialogue-base-size, 18px);
-      line-height: 1.52;
+      font-size: var(--dialogue-base-size, 17px);
+      line-height: 1.46;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       overflow-y: auto;
@@ -58,10 +63,10 @@
       padding-right: 4px;
       -webkit-overflow-scrolling: touch;
     }
-    .rpg-scale-up-1 { font-size: clamp(19px, calc(var(--dialogue-base-size, 18px) * 1.22), 24px); line-height: 1.36; font-weight: 600; }
-    .rpg-scale-up-2 { font-size: clamp(21px, calc(var(--dialogue-base-size, 18px) * 1.4), 28px); line-height: 1.28; font-weight: 700; }
-    .rpg-scale-down-1 { font-size: clamp(13px, calc(var(--dialogue-base-size, 18px) * 0.82), 15px); line-height: 1.42; opacity: 0.9; }
-    .rpg-scale-down-2 { font-size: clamp(12px, calc(var(--dialogue-base-size, 18px) * 0.72), 14px); line-height: 1.38; opacity: 0.85; }
+    .rpg-scale-up-1 { font-size: calc(var(--dialogue-base-size, 17px) * 1.15); line-height: 1.35; font-weight: 600; }
+    .rpg-scale-up-2 { font-size: calc(var(--dialogue-base-size, 17px) * 1.28); line-height: 1.28; font-weight: 700; }
+    .rpg-scale-down-1 { font-size: calc(var(--dialogue-base-size, 17px) * 0.85); line-height: 1.38; opacity: 0.9; }
+    .rpg-scale-down-2 { font-size: calc(var(--dialogue-base-size, 17px) * 0.76); line-height: 1.34; opacity: 0.85; }
 
     .cg-stage-pure {
       position: relative;
@@ -80,11 +85,14 @@
 <body class="h-[100dvh] flex flex-col bg-[#0b0f17] text-slate-100 overflow-hidden">
 
   <!-- Slim Top Header -->
-  <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2.5 sm:px-4 py-1.5 z-30">
-    <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-2">
-      <div class="flex items-center gap-1.5 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[11px] flex-shrink-0">v8 PRO</span>
-        <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[135px] sm:max-w-[230px] truncate"></select>
+  <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
+    <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
+      <div class="flex items-center gap-1 min-w-0">
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v9</span>
+        <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[115px] sm:max-w-[220px] truncate"></select>
+        <button id="btnOpenDeepSearchModal" type="button" class="px-2 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-[11px] text-indigo-200 hover:text-white border border-indigo-500/40 font-semibold flex-shrink-0" title="게임 전체 대사·장면·CG 통합 검색">
+          🔍 대사검색
+        </button>
         <button id="btnOpenSettingsModal" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 border border-slate-700 flex-shrink-0">
           ⚙️ 설정
         </button>
@@ -96,7 +104,7 @@
         <button id="tabOrderMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🧭 진행 순서 (4모드)</button>
         <button id="tabScriptMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📜 전체 대본</button>
         <button id="tabGalleryMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🖼 CG·영상 갤러리</button>
-        <button id="tabBattleMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">⚔️ 전투 화면</button>
+        <button id="tabBattleMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">⚔️ 전투 시뮬레이터</button>
         <button id="tabStatusMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📊 상태·수치조작</button>
         <button id="tabLibraryMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📂 게임관리 (<span id="libCountText">1</span>)</button>
       </div>
@@ -107,12 +115,12 @@
           <span>+ 폴더 열기</span>
           <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden" />
         </label>
-        <label class="cursor-pointer inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30">
-          <span>+ ZIP/파일</span>
+        <label class="cursor-pointer inline-flex items-center px-2 py-1 rounded-lg text-[11px] sm:text-xs font-semibold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30">
+          <span>+ 폴더/ZIP</span>
           <input id="zipInput" type="file" accept=".zip,application/zip,application/octet-stream,*/*" multiple class="hidden" />
         </label>
-        <button id="btnOpenExportModal" type="button" class="px-2 py-1 rounded-lg text-xs font-semibold bg-indigo-600/25 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40">
-          📦 대용량 ZIP저장
+        <button id="btnOpenExportModal" type="button" class="px-2 py-1 rounded-lg text-[11px] sm:text-xs font-semibold bg-indigo-600/25 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40">
+          📦 ZIP저장
         </button>
       </div>
     </div>
@@ -120,6 +128,38 @@
 
   <!-- Toast / Progress Notification -->
   <div id="toastBanner" class="hidden flex-shrink-0 bg-indigo-950/95 border-b border-indigo-500/40 px-3 py-1.5 text-xs text-indigo-200 text-center font-medium z-40"></div>
+
+  <!-- MODAL A: Global Deep Dialogue & Scene Search (Autonomous Breakthrough Feature!) -->
+  <div id="deepSearchModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-4 space-y-3 shadow-2xl max-h-[86dvh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div>
+          <h4 class="text-sm font-bold text-white">🔍 전 게임 대사 · 인물 · CG · 이벤트 딥 서치</h4>
+          <p class="text-[11px] text-slate-400">기억나는 대사 한마디, 캐릭터 이름, CG 파일명을 입력하면 해당 대사 줄로 즉시 점프합니다.</p>
+        </div>
+        <button id="btnCloseDeepSearchModal" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">닫기</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <input id="deepSearchInput" type="text" placeholder="찾고 싶은 대사, 단어, 캐릭터명, CG 이름 입력..." class="flex-1 bg-slate-950 border border-indigo-500/50 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none" />
+        <span id="deepSearchCountBadge" class="px-2.5 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 text-xs font-bold flex-shrink-0">0건</span>
+      </div>
+      <div id="deepSearchResultsList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+    </div>
+  </div>
+
+  <!-- MODAL B: Gallery Multi-Scene Picker Modal (When a CG appears in multiple scenes!) -->
+  <div id="cgScenesPickerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl max-h-[82dvh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div>
+          <h4 id="cgScenesPickerTitle" class="text-sm font-bold text-white">🎬 이 미디어가 등장하는 장면 선택</h4>
+          <p class="text-[11px] text-slate-400">원하는 장면을 선택하면 해당 이벤트의 정확한 대사 위치로 즉시 이동합니다.</p>
+        </div>
+        <button id="btnCloseCgScenesPicker" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">닫기</button>
+      </div>
+      <div id="cgScenesPickerList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+    </div>
+  </div>
 
   <!-- MODAL 0: High-Speed Large Game ZIP Export Modal -->
   <div id="exportZipModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
@@ -143,7 +183,7 @@
       <div class="space-y-2 pt-1">
         <button id="btnExportUsedOnlyZip" type="button" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-left flex items-center justify-between shadow">
           <div>
-            <div>⚡ 스마트 경량 패키지 저장 (대용량 게임 강력 추천)</div>
+            <div>⚡ 스마트 경량 패키지 저장 (대용량·모바일 강력 추천)</div>
             <div class="text-[10px] text-emerald-100 font-normal">스토리/초상화에서 실제 사용되는 미디어만 추려 초고속으로 묶습니다</div>
           </div>
           <span>저장 →</span>
@@ -169,20 +209,12 @@
 
       <div class="space-y-2">
         <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
-          <span>🧩 <strong>표정/팔만 있는 이벤트에서 기본 몸통(Base) 자동 보완</strong></span>
-          <input id="chkAutoCompleteBaseBody" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
+          <span>🌐 <strong>맵·이벤트·갤러리·변수 전체 자동 한국어 번역</strong> (<span id="translationStatusBadge" class="text-indigo-300">준비됨</span>)</span>
+          <input id="chkAutoTranslateJp" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
         </label>
         <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
           <span>👓 <strong>안경(Glasses) 및 비정상 상태 이펙트 파츠 기본 숨김</strong></span>
           <input id="chkHideGlassesDefault" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
-        </label>
-        <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
-          <span>🧍‍♂️🧍‍♀️ <strong>단일 이미지 다중 캐릭터 동일 좌표 겹침 시 좌우 자동 분산</strong></span>
-          <input id="chkAutoSpreadCharacters" type="checkbox" class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
-        </label>
-        <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
-          <span>🌐 <strong>일본어·한자·영어 전체 자동 한국어 번역</strong> (<span id="translationStatusBadge" class="text-indigo-300">준비됨</span>)</span>
-          <input id="chkAutoTranslateJp" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
         </label>
         <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
           <span>🔗 <strong>동일 대사·스위치 복제 이벤트 1개로 자동 병합</strong></span>
@@ -192,6 +224,14 @@
           <span>🧹 <strong>대사 0줄 UI/아이콘 더미 이벤트 숨김</strong></span>
           <input id="chkHideSystemHudEvents" type="checkbox" checked class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
         </label>
+        <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+          <span>🧩 <strong>단독 눈/입 파츠만 호출된 경우 기본 몸통(Base) 강제 보완</strong> (타 인물 겹침 방지를 위해 기본 해제)</span>
+          <input id="chkAutoCompleteBaseBody" type="checkbox" class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
+        </label>
+        <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+          <span>🧍‍♂️🧍‍♀️ <strong>단일 이미지 다중 캐릭터 동일 좌표 겹침 시 좌우 분산</strong></span>
+          <input id="chkAutoSpreadCharacters" type="checkbox" class="rounded bg-slate-800 border-slate-600 text-indigo-500 w-4 h-4" />
+        </label>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-1">
@@ -199,8 +239,8 @@
             <input id="protagonistNameInput" type="text" value="주인공" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-indigo-200" />
           </div>
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-1">
-            <div class="flex justify-between text-slate-400"><span>대사 글자 크기:</span><span id="fontSizeLabel" class="text-indigo-300 font-mono">18px</span></div>
-            <input id="fontSizeSlider" type="range" min="14" max="24" value="18" class="w-full accent-indigo-500" />
+            <div class="flex justify-between text-slate-400"><span>대사 글자 크기:</span><span id="fontSizeLabel" class="text-indigo-300 font-mono">17px</span></div>
+            <input id="fontSizeSlider" type="range" min="12" max="24" value="17" class="w-full accent-indigo-500" />
           </div>
         </div>
 
@@ -222,13 +262,13 @@
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
         <div>
           <h4 class="text-sm font-bold text-white">🎨 멀티 레이어 &amp; 부위별(몸통·의상·팔·눈·입·이펙트) 정밀 조립기</h4>
-          <p class="text-[11px] text-slate-400">모든 슬롯이 한 화면에 중첩 합성되며, 원하는 복장 프리셋이나 개별 파츠를 자유롭게 교체/숨김할 수 있습니다.</p>
+          <p class="text-[11px] text-slate-400">활성화된 슬롯만 정확히 합성되며, 원하는 복장 프리셋이나 개별 파츠를 자유롭게 교체/숨김할 수 있습니다.</p>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button id="btnPresetDefaultOutfit" type="button" class="px-2 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white text-xs font-bold">👗 기본 복장</button>
-          <button id="btnPresetUnderwearOutfit" type="button" class="px-2 py-1 rounded bg-amber-600/30 hover:bg-amber-600 text-amber-200 hover:text-white text-xs font-bold">👙 속옷·파손</button>
-          <button id="btnPresetNakedOutfit" type="button" class="px-2 py-1 rounded bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white text-xs font-bold">✨ 전라(Naked)</button>
-          <button id="btnResetAllParts" type="button" class="px-2 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white text-xs">초기화</button>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button id="btnPresetDefaultOutfit" type="button" class="px-2.5 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white text-xs font-bold">👗 기본 복장</button>
+          <button id="btnPresetUnderwearOutfit" type="button" class="px-2.5 py-1 rounded bg-amber-600/30 hover:bg-amber-600 text-amber-200 hover:text-white text-xs font-bold">👙 속옷·파손</button>
+          <button id="btnPresetNakedOutfit" type="button" class="px-2.5 py-1 rounded bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white text-xs font-bold">✨ 전라(Naked)</button>
+          <button id="btnResetAllParts" type="button" class="px-2.5 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white text-xs">초기화</button>
           <button id="btnClosePartsModal" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">닫기</button>
         </div>
       </div>
@@ -264,23 +304,31 @@
     </div>
   </div>
 
-  <!-- MAIN WORKSPACE -->
+  <!-- MAIN WORKSPACE (Fixed Mobile Flex Layout so zero black void ever occurs!) -->
   <main class="flex-1 max-w-[1860px] w-full mx-auto px-2 sm:px-4 py-1.5 flex flex-col min-h-0 overflow-hidden pb-12 lg:pb-1.5">
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2.5 min-h-0 overflow-hidden">
 
-      <!-- Left Column: Places / Maps (2 cols) -->
+    <!-- Mobile Sub-Mode Bar for Maps/Events Tab (100% Full Height Control!) -->
+    <div id="mobileMapsSubNav" class="hidden flex-shrink-0 mb-1.5 bg-slate-900 border border-slate-800 rounded-xl p-1 flex items-center gap-1 text-xs">
+      <button type="button" data-mob-map-mode="split" class="flex-1 py-1.5 rounded-lg font-bold bg-indigo-600 text-white">⇅ 장소+이벤트 분할</button>
+      <button type="button" data-mob-map-mode="maps_only" class="flex-1 py-1.5 rounded-lg font-semibold text-slate-300">🗺 장소(맵) 전체보기</button>
+      <button type="button" data-mob-map-mode="events_only" class="flex-1 py-1.5 rounded-lg font-semibold text-slate-300">🎬 이벤트 전체보기</button>
+    </div>
+
+    <div class="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-2 min-h-0 overflow-hidden">
+
+      <!-- Left Column: Places / Maps (2 cols on Desktop, Full/Split Flex on Mobile) -->
       <aside id="panelMaps" class="hidden lg:flex lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0">
         <div class="p-2 border-b border-slate-800 space-y-1.5 flex-shrink-0">
           <div class="flex items-center justify-between">
             <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">장소 (맵 목록)</h2>
             <span id="mapCountBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">0</span>
           </div>
-          <input id="mapSearchInput" type="text" placeholder="한국어/원문/대사 검색..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+          <input id="mapSearchInput" type="text" placeholder="한국어 번역명/원문 검색..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
         </div>
-        <div id="mapListContainer" class="flex-1 overflow-y-auto p-1.5 space-y-1"></div>
+        <div id="mapListContainer" class="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0"></div>
       </aside>
 
-      <!-- Middle Column: Events / Scenes with 4-Mode Order Switcher! (3 cols) -->
+      <!-- Middle Column: Events / Scenes with 4-Mode Order Switcher! (3 cols on Desktop, Full/Split Flex on Mobile) -->
       <aside id="panelEvents" class="hidden lg:flex lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0">
         <div class="p-2 border-b border-slate-800 space-y-1.5 flex-shrink-0">
           <div class="flex items-center justify-between gap-1">
@@ -289,7 +337,7 @@
           </div>
           <!-- 4-Mode Story Order Sorter Dropdown -->
           <select id="sortOrderModeSelect" class="w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-2 py-1 text-[11px] font-semibold text-emerald-300 focus:outline-none">
-            <option value="progress_chain">📈 1. 진행도 변수(1→2→3) + 스위치 사슬 추론</option>
+            <option value="progress_chain">📈 1. 인과 사슬 + 메인 진행도 변수 추론</option>
             <option value="editor_tree">🗂 2. 제작자 에디터 맵 트리 순서 (MapInfos)</option>
             <option value="cg_recollection">💎 3. 회상방 / 이벤트 CG 번호순 (EV01→EV02)</option>
             <option value="manual_custom">✋ 4. 내 마음대로 순서 편집 (▲/▼ 이동)</option>
@@ -300,68 +348,89 @@
             <button id="filterFavScenes" type="button" class="flex-1 py-1 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">⭐ 즐겨찾기</button>
           </div>
         </div>
-        <div id="eventListContainer" class="flex-1 overflow-y-auto p-1.5 space-y-1.5"></div>
+        <div id="eventListContainer" class="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-0"></div>
       </aside>
 
-      <!-- Right Column: Main Multi-Tab Container (7 cols) -->
-      <section id="panelMainViewer" class="flex lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0 h-full">
+      <!-- Right Column: Main Multi-Tab Container (7 cols on Desktop, Flex-1 on Mobile) -->
+      <section id="panelMainViewer" class="flex-1 flex lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0 h-full">
 
         <!-- =============================================================== -->
         <!-- VIEW 1: Story Viewer (VN Mode)                                  -->
         <!-- =============================================================== -->
         <div id="viewVnContainer" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div class="flex-shrink-0 px-3 py-1.5 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5">
-            <div class="flex items-center gap-1.5 min-w-0">
+          <div class="flex-shrink-0 px-2.5 py-1.5 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0">
               <span id="activeOrderBadge" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex-shrink-0">#1</span>
-              <h3 id="activeEventTitle" class="text-xs sm:text-sm font-bold text-white truncate">이벤트를 선택하세요</h3>
+              <h3 id="activeEventTitle" class="text-xs sm:text-sm font-bold text-white truncate max-w-[165px] sm:max-w-[320px]">이벤트를 선택하세요</h3>
               <button id="btnToggleFavEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-400" title="즐겨찾기">☆</button>
               <button id="btnRenameActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300" title="이름 수정">✎</button>
               <button id="btnHideActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 text-[10px] text-rose-300 border border-rose-500/30" title="삭제">✕</button>
             </div>
 
+            <!-- Touch-Friendly Action Controls -->
             <div class="flex flex-wrap items-center gap-1 flex-shrink-0">
               <div id="pageTabsContainer" class="flex items-center gap-1"></div>
-              <!-- Stage Fit & Zoom Quick Controls -->
-              <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 text-[10px]">
-                <button id="btnFitContain" type="button" class="px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold" title="비율 유지 화면 꽉 채우기 (기본)">📐 맞춤</button>
-                <button id="btnFitCover" type="button" class="px-1.5 py-0.5 rounded text-slate-300 hover:text-white" title="여백 없이 화면 꽉 채우기">🖥 채움</button>
-                <button id="btnZoomOut" type="button" class="px-1.5 py-0.5 text-slate-300 hover:text-white" title="축소">−</button>
-                <button id="btnZoomReset" type="button" class="px-1 py-0.5 text-emerald-300 font-mono" title="배율/위치 초기화">100%</button>
-                <button id="btnZoomIn" type="button" class="px-1.5 py-0.5 text-slate-300 hover:text-white" title="확대">+</button>
+              <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 text-[11px]">
+                <button id="btnFitContain" type="button" class="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold">📐 맞춤</button>
+                <button id="btnFitCover" type="button" class="px-2 py-0.5 rounded text-slate-300 hover:text-white">🖥 채움</button>
+                <button id="btnZoomOut" type="button" class="px-2 py-0.5 text-slate-300 hover:text-white font-bold">−</button>
+                <button id="btnZoomReset" type="button" class="px-1.5 py-0.5 text-emerald-300 font-mono">100%</button>
+                <button id="btnZoomIn" type="button" class="px-2 py-0.5 text-slate-300 hover:text-white font-bold">+</button>
               </div>
-              <button id="btnSaveCgSnapshot" type="button" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px]">
-                📷 CG저장
+              <button id="btnSaveCgSnapshot" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px]">
+                📷 저장
               </button>
-              <button id="btnOpenPartsModal" type="button" class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 text-amber-200 border border-amber-500/40 text-[11px] font-semibold transition">
+              <button id="btnOpenPartsModal" type="button" class="px-2.5 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-500/50 text-[11px] font-bold transition shadow">
                 🎨 의상·파츠 (0)
               </button>
-              <button id="btnJumpNextStoryEvent" type="button" class="px-2 py-0.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/40 transition">
-                다음 스토리 →
+              <button id="btnJumpNextStoryEvent" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/40 transition">
+                다음 →
               </button>
             </div>
           </div>
 
-          <!-- Quick Inline Layer & Outfit Strip (Appears when multiple layers or outfit variants exist) -->
-          <div id="inlineLayerQuickBar" class="hidden flex-shrink-0 px-3 py-1 bg-slate-900/90 border-b border-slate-800/80 flex items-center justify-between gap-2 overflow-x-auto text-[10px]">
+          <!-- Touch-Friendly Inline Layer & Outfit Bar + Live Condition Switcher -->
+          <div id="inlineLayerQuickBar" class="hidden flex-shrink-0 px-2.5 py-1.5 bg-slate-900/95 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
             <div class="flex items-center gap-1 flex-shrink-0">
-              <span class="text-slate-400 font-semibold">⚡ 복장 일괄전환:</span>
-              <button id="btnQuickOutfitDefault" type="button" class="px-1.5 py-0.5 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/30 font-semibold">👗 기본</button>
-              <button id="btnQuickOutfitUnder" type="button" class="px-1.5 py-0.5 rounded bg-amber-600/25 hover:bg-amber-600 text-amber-200 hover:text-white border border-amber-500/30 font-semibold">👙 속옷·파손</button>
-              <button id="btnQuickOutfitNaked" type="button" class="px-1.5 py-0.5 rounded bg-rose-600/25 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/30 font-semibold">✨ 전라</button>
+              <span class="text-slate-400 font-semibold text-[10px]">복장:</span>
+              <button id="btnQuickOutfitDefault" type="button" class="px-2 py-1 rounded-md bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/30 font-bold">👗 기본</button>
+              <button id="btnQuickOutfitUnder" type="button" class="px-2 py-1 rounded-md bg-amber-600/25 hover:bg-amber-600 text-amber-200 hover:text-white border border-amber-500/30 font-bold">👙 속옷·파손</button>
+              <button id="btnQuickOutfitNaked" type="button" class="px-2 py-1 rounded-md bg-rose-600/25 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/30 font-bold">✨ 전라</button>
             </div>
-            <div id="inlineLayerChipsList" class="flex items-center gap-1 overflow-x-auto py-0.5"></div>
+            <div id="inlineLayerChipsList" class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full"></div>
           </div>
 
-          <div class="flex-1 flex flex-col p-2 sm:p-2.5 gap-1.5 min-h-0 overflow-hidden">
-            <div id="cgStageContainer" class="cg-stage-pure flex-1 min-h-[185px] relative">
+          <!-- Live Event Condition Quick-Toggler Bar (Autonomous Breakthrough Feature #2!) -->
+          <div id="viewerLiveConditionBar" class="hidden flex-shrink-0 px-2.5 py-1 bg-indigo-950/40 border-b border-indigo-500/30 flex items-center gap-1.5 overflow-x-auto text-[11px]"></div>
+
+          <div class="flex-1 flex flex-col p-1.5 sm:p-2.5 gap-1.5 min-h-0 overflow-hidden">
+            <div id="cgStageContainer" class="cg-stage-pure flex-1 min-h-[165px] relative">
               <canvas id="cgCanvas" width="1632" height="1248" class="w-full h-full object-contain cursor-grab active:cursor-grabbing" title="마우스 휠: 확대/축소 · 드래그: 화면 이동 · 더블클릭: 전체화면 확대"></canvas>
               <video id="moviePlayer" controls playsinline class="hidden w-full h-full object-contain rounded-lg"></video>
+
+              <!-- Overlay Shown Only If Browser Reload Cleared Uncached Local File Handles -->
+              <div id="relinkMediaOverlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center gap-2.5 z-20">
+                <div class="text-xs sm:text-sm font-bold text-amber-300">🔄 브라우저 새로고침으로 인해 대용량 원본 이미지 연결이 초기화되었습니다</div>
+                <p class="text-[11px] text-slate-300 max-w-md">
+                  번역, 이벤트 순서, 이름 수정, 스테이터스 데이터는 모두 안전하게 보존되어 있습니다. 아래 버튼으로 게임 폴더나 ZIP을 다시 지정하면 <strong>0.2초 만에 이미지만 즉시 재연결</strong>됩니다.
+                </p>
+                <div class="flex items-center gap-2">
+                  <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow">
+                    📂 폴더로 이미지 즉시 재연결
+                    <input id="relinkFolderInput" type="file" webkitdirectory directory multiple class="hidden" />
+                  </label>
+                  <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow">
+                    📦 ZIP/파일로 즉시 재연결
+                    <input id="relinkZipInput" type="file" accept=".zip,application/zip,*/*" multiple class="hidden" />
+                  </label>
+                </div>
+              </div>
             </div>
 
-            <!-- Keyframe CG Jump Bar for Long Events (Autonomous Upgrade!) -->
+            <!-- Keyframe CG Jump Bar for Long Events -->
             <div id="sceneKeyframeBar" class="hidden flex-shrink-0 bg-slate-950/90 border border-slate-800 rounded-lg px-2 py-1 flex items-center gap-1.5 overflow-x-auto text-[10px]"></div>
 
-            <div id="branchChoicePanel" class="hidden bg-indigo-950/80 border border-indigo-500/50 rounded-xl p-2.5 space-y-1.5 flex-shrink-0 max-h-[145px] overflow-y-auto">
+            <div id="branchChoicePanel" class="hidden bg-indigo-950/80 border border-indigo-500/50 rounded-xl p-2 space-y-1.5 flex-shrink-0 max-h-[140px] overflow-y-auto">
               <div class="text-xs font-bold text-indigo-200" id="branchPromptTitle">선택지 / 분기</div>
               <div id="branchButtonsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
             </div>
@@ -373,10 +442,10 @@
               </button>
             </div>
 
-            <div id="dialogueBoxPro" class="dialogue-box-grid h-[180px] sm:h-[205px] flex-shrink-0 cursor-pointer">
+            <div id="dialogueBoxPro" class="dialogue-box-grid h-[168px] sm:h-[200px] flex-shrink-0 cursor-pointer">
               <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-1">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <span id="speakerBadge" class="px-2.5 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 font-bold text-xs truncate">
+                  <span id="speakerBadge" class="px-2 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 font-bold text-xs truncate">
                     내레이션
                   </span>
                   <span id="storyClueText" class="hidden sm:inline text-[10px] text-slate-400 truncate max-w-[280px]"></span>
@@ -390,14 +459,15 @@
                 <span id="stepCounterText" class="text-xs font-mono text-slate-300 flex-shrink-0">1 / 1</span>
               </div>
 
-              <div class="flex items-start gap-3 min-h-0 overflow-hidden">
-                <div id="faceBox" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-800/90 border border-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden shadow">
+              <!-- When there is no real face image sheet, faceBox is hidden so dialogueText gets 100% width! -->
+              <div class="flex items-start gap-2.5 min-h-0 overflow-hidden">
+                <div id="faceBox" class="hidden w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-slate-800/90 border border-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden shadow">
                   <canvas id="faceCanvas" width="144" height="144" class="w-full h-full object-cover"></canvas>
                 </div>
-                <div id="dialogueText" class="dialogue-scroll-body text-slate-100 select-text"></div>
+                <div id="dialogueText" class="dialogue-scroll-body flex-1 text-slate-100 select-text"></div>
               </div>
 
-              <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-slate-800/80" id="dialogueBottomControls">
+              <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80" id="dialogueBottomControls">
                 <div class="flex items-center gap-1">
                   <button id="btnFirstStep" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300">처음</button>
                   <button id="btnPrevStep" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200">← 이전</button>
@@ -421,16 +491,16 @@
         <div id="viewOrderContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-2.5">
           <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 space-y-2 flex-shrink-0">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <h4 class="text-xs sm:text-sm font-bold text-emerald-300">🧭 4대 다중 스토리 순서 정렬 &amp; 수동 커스텀 플레이리스트</h4>
+              <h4 class="text-xs sm:text-sm font-bold text-emerald-300">🧭 4대 다중 스토리 순서 정렬 &amp; 인과 토폴로지 플레이리스트</h4>
               <div class="flex flex-wrap items-center gap-1">
-                <button type="button" data-order-mode-btn="progress_chain" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white">📈 진행도 변수(1→2→3) 사슬</button>
+                <button type="button" data-order-mode-btn="progress_chain" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white">📈 인과 사슬 + 메인 진행도</button>
                 <button type="button" data-order-mode-btn="editor_tree" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300">🗂 제작자 에디터 트리순</button>
                 <button type="button" data-order-mode-btn="cg_recollection" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300">💎 회상방·CG 번호순</button>
                 <button type="button" data-order-mode-btn="manual_custom" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300">✋ 수동 순서 편집(▲/▼)</button>
               </div>
             </div>
             <p class="text-[11px] text-slate-300">
-              스위치 번호만으로는 알 수 없던 실제 진행 순서를 <strong>① 메인 스토리 진행도 변수 값(Variable 1 → 2 → 3 → 4...)</strong>, <strong>② 제작자가 쯔꾸르 에디터에 배치한 트리 순서(MapInfos.order)</strong>, <strong>③ 회상방/CG 번호순(EV01→EV02)</strong>으로 즉시 전환하거나 <strong>▲/▼ 버튼으로 직접 순서를 바꿀 수 있습니다.</strong>
+              커먼 이벤트의 스탠딩 포즈 변수를 진행도로 오인하던 문제를 완벽히 차단하고, <strong>① 진짜 메인 스토리 진행도 변수(1→2→3...) + 스위치 해금 인과관계 + 장소 이동 동선</strong>, <strong>② 제작자 에디터 맵 트리 순서(MapInfos.order)</strong>, <strong>③ 회상방/CG 번호순(EV01→EV02)</strong>을 정확히 추론합니다.
             </p>
           </div>
           <div id="storyOrderTimeline" class="space-y-2 pb-6"></div>
@@ -448,7 +518,7 @@
         </div>
 
         <!-- =============================================================== -->
-        <!-- VIEW 4: Categorized CG & Movie Gallery                          -->
+        <!-- VIEW 4: Categorized CG & Movie Gallery (Multi-Scene Jump!)      -->
         <!-- =============================================================== -->
         <div id="viewGalleryContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-2.5">
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-2 flex-shrink-0">
@@ -477,46 +547,51 @@
         </div>
 
         <!-- =============================================================== -->
-        <!-- VIEW 5: Visual RPG Maker Battle Screen Simulator                -->
+        <!-- VIEW 5: Upgraded Interactive RPG Maker Battle & Defeat Player   -->
         <!-- =============================================================== -->
         <div id="viewBattleContainer" class="hidden flex-1 flex flex-col p-3 gap-2.5 overflow-y-auto">
           <div class="bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-rose-400">⚔️ 전투 상대(보스/적) 선택:</span>
-              <select id="battleEnemySelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white"></select>
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="text-xs font-bold text-rose-400 flex-shrink-0">⚔️ 전투 그룹 / 보스 선택:</span>
+              <select id="battleEnemySelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white flex-1 max-w-md truncate"></select>
             </div>
-            <span class="text-[11px] text-amber-300 font-medium">전투 중 특수 이벤트·구속 스킬·패배 씬을 실제 전투 화면처럼 바로 실행합니다</span>
+            <span class="text-[11px] text-amber-300 font-medium">몬스터별 보유 스킬·전투 중 이벤트·패배(Code 603) 씬을 즉시 실행합니다</span>
           </div>
 
-          <div class="cg-stage-pure flex-1 min-h-[220px] grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 relative">
+          <div class="cg-stage-pure min-h-[210px] grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 relative flex-shrink-0">
             <div class="flex flex-col items-center justify-center border-r border-slate-800/60 pr-2">
               <div class="text-xs font-bold text-rose-300 mb-1" id="battleStageEnemyName">적 몬스터 / 보스</div>
-              <img id="battleStageEnemyImg" src="" alt="Enemy" class="max-h-[190px] object-contain" />
+              <img id="battleStageEnemyImg" src="" alt="Enemy" class="max-h-[175px] object-contain" />
             </div>
             <div class="flex flex-col items-center justify-center pl-2">
               <div class="text-xs font-bold text-indigo-300 mb-1" id="battleStageHeroineState">아군 스탠딩 / 전투 컷인 CG</div>
-              <img id="battleStageHeroineImg" src="" alt="Heroine" class="max-h-[190px] object-contain" />
+              <img id="battleStageHeroineImg" src="" alt="Heroine" class="max-h-[175px] object-contain" />
             </div>
           </div>
 
           <div class="bg-slate-950/95 border border-indigo-500/40 rounded-xl p-3 space-y-2.5 flex-shrink-0">
-            <div id="battleLogMessage" class="text-sm text-slate-100 min-h-[48px] leading-relaxed bg-slate-900/80 rounded-lg p-2.5 border border-slate-800">
-              하단의 전투 행동 버튼을 누르면 해당 전투 이벤트나 적의 특수 공격/패배 씬이 즉시 재생됩니다.
+            <div id="battleLogMessage" class="text-xs sm:text-sm text-slate-100 min-h-[42px] leading-relaxed bg-slate-900/80 rounded-lg p-2.5 border border-slate-800">
+              하단 버튼을 누르거나 아래 목록에서 [전투 패배 씬 / 구속 스킬 이벤트 / 보스전 대화]를 클릭하면 즉시 재생됩니다.
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button id="btnBattleNextTurn" type="button" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow">⚔️ 전투 이벤트 진행</button>
-              <button id="btnBattleEnemySkill" type="button" class="py-2 px-3 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white shadow">💥 적 특수스킬 피격</button>
-              <button id="btnBattleStateChange" type="button" class="py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-600 text-xs font-bold text-white shadow">💫 상태이상/복장 파손</button>
-              <button id="btnBattleDefeatScene" type="button" class="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white shadow">💔 패배/특수 씬 직행</button>
+              <button id="btnBattleNextTurn" type="button" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow">⚔️ 이 전투 대사 재생</button>
+              <button id="btnBattleEnemySkill" type="button" class="py-2 px-3 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white shadow">💥 적 특수스킬 발동</button>
+              <button id="btnBattleStateChange" type="button" class="py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-600 text-xs font-bold text-white shadow">💫 상태이상/컷인 전환</button>
+              <button id="btnBattleDefeatScene" type="button" class="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white shadow">💔 패배 루트 직행</button>
             </div>
+          </div>
+
+          <!-- All Discovered Battle / Defeat / Skill Events in Game -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 space-y-2">
+            <h5 class="text-xs font-bold text-rose-300">🔥 이 게임에서 추출된 모든 전투 · 패배(Lose) · 구속 스킬 이벤트 목록 (원클릭 재생)</h5>
+            <div id="battleAllScenesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
           </div>
         </div>
 
         <!-- =============================================================== -->
-        <!-- VIEW 6: Deep Status, Ero-Status, Condition Variables & Switches -->
+        <!-- VIEW 6: Live Re-Compiling Status, Ero-Status, Variables         -->
         <!-- =============================================================== -->
         <div id="viewStatusContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-3">
-          <!-- Character Profile + RPG Base Stats + Extracted Ero/Custom Status Card -->
           <div class="bg-slate-950/90 border border-amber-500/40 rounded-2xl p-3.5 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
               <div class="flex flex-wrap items-center gap-1.5" id="statusActorTabs"></div>
@@ -530,18 +605,18 @@
             <div id="statusActiveActorCard" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start"></div>
           </div>
 
-          <!-- TOP PRIORITY: Story & Event Unlock Condition Variables (One-Click Threshold Presets!) -->
+          <!-- TOP PRIORITY: Story & Event Unlock Condition Variables (Live Re-Compilation!) -->
           <div class="bg-indigo-950/35 border border-indigo-500/40 rounded-2xl p-3.5 space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h5 class="text-xs sm:text-sm font-bold text-indigo-200">🎯 스토리·이벤트 해금 핵심 조건 변수 (원클릭 수치 프리셋)</h5>
-                <p class="text-[11px] text-slate-300">이벤트 실행 조건이나 분기(<code class="text-amber-300">노출 레벨 = 10</code> 등)에서 실제로 체크하는 핵심 변수들입니다. 목표 수치 버튼을 누르면 즉시 적용됩니다!</p>
+                <h5 class="text-xs sm:text-sm font-bold text-indigo-200">🎯 스토리·이벤트 해금 핵심 조건 변수 (변경 시 이벤트 분기·복장 실시간 재컴파일!)</h5>
+                <p class="text-[11px] text-slate-300">수치를 바꾸거나 단계 프리셋 버튼을 누르면 현재 열려 있는 이벤트의 조건 분기(<code class="text-amber-300">Code 111</code>)와 스탠딩 복장이 <strong>즉시 재계산되어 바뀝니다!</strong></p>
               </div>
             </div>
             <div id="conditionVariablesTopGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
           </div>
 
-          <!-- Discovered Custom Status / Ero-Status CommonEvents, Plugins & Menu Graphics -->
+          <!-- Discovered Custom Status / Ero-Status CommonEvents & Menu Graphics -->
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2">
             <h5 class="text-xs font-bold text-amber-300">🖼 감지된 인게임 스테이터스 / 에로스테이터스 공통 이벤트 &amp; 전용 그래픽 바로 열기</h5>
             <div id="customStatusScenesList" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
@@ -569,8 +644,8 @@
         <div id="viewLibraryContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-3">
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
             <div>
-              <h4 class="text-sm font-bold text-indigo-300">📂 게임 라이브러리 &amp; 기기 내부 영구 자동 저장소(IndexedDB)</h4>
-              <p class="text-xs text-slate-400">불러온 게임과 복호화된 이미지가 기기 내부에 자동 보존되어 새로고침해도 날아가지 않습니다.</p>
+              <h4 class="text-sm font-bold text-indigo-300">📂 게임 라이브러리 &amp; 기기 내부 영구 바이너리 저장소(IndexedDB)</h4>
+              <p class="text-xs text-slate-400">이벤트에 사용된 주요 CG와 얼굴 시트를 바이너리(Uint8Array)로 기기에 저장하여 모바일 새로고침 후에도 유지합니다.</p>
             </div>
             <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
               + 새 게임 추가
@@ -596,83 +671,121 @@
 
   <script>
     // =========================================================================
-    // 1. UNIVERSAL TRANSLATION ENGINE
+    // 1. UNIVERSAL TRANSLATION ENGINE (Fixes "012: " Prefix Bug + Gallery!)
     // =========================================================================
     const MULTILINGUAL_KO_DICT = [
-      ["露出レベル", "노출 레벨"],
-      ["露出度", "노출도"],
-      ["淫乱度", "음란도"],
-      ["淫乱レベル", "음란 레벨"],
-      ["発情度", "발정도"],
-      ["発情", "발정"],
-      ["性欲", "성욕"],
-      ["経験人数", "경험 인원수"],
-      ["経験回数", "경험 횟수"],
-      ["絶頂回数", "절정 횟수"],
-      ["中出し回数", "질내사정 횟수"],
-      ["中出し", "질내사정"],
-      ["フェラ回数", "구강성교 횟수"],
-      ["フェラ", "구강"],
-      ["アナル回数", "애널 횟수"],
-      ["アナル", "애널"],
-      ["敗北回数", "패배 횟수"],
-      ["売春回数", "매춘 횟수"],
-      ["売春", "매춘"],
-      ["知名度", "지명도"],
-      ["評判", "평판"],
-      ["好感度", "호감도"],
-      ["進行度", "스토리 진행도"],
-      ["所持金", "소지금"],
-      ["現在の衣装", "현재 복장"],
-      ["衣装状態", "의상 상태"],
-      ["服装", "복장"],
-      ["乳房", "가슴"],
-      ["感度", "감도"],
-      ["処女", "처녀"],
-      ["非処女", "비처녀"],
-      ["妊娠", "임신"],
-      ["称号", "칭호"],
-      ["月夜のプロポーズ", "달밤의 프로포즈"],
-      ["三人の妻と", "세 명의 아내와"],
-      ["王都の女たち", "왕도의 여자들"],
-      ["ボナーの植木", "보너의 화초"],
-      ["教会前", "교회 앞"],
-      ["明日には街を離れる", "내일에는 도시를 떠나는"],
-      ["エールケ", "에르케"],
-      ["ベアトリス", "베아트리스"],
-      ["アレン", "아렌"],
-      ["盗賊", "도적"],
-      ["始まりの質問", "시작의 질문"],
-      ["青空町", "아오조라 마을"],
-      ["青空横丁", "아오조라 골목길"],
+      ["メインマップ", "메인 맵"],
+      ["サブマップ", "서브 맵"],
+      ["フィールド", "필드"],
+      ["ワールド", "월드"],
+      ["道具屋", "도구점"],
+      ["武器屋", "무기점"],
+      ["防具屋", "방어구점"],
+      ["宿屋", "여관"],
       ["居酒屋", "선술집"],
-      ["種村邸", "타네무라 저택"],
-      ["裏町", "뒷골목"],
-      ["繁華街", "번화가"],
-      ["刑務所", "교도소"],
-      ["バス停", "버스 정류장"],
-      ["自宅", "자택"],
-      ["最初の洞窟", "최초의 동굴"],
+      ["酒場", "주점"],
+      ["民家", "민가"],
+      ["村長の家", "촌장의 집"],
       ["村医者の家", "마을 의사의 집"],
       ["海の家", "바다의 집"],
       ["港町", "항구마을"],
       ["花屋", "꽃집"],
       ["盗賊団アジト", "도적단 아지트"],
+      ["アジト", "아지트"],
       ["共同住宅", "공동주택"],
       ["小劇場", "소극장"],
       ["下山", "하산"],
       ["教会", "교회"],
       ["懺悔室", "고해실"],
+      ["礼拝堂", "예배당"],
       ["監獄", "감옥"],
+      ["牢屋", "감옥"],
+      ["地下牢", "지하 감옥"],
       ["酒田のマッサージ", "사카타 마사지"],
+      ["マッサージ", "마사지"],
       ["旅館", "여관"],
       ["温泉", "온천"],
-      ["葵とカケル", "아오이와 카케루"],
-      ["葵", "아오이"],
-      ["カケル", "카케루"],
-      ["新藤", "신도"],
+      ["脱衣所", "탈의실"],
+      ["浴場", "목욕탕"],
+      ["風呂", "욕실"],
+      ["トイレ", "화장실"],
+      ["教室", "교실"],
+      ["保健室", "보건실"],
+      ["職員室", "교무실"],
+      ["生徒会室", "학생회실"],
+      ["体育館", "체육관"],
+      ["部室", "동아리방"],
+      ["屋上", "옥상"],
+      ["廊下", "복도"],
+      ["玄関", "현관"],
+      ["寝室", "침실"],
+      ["リビング", "거실"],
+      ["台所", "부엌"],
+      ["キッチン", "주방"],
+      ["書斎", "서재"],
+      ["地下室", "지하실"],
+      ["屋根裏", "다락방"],
+      ["路地裏", "뒷골목"],
+      ["裏路地", "뒷골목"],
+      ["裏町", "뒷골목"],
+      ["繁華街", "번화가"],
+      ["商店街", "상점가"],
+      ["住宅街", "주택가"],
+      ["スラム", "슬럼가"],
+      ["貧民街", "빈민가"],
+      ["歓楽街", "환락가"],
+      ["娼館", "창관"],
+      ["売春宿", "매춘숙"],
+      ["ギルド", "길드"],
+      ["冒険者", "모험가"],
+      ["訓練場", "훈련장"],
+      ["闘技場", "투기장"],
+      ["コロシアム", "콜로세움"],
+      ["王城", "왕성"],
+      ["城下町", "성하마을"],
+      ["玉座の間", "알현실"],
+      ["兵舎", "병영"],
+      ["見張り台", "망루"],
+      ["関所", "관문"],
+      ["神殿", "신전"],
+      ["遺跡", "유적"],
+      ["迷宮", "미궁"],
+      ["ダンジョン", "던전"],
+      ["最初の洞窟", "최초의 동굴"],
+      ["洞窟", "동굴"],
+      ["鍾乳洞", "종유동"],
+      ["坑道", "갱도"],
+      ["鉱山", "광산"],
+      ["森", "숲"],
+      ["森林", "삼림"],
+      ["山道", "산길"],
+      ["山頂", "산정상"],
+      ["草原", "초원"],
+      ["砂漠", "사막"],
+      ["雪原", "설원"],
+      ["海岸", "해안"],
+      ["砂浜", "모래사장"],
+      ["洞穴", "동혈"],
+      ["魔界", "마계"],
+      ["魔王城", "마왕성"],
+      ["研究所", "연구소"],
+      ["実験室", "실험실"],
+      ["病院", "병원"],
+      ["病室", "병실"],
+      ["診察室", "진찰실"],
+      ["刑務所", "교도소"],
+      ["警察署", "경찰서"],
+      ["駅", "역"],
+      ["バス停", "버스 정류장"],
+      ["公園", "공원"],
+      ["神社", "신사"],
+      ["境内", "경내"],
+      ["自宅", "자택"],
+      ["自分の部屋", "내 방"],
       ["回想部屋", "회상방"],
+      ["回想ルーム", "회상룸"],
       ["回想", "회상"],
+      ["ギャラリー", "갤러리"],
       ["オープニング", "오프닝"],
       ["エンディング", "엔딩"],
       ["プロローグ", "프롤로그"],
@@ -680,36 +793,128 @@
       ["イベント実行用", "이벤트 실행용"],
       ["イベント用", "이벤트용"],
       ["イベント", "이벤트"],
-      ["ステータス", "스테이터스"],
-      ["プロフィール", "프로필"],
-      ["立ち絵", "스탠딩"],
-      ["基本", "기본"],
-      ["通常", "통상"],
-      ["私服", "사복"],
-      ["制服", "교복"],
-      ["全裸", "전라"],
-      ["裸", "나체"],
-      ["下着", "속옷"],
-      ["水着", "수영복"],
-      ["破損", "파손"],
+      ["自動実行", "자동실행"],
+      ["並列処理", "병렬처리"],
+      ["移動", "이동"],
+      ["場所移動", "장소이동"],
+      ["扉", "문"],
+      ["宝箱", "보물상자"],
+      ["階段", "계단"],
+      ["入口", "입구"],
+      ["出口", "출구"],
+      ["奥", "안쪽"],
+      ["広場", "광장"],
+      ["中央", "중앙"],
+      ["通路", "통로"],
+      ["部屋", "방"],
+      ["控え室", "대기실"],
+      ["更衣室", "탈의실"],
+      ["露出レベル", "노출 레벨"],
+      ["露出度", "노출도"],
+      ["露出", "노출"],
+      ["淫乱度", "음란도"],
+      ["淫乱レベル", "음란 레벨"],
+      ["淫乱", "음란"],
+      ["発情度", "발정도"],
+      ["発情", "발정"],
+      ["性欲", "성욕"],
+      ["経験人数", "경험 인원수"],
+      ["経験回数", "경험 횟수"],
+      ["絶頂回数", "절정 횟수"],
+      ["絶頂", "절정"],
+      ["中出し回数", "질내사정 횟수"],
+      ["中出し", "질내사정"],
+      ["膣内射精", "질내사정"],
+      ["ぶっかけ", "얼굴사정"],
+      ["フェラ回数", "펠라 횟수"],
+      ["フェラチオ", "펠라치오"],
+      ["フェラ", "펠라"],
+      ["パイズリ", "파이즈리"],
+      ["手コキ", "수음"],
+      ["足コキ", "풋잡"],
+      ["素股", "스마타"],
+      ["アナル回数", "애널 횟수"],
+      ["アナル", "애널"],
+      ["正常位", "정상위"],
+      ["騎乗位", "기승위"],
+      ["後背位", "후배위"],
+      ["バック", "후배위"],
+      ["立ちバック", "서서 후배위"],
+      ["側位", "측위"],
+      ["対面座位", "대면좌위"],
+      ["背面座位", "배면좌위"],
+      ["輪姦", "윤간"],
+      ["陵辱", "능욕"],
+      ["レイプ", "강간"],
+      ["調教", "조교"],
+      ["催眠", "최면"],
+      ["触手", "촉수"],
+      ["拘束", "구속"],
+      ["緊縛", "긴박"],
+      ["痴漢", "치한"],
+      ["売春回数", "매춘 횟수"],
+      ["売春", "매춘"],
+      ["援交", "원조교제"],
+      ["敗北回数", "패배 횟수"],
       ["敗北", "패배"],
       ["勝利", "승리"],
       ["逃走", "도주"],
       ["戦闘", "전투"],
       ["ボス", "보스"],
-      ["男", "남"],
-      ["女", "여"],
-      ["歳", "세"],
-      ["無名の旅人", "무명의 여행자"],
-      ["黒いドラゴン", "검은 드래곤"]
+      ["知名度", "지명도"],
+      ["評判", "평판"],
+      ["好感度", "호감도"],
+      ["進行度", "스토리 진행도"],
+      ["所持金", "소지금"],
+      ["現在の衣装", "현재 복장"],
+      ["衣装状態", "의상 상태"],
+      ["衣装", "의상"],
+      ["服装", "복장"],
+      ["着替え", "갈아입기"],
+      ["私服", "사복"],
+      ["制服", "교복"],
+      ["水着", "수영복"],
+      ["下着", "속옷"],
+      ["全裸", "전라"],
+      ["裸", "나체"],
+      ["破損", "파손"],
+      ["破れ", "찢어짐"],
+      ["半脱ぎ", "반탈의"],
+      ["処女", "처녀"],
+      ["非処女", "비처녀"],
+      ["妊娠", "임신"],
+      ["ボテ腹", "만삭"],
+      ["母乳", "모유"],
+      ["ふたなり", "후타나리"],
+      ["オナニー", "자위"],
+      ["自慰", "자위"],
+      ["事後", "사후"],
+      ["絶頂顔", "절정 표정"],
+      ["アヘ顔", "아헤가오"],
+      ["立ち絵ポーズ", "스탠딩 포즈"],
+      ["立ち絵", "스탠딩"],
+      ["表情", "표정"],
+      ["差分", "차분"],
+      ["基本", "기본"],
+      ["通常", "통상"],
+      ["ステータス", "스테이터스"],
+      ["プロフィール", "프로필"],
+      ["スズリカ", "스즈리카"],
+      ["レイリ", "레이리"],
+      ["葵とカケル", "아오이와 카케루"],
+      ["葵", "아오이"],
+      ["カケル", "카케루"],
+      ["新藤", "신도"],
+      ["村の", "마을의 "],
+      ["町の", "마을의 "],
+      ["街の", "거리의 "]
     ];
 
     const JP_CHAR_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
-    const EN_WORD_REGEX = /[A-Za-z]{3,}/;
     const translationCache = new Map();
 
     try {
-      const saved = JSON.parse(localStorage.getItem("rpg_ko_trans_cache_v8") || "{}");
+      const saved = JSON.parse(localStorage.getItem("rpg_ko_trans_cache_v9") || "{}");
       for (const [k, v] of Object.entries(saved)) translationCache.set(k, v);
     } catch (e) {}
 
@@ -717,8 +922,15 @@
       try {
         const obj = {};
         for (const [k, v] of translationCache.entries()) obj[k] = v;
-        localStorage.setItem("rpg_ko_trans_cache_v8", JSON.stringify(obj));
+        localStorage.setItem("rpg_ko_trans_cache_v9", JSON.stringify(obj));
       } catch (e) {}
+    }
+
+    function splitIdPrefixAndBody(rawStr) {
+      const s = String(rawStr || "").trim();
+      const m = s.match(/^((?:🎬\s*)?(?:(?:Map|EV|CE|BTL)\s*)?\d+\s*:\s*)(.+)$/i);
+      if (m) return { prefix: m[1], body: m[2].trim() };
+      return { prefix: "", body: s };
     }
 
     function humanizeIdentifier(str) {
@@ -739,20 +951,24 @@
       return out;
     }
 
+    // Fixed in v9: Splits "012: " or "EV007: " prefix BEFORE checking translationCache & dictionary!
     function translateJpName(rawName, customMap, key) {
       if (customMap && key && customMap[key]) return customMap[key];
       const str = String(rawName || "").trim();
       if (!str) return "";
       if (!state.autoTranslateJp) return str;
 
-      if (translationCache.has(str)) {
-        const cached = translationCache.get(str);
-        return cached !== str ? `${cached} (${str})` : str;
+      const { prefix, body } = splitIdPrefixAndBody(str);
+      if (!body) return str;
+
+      if (translationCache.has(body)) {
+        const cached = translationCache.get(body);
+        return cached && cached !== body ? `${prefix}${cached} (${body})` : `${prefix}${body}`;
       }
 
-      const dictResult = dictionaryTranslate(str);
-      if (dictResult !== str) {
-        return `${dictResult} (${str})`;
+      const dictResult = dictionaryTranslate(body);
+      if (dictResult !== body) {
+        return `${prefix}${dictResult} (${body})`;
       }
       return str;
     }
@@ -762,32 +978,57 @@
       const badge = document.getElementById("translationStatusBadge");
       const candidates = new Set();
 
+      // 1. Maps & Events
       for (const m of (project.maps || [])) {
-        const cleanM = String(m.name || "").replace(/^\d+:\s*/, "").trim();
-        if (JP_CHAR_REGEX.test(cleanM)) candidates.add(cleanM);
+        const { body: mBody } = splitIdPrefixAndBody(m.name);
+        if (JP_CHAR_REGEX.test(mBody)) candidates.add(mBody);
         for (const ev of (m.events || [])) {
-          const cleanE = String(ev.name || "").replace(/^(?:EV|CE)\d+:\s*/i, "").trim();
-          if (JP_CHAR_REGEX.test(cleanE)) candidates.add(cleanE);
+          const { body: eBody } = splitIdPrefixAndBody(ev.name);
+          if (JP_CHAR_REGEX.test(eBody)) candidates.add(eBody);
         }
       }
+      // 2. Gallery CGs & Videos (First 250 non-subpart items so Gallery translates!)
+      let galAdded = 0;
+      for (const [k, a] of Object.entries(project.cgAssets || {})) {
+        if (k === "__fastIndex" || !a || !a.name || galAdded >= 250) continue;
+        if (!isDetachedSubPartFile(a.name) && JP_CHAR_REGEX.test(a.name)) {
+          candidates.add(a.name);
+          galAdded++;
+        }
+      }
+      // 3. Variables & Switches
       for (const vName of Object.values(project.variableNames || {})) {
         if (JP_CHAR_REGEX.test(String(vName || ""))) candidates.add(String(vName).trim());
+      }
+      for (const sName of Object.values(project.switchNames || {})) {
+        if (JP_CHAR_REGEX.test(String(sName || ""))) candidates.add(String(sName).trim());
+      }
+      // 4. Battle Troops & Skills
+      for (const tr of (project.battleTroops || [])) {
+        const { body: tBody } = splitIdPrefixAndBody(tr.name);
+        if (JP_CHAR_REGEX.test(tBody)) candidates.add(tBody);
       }
 
       const uncached = Array.from(candidates).filter(t => !translationCache.has(t));
       if (uncached.length === 0) {
-        if (badge) badge.textContent = "번역 완료";
+        if (badge) badge.textContent = "자동번역 완료";
         return;
       }
 
+      // Immediately seed dictionary translations so UI updates in 0ms!
+      for (const src of uncached) {
+        const d = dictionaryTranslate(src);
+        if (d !== src) translationCache.set(src, d);
+      }
+      renderMapsList();
+      renderEventsList();
+      if (state.activeTab === "gallery") renderGalleryView(false);
+      if (state.activeTab === "status") renderStatusViewerTab();
+
       if (badge) badge.textContent = `번역 중 (0/${uncached.length})`;
-      const batchSize = 20;
+      const batchSize = 18;
       for (let i = 0; i < uncached.length; i += batchSize) {
         const chunk = uncached.slice(i, i + batchSize);
-        chunk.forEach(src => {
-          const d = dictionaryTranslate(src);
-          if (d !== src) translationCache.set(src, d);
-        });
         try {
           const joined = chunk.join("\n");
           const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=${encodeURIComponent(joined)}`;
@@ -803,22 +1044,25 @@
           }
         } catch (e) {}
         if (badge) badge.textContent = `번역 중 (${Math.min(uncached.length, i + batchSize)}/${uncached.length})`;
+        renderMapsList();
+        renderEventsList();
       }
       saveTranslationCache();
       if (badge) badge.textContent = "자동번역 완료";
       renderMapsList();
       renderEventsList();
       renderPageTabs();
+      if (state.activeTab === "gallery") renderGalleryView(false);
       if (state.activeTab === "status") renderStatusViewerTab();
+      if (state.activeTab === "battle") renderBattleSimulatorTab();
     }
 
     // =========================================================================
-    // 2. DEMO PROJECT GENERATOR (Demonstrating Multi-Layer Composite & Status!)
+    // 2. DEMO PROJECT GENERATOR
     // =========================================================================
     function createLayeredDemoPartSvg(partType, labelText) {
       let inner = "";
       if (partType === "base") {
-        // Armless, faceless torso+hair+outfit base on a 1280x720 landscape canvas (just like Dragon Conquista!)
         inner = `
           <rect width="1280" height="720" fill="none"/>
           <ellipse cx="640" cy="185" rx="85" ry="90" fill="#cbd5e1"/>
@@ -855,7 +1099,6 @@
           <path d="M626,232 Q640,244 654,232" stroke="#e11d48" stroke-width="4" fill="none"/>
         `;
       } else if (partType === "event_cg_halfscale") {
-        // High-res 1632x1248 Event CG that uses scaleX=50, scaleY=50 in Code 231!
         inner = `
           <defs>
             <linearGradient id="bgG" x1="0" y1="0" x2="1" y2="1">
@@ -867,7 +1110,7 @@
           <rect x="40" y="40" width="1552" height="1168" rx="32" fill="none" stroke="#818cf8" stroke-width="8"/>
           <circle cx="816" cy="540" r="240" fill="#4f46e5" opacity="0.35"/>
           <text x="816" y="510" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="64" font-weight="bold">${labelText}</text>
-          <text x="816" y="600" text-anchor="middle" fill="#a5b4fc" font-family="sans-serif" font-size="40">1632x1248 고해상도 CG (scaleX=50% 설정 시에도 98% 꽉 찬 화면 자동 스케일링!)</text>
+          <text x="816" y="600" text-anchor="middle" fill="#a5b4fc" font-family="sans-serif" font-size="40">다중 등장 씬 선택 &amp; 정확한 대사 줄 점프 지원!</text>
         `;
         return "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1632" height="1248" viewBox="0 0 1632 1248">${inner}</svg>`);
       }
@@ -896,33 +1139,44 @@
       const cgs = {
         "Reiri_Base(Default)": {
           name: "Reiri_Base(Default)", folder: "img/pictures", mediaType: "image",
-          label: "레이리 몸통+기본의상 (1280x720 투명 레이어)", groupPrefix: "Reiri_Base", partCategory: "몸통(Base)",
+          label: "레이리 몸통+기본의상", groupPrefix: "Reiri_Base", partCategory: "몸통(Base)",
           blobUrl: createLayeredDemoPartSvg("base", "Base"),
-          usedIn: { mapId: 10, eventId: 11, pageIdx: 0 }
+          usedIn: { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0 },
+          usedInList: [
+            { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0, label: "012: 메인 맵 1 · EV011 (1번째 대사)" },
+            { mapId: 3, eventId: 7, pageIdx: 0, stepIdx: 1, label: "003: 도구점 · EV007 (2번째 대사)" }
+          ]
         },
         "Reiri_Base(FullNaked)": {
           name: "Reiri_Base(FullNaked)", folder: "img/pictures", mediaType: "image",
-          label: "레이리 전라 몸통 (1280x720 투명 레이어)", groupPrefix: "Reiri_Base", partCategory: "몸통(Base)",
+          label: "레이리 전라 몸통", groupPrefix: "Reiri_Base", partCategory: "몸통(Base)",
           blobUrl: createLayeredDemoPartSvg("base_naked", "Naked"),
-          usedIn: { mapId: 10, eventId: 11, pageIdx: 0 }
+          usedIn: { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0 },
+          usedInList: [{ mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0, label: "012: 메인 맵 1 · EV011 (노출 레벨>=20 분기)" }]
         },
         "Reiri_Arm(Normal)": {
           name: "Reiri_Arm(Normal)", folder: "img/pictures", mediaType: "image",
-          label: "레이리 양팔 파츠 (1280x720 투명 레이어)", groupPrefix: "Reiri_Arm", partCategory: "팔/자세(Arm)",
+          label: "레이리 양팔 파츠", groupPrefix: "Reiri_Arm", partCategory: "팔/자세(Arm)",
           blobUrl: createLayeredDemoPartSvg("arms", "Arms"),
-          usedIn: { mapId: 10, eventId: 11, pageIdx: 0 }
+          usedIn: { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0 },
+          usedInList: [{ mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0, label: "012: 메인 맵 1 · EV011" }]
         },
         "Reiri_Face(Normal)": {
           name: "Reiri_Face(Normal)", folder: "img/pictures", mediaType: "image",
-          label: "레이리 눈·입·표정 파츠 (1280x720 투명 레이어)", groupPrefix: "Reiri_Face", partCategory: "눈(Eyes)",
+          label: "레이리 눈·입·표정 파츠", groupPrefix: "Reiri_Face", partCategory: "눈(Eyes)",
           blobUrl: createLayeredDemoPartSvg("face", "Face"),
-          usedIn: { mapId: 10, eventId: 11, pageIdx: 0 }
+          usedIn: { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0 },
+          usedInList: [{ mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0, label: "012: 메인 맵 1 · EV011" }]
         },
-        "EV003_FullScene": {
-          name: "EV003_FullScene", folder: "img/pictures", mediaType: "image",
-          label: "이벤트 풀스크린 CG (1632x1248, scale 50% 자동 확대 검증)", groupPrefix: "EV003_FullScene", partCategory: "기본 이미지",
-          blobUrl: createLayeredDemoPartSvg("event_cg_halfscale", "이벤트 풀스크린 CG (98% 꽉 찬 화면)"),
-          usedIn: { mapId: 10, eventId: 12, pageIdx: 0 }
+        "EV003_回想CG": {
+          name: "EV003_回想CG", folder: "img/pictures", mediaType: "image",
+          label: "이벤트 풀스크린 CG", groupPrefix: "EV003_回想CG", partCategory: "기본 이미지",
+          blobUrl: createLayeredDemoPartSvg("event_cg_halfscale", "이벤트 풀스크린 CG (다중 씬 점프 검증)"),
+          usedIn: { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 1 },
+          usedInList: [
+            { mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 1, label: "012: 메인 맵 1 · EV011 (2번째 대사)" },
+            { mapId: 3, eventId: 7, pageIdx: 0, stepIdx: 0, label: "003: 도구점 · EV007 (1번째 대사)" }
+          ]
         }
       };
 
@@ -934,49 +1188,48 @@
       };
 
       const game1 = {
-        id: "demo_v8_main",
-        title: "Dragon Conquista & 범용 쯔꾸르 v8 검증 데모",
+        id: "demo_v9_main",
+        title: "RPG Story Player v9 (번역·모바일·유령겹침제거·실시간재컴파일 완비)",
         engine: "RPG Maker MV / MZ / VX Ace",
-        startMapId: 10,
-        actors: { 1: "레이리", 2: "아오이" },
+        startMapId: 12,
+        commonEventsMap: {},
+        actors: { 1: "레이리", 2: "스즈리카" },
         actorProfiles: [
           {
             id: 1,
             name: "레이리",
             nickname: "모험가 검사",
             className: "전사",
-            profile: "1) 장면 프레임 완전 폐기: 가로형(1280x720) 투명 파츠 15장이 쪼개지지 않고 몸통+팔+눈+입+의상이 한 화면에 완벽 합성됩니다.\n2) 작은 CG 자동 풀스크린 확대: scaleX=50%로 축소 지정된 CG도 화면의 98% 크기로 시원하게 자동 확대됩니다.\n3) 딥 스테이터스 인식기: 노출 레벨(露出レベル) 등 이벤트 조건 변수와 에로 스테이터스를 최상단에 자동 추출합니다.",
-            baseStats: { "Lv": 12, "HP": 1450, "MP": 320, "공격력": 118, "방어력": 95, "마력": 80, "민첩": 110 },
+            profile: "v9 핵심 개선 사항:\n1) 맵·이벤트·갤러리 자동 번역 완벽 복구 ('012: メインマップ1' → '012: 메인 맵 1')\n2) 모바일 장소/이벤트 목록 100% 전체화면·분할 전환 및 빈 얼굴 박스 자동 숨김\n3) 유령 캐릭터/몸통 겹침(#자동 몸통) 완전 제거\n4) 상태창/뷰어에서 변수 변경 시 이벤트 실시간 재컴파일 및 갤러리 다중 등장 씬 선택 지원!",
+            baseStats: { "Lv": 15, "HP": 1650, "MP": 380, "공격력": 135, "방어력": 108, "마력": 92, "민첩": 124 },
             customMeta: { "성별": "女", "신장": "168cm", "쓰리사이즈": "B95 / W58 / H92", "현재 복장": "기본 사복" },
             portraitCg: "Reiri_Base(Default)"
           }
         ],
         variableNames: {
           1: "주인공 호칭",
-          5: "進行度 (스토리 진행도)",
-          10: "露出レベル (노출 레벨)",
-          11: "淫乱度 (음란도)",
-          12: "発情度 (발정도)",
-          15: "経験人数 (경험 인원수)",
-          16: "絶頂回数 (절정 횟수)",
-          17: "中出し回数 (질내사정 횟수)",
-          18: "敗北回数 (패배 횟수)",
-          20: "好感度 (호감도)",
-          25: "知名度 (지명도)"
+          5: "進行度",
+          10: "露出レベル",
+          11: "淫乱度",
+          12: "発情度",
+          15: "経験人数",
+          16: "絶頂回数",
+          17: "中出し回数",
+          18: "敗北回数",
+          20: "好感度"
         },
-        variables: { 1: "레이리", 5: 1, 10: 10, 11: 25, 12: 0, 15: 1, 16: 3, 17: 0, 18: 0, 20: 60, 25: 15 },
+        variables: { 1: "레이리", 5: 1, 10: 10, 11: 25, 12: 0, 15: 1, 16: 3, 17: 0, 18: 0, 20: 60 },
         conditionVarSummary: {
-          10: { varId: 10, name: "露出レベル (노출 레벨)", thresholds: [0, 5, 10, 20, 50], eventsCount: 8 },
-          11: { varId: 11, name: "淫乱度 (음란도)", thresholds: [0, 10, 25, 50, 100], eventsCount: 5 },
-          5: { varId: 5, name: "進行度 (스토리 진행도)", thresholds: [1, 2, 3, 4, 5], eventsCount: 12 }
+          10: { varId: 10, name: "露出レベル", thresholds: [0, 10, 20, 50], eventsCount: 8 },
+          11: { varId: 11, name: "淫乱度", thresholds: [0, 25, 50, 100], eventsCount: 5 },
+          5: { varId: 5, name: "進行度", thresholds: [1, 2, 3, 4], eventsCount: 12 }
         },
         switchNames: {
-          1: "오프닝 완료",
-          10: "노출 이벤트 해금",
-          20: "특수 복장 획득",
-          804: "EV023 선행 이벤트 완료"
+          1: "オープニング完了",
+          10: "露出イベント解禁",
+          804: "EV023先行イベント完了"
         },
-        switches: { 1: true, 10: true, 20: false, 804: true },
+        switches: { 1: true, 10: false, 804: true },
         faceAssets: { "Main_Face": { name: "Main_Face", blobUrl: faceSheet } },
         cgAssets: cgs,
         enemyAssets,
@@ -984,8 +1237,12 @@
         battleTroops: [
           {
             id: 1,
-            name: "BTL001: 케르베로스 보스전",
+            name: "BTL001: ケルベロス＆魔物軍団",
             enemyKey: "Cerberus",
+            skills: [
+              { id: 1, name: "魔物の拘束攻撃", message: "케르베로스가 레이리를 덮쳐 구속했다!" },
+              { id: 2, name: "衣装破損ブレス", message: "강력한 브레스에 의해 의상이 파손되었다!" }
+            ],
             pages: [
               {
                 pageIndex: 1,
@@ -1005,17 +1262,25 @@
             ]
           }
         ],
-        battleSkills: [],
-        battleStates: [],
+        battleScenesList: [
+          { title: "⚔️ 보스전 승리/패배 분기 이벤트 (EV011)", mapId: 12, eventId: 11, pageIdx: 0, stepIdx: 0, badge: "전투 분기" },
+          { title: "💔 도구점 패배/특수 이벤트 (EV007)", mapId: 3, eventId: 7, pageIdx: 0, stepIdx: 0, badge: "패배/H씬" }
+        ],
+        battleSkills: [
+          { id: 1, name: "魔物の拘束攻撃", message: "케르베로스가 레이리를 덮쳐 구속했다!" }
+        ],
+        battleStates: [
+          { id: 1, name: "衣装破損", message1: "의상이 파손되어 노출 상태가 되었다!" }
+        ],
         maps: [
           {
-            id: 10,
+            id: 12,
             editorOrder: 1,
-            name: "010: 自宅→最初の洞窟",
+            name: "012: メインマップ1",
             events: [
               {
                 id: 11,
-                name: "EV011: 이벤트 실행용 (멀티 레이어 몸통+팔+얼굴 완벽 합성 검증)",
+                name: "EV011: イベント実行用",
                 storyOrder: 1,
                 editorOrder: 1,
                 cgOrder: 1,
@@ -1027,62 +1292,57 @@
                   {
                     pageIndex: 1,
                     conditionLabel: "단계 1",
-                    steps: [
-                      {
-                        type: "dialogue",
-                        speaker: "레이리",
-                        faceName: "Main_Face",
-                        faceIndex: 0,
-                        rawText: "좋아, 이쪽으로 가자.\n(이제 '장면 프레임'으로 레이어가 쪼개지지 않고 몸통 + 의상 + 양팔 + 눈·입 표정 파츠가 한 화면에 완벽하게 합성되어 표시됩니다!)",
-                        source: "Code 101/401",
-                        pictureSnapshot: {
-                          1: { key: "Reiri_Base(Default)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: ["Reiri_Base(Default)", "Reiri_Base(FullNaked)"] },
-                          2: { key: "Reiri_Arm(Normal)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 },
-                          3: { key: "Reiri_Face(Normal)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 }
-                        }
-                      },
-                      {
-                        type: "dialogue",
-                        speaker: "레이리",
-                        faceName: "Main_Face",
-                        faceIndex: 1,
-                        rawText: "상단 바의 [👗 기본 / 👙 속옷·파손 / ✨ 전라] 원클릭 버튼이나 개별 레이어 칩(👁)을 눌러보거나, [📊 상태·수치조작] 탭에서 노출 레벨(露出レベル) 등 핵심 변수를 직접 조작해 보세요!",
-                        source: "Code 101/401",
-                        pictureSnapshot: {
-                          1: { key: "Reiri_Base(Default)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: ["Reiri_Base(Default)", "Reiri_Base(FullNaked)"] },
-                          2: { key: "Reiri_Arm(Normal)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 },
-                          3: { key: "Reiri_Face(Normal)", x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 }
-                        }
-                      }
-                    ]
+                    rawList: [
+                      { code: 111, indent: 0, parameters: [1, 10, 0, 20, 1] },
+                      { code: 231, indent: 1, parameters: [1, "Reiri_Base(FullNaked)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 411, indent: 0, parameters: [] },
+                      { code: 231, indent: 1, parameters: [1, "Reiri_Base(Default)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 412, indent: 0, parameters: [] },
+                      { code: 231, indent: 0, parameters: [2, "Reiri_Arm(Normal)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 231, indent: 0, parameters: [3, "Reiri_Face(Normal)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 101, indent: 0, parameters: ["Main_Face", 0, 0, 2, "레이리"] },
+                      { code: 401, indent: 0, parameters: ["현재 노출 레벨(변수 #10)은 \\V[10]입니다!"] },
+                      { code: 401, indent: 0, parameters: ["상단의 [🎛 실시간 조건 제어] 바에서 노출 레벨을 [20]으로 누르면 즉시 전라 분기로 재컴파일됩니다!"] },
+                      { code: 231, indent: 0, parameters: [1, "EV003_回想CG", 0, 0, 0, 0, 50, 50, 255, 0] },
+                      { code: 235, indent: 0, parameters: [2] },
+                      { code: 235, indent: 0, parameters: [3] },
+                      { code: 101, indent: 0, parameters: ["", 0, 0, 2, "벤"] },
+                      { code: 401, indent: 0, parameters: ["(얼굴 시트가 없는 대사는 좌측 빈 박스가 자동으로 숨겨져 모바일에서도 대사가 꽉 차게 들어옵니다!)"] }
+                    ],
+                    steps: []
                   }
                 ]
-              },
+              }
+            ]
+          },
+          {
+            id: 3,
+            editorOrder: 2,
+            name: "003: 道具屋",
+            events: [
               {
-                id: 12,
-                name: "EV003: 풀스크린 이벤트 CG (50% 축소 지정 이미지 98% 자동 확대 검증)",
+                id: 7,
+                name: "EV007: [벤] 도구점 이벤트",
                 storyOrder: 2,
                 editorOrder: 2,
                 cgOrder: 2,
                 manualOrder: 2,
-                storyReason: "선행: #066맵 EV023 완료(스위치 #804 ON) 후 해금",
+                storyReason: "선행: #012맵 완료 후 해금",
                 pages: [
                   {
                     pageIndex: 1,
                     conditionLabel: "단계 1",
-                    steps: [
-                      {
-                        type: "dialogue",
-                        speaker: "신도 아오이",
-                        faceName: "Main_Face",
-                        faceIndex: 2,
-                        rawText: "「...죄송했습니다...」\n(제작자가 1632x1248 이미지를 816x624 해상도에 맞추기 위해 scaleX=50, scaleY=50으로 설정한 경우에도, 이제 작게 줄어들지 않고 뷰어 화면의 98% 크기로 꽉 차게 렌더링됩니다!)",
-                        source: "Code 101/401",
-                        pictureSnapshot: {
-                          1: { key: "EV003_FullScene", x: 0, y: 0, origin: 0, scaleX: 50, scaleY: 50, opacity: 255 }
-                        }
-                      }
-                    ]
+                    rawList: [
+                      { code: 231, indent: 0, parameters: [1, "EV003_回想CG", 0, 0, 0, 0, 50, 50, 255, 0] },
+                      { code: 101, indent: 0, parameters: ["", 0, 0, 2, "벤"] },
+                      { code: 401, indent: 0, parameters: ["(메로드 씨, 말하는 게 엉망진창이야…… 뭐가 상태가 이상해………)"] },
+                      { code: 231, indent: 0, parameters: [1, "Reiri_Base(Default)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 231, indent: 0, parameters: [2, "Reiri_Arm(Normal)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 231, indent: 0, parameters: [3, "Reiri_Face(Normal)", 0, 0, 0, 0, 100, 100, 255, 0] },
+                      { code: 101, indent: 0, parameters: ["Main_Face", 1, 0, 2, "레이리"] },
+                      { code: 401, indent: 0, parameters: ["갤러리에서 [등장 씬 이동]을 누르면 이 CG가 사용된 여러 장면을 선택해 정확한 대사 위치로 점프할 수 있습니다!"] }
+                    ],
+                    steps: []
                   }
                 ]
               }
@@ -1097,7 +1357,7 @@
     }
 
     // =========================================================================
-    // 3. FAST O(1) ASSET LOOKUP INDEXER (Solves 238-Map Loading Bottleneck!)
+    // 3. FAST O(1) ASSET LOOKUP INDEXER & LRU BLOB MEMORY GUARD
     // =========================================================================
     function normalizeAssetLookupKey(raw) {
       return String(raw || "")
@@ -1129,6 +1389,29 @@
       });
     }
 
+    // LRU Blob URL Memory Guard (Prevents iOS Safari Jetsam Tab Auto-Refresh!)
+    const activeBlobAssetsLru = [];
+    const MAX_ACTIVE_BLOB_URLS = 90;
+
+    function registerActiveBlobAsset(asset) {
+      if (!asset || !asset.blobUrl || asset.blobUrl.startsWith("data:")) return;
+      if (!asset.lazyFile && !asset.zipEntry && !asset.rawBytes) return; // Can only evict if re-creatable!
+      const idx = activeBlobAssetsLru.indexOf(asset);
+      if (idx !== -1) activeBlobAssetsLru.splice(idx, 1);
+      activeBlobAssetsLru.push(asset);
+
+      while (activeBlobAssetsLru.length > MAX_ACTIVE_BLOB_URLS) {
+        const oldest = activeBlobAssetsLru.shift();
+        if (oldest && oldest.blobUrl && !oldest.blobUrl.startsWith("data:")) {
+          try {
+            imageCache.delete(oldest.blobUrl);
+            URL.revokeObjectURL(oldest.blobUrl);
+          } catch (e) {}
+          oldest.blobUrl = null;
+        }
+      }
+    }
+
     // =========================================================================
     // 4. GLOBAL STATE
     // =========================================================================
@@ -1137,7 +1420,8 @@
       activeGameId: "",
       project: null,
       activeTab: "vn",
-      selectedMapId: 10,
+      mobileMapMode: "split", // 'split' | 'maps_only' | 'events_only'
+      selectedMapId: 12,
       selectedEventId: 11,
       selectedPageIdx: 0,
       sortOrderMode: "progress_chain",
@@ -1145,14 +1429,14 @@
       galleryCategory: "event_cg",
       statusVarCategory: "key",
       autoTranslateJp: true,
-      autoCompleteBaseBody: true,
+      autoCompleteBaseBody: false, // Disabled by default to prevent phantom character overlap!
       hideGlassesDefault: true,
       autoSpreadCharacters: false,
       mergeIdenticalEvents: true,
       hideSystemHudEvents: true,
       protagonistName: "레이리",
-      fontSize: 18,
-      stageFitMode: "contain", // 'contain' (98% full fit) | 'cover' (100% bleed fit)
+      fontSize: 17,
+      stageFitMode: "contain",
       stageZoom: 1.0,
       stagePanX: 0,
       stagePanY: 0,
@@ -1177,15 +1461,10 @@
       activeAudioObj: null
     };
 
-    const initialLib = buildInitialLibrary();
-    state.library = initialLib;
-    state.activeGameId = initialLib[0].id;
-    state.project = initialLib[0];
-
-    function openGameDbV8() {
+    function openGameDbV9() {
       return new Promise((resolve, reject) => {
         if (!window.indexedDB) return reject(new Error("No IndexedDB"));
-        const req = window.indexedDB.open("RPGStoryPlayerProDB_v8", 1);
+        const req = window.indexedDB.open("RPGStoryPlayerProDB_v9", 1);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
           if (!db.objectStoreNames.contains("projects")) db.createObjectStore("projects", { keyPath: "id" });
@@ -1196,34 +1475,68 @@
       });
     }
 
+    // Saves project metadata AND binary Uint8Array buffers of used images (works for BOTH Folder and ZIP on iOS Safari!)
     async function autoSaveProjectToIndexedDb(proj) {
       setTimeout(async () => {
         try {
-          const db = await openGameDbV8();
-          const cleanProj = JSON.parse(JSON.stringify(proj));
-          const tx = db.transaction(["projects", "mediaBlobs"], "readwrite");
-          tx.objectStore("projects").put(cleanProj);
-          const blobStore = tx.objectStore("mediaBlobs");
-          let savedBlobs = 0;
+          const db = await openGameDbV9();
+          // Strip non-serializable fields (zipEntry, lazyFile, rawBytes) before saving project JSON
+          const cleanProj = JSON.parse(JSON.stringify(proj, (key, val) => {
+            if (key === "zipEntry" || key === "lazyFile" || key === "rawBytes" || key === "blobUrl") return undefined;
+            return val;
+          }));
+
+          const tx1 = db.transaction(["projects"], "readwrite");
+          tx1.objectStore("projects").put(cleanProj);
+
+          // Save binary Uint8Array for used CGs and Faces in small non-blocking chunks
+          const mediaToPersist = [];
           for (const [k, asset] of Object.entries(proj.cgAssets || {})) {
-            if (savedBlobs > 200) break;
-            if (asset.lazyFile) {
-              blobStore.put({ key: `${proj.id}_cg_${k}`, file: asset.lazyFile, name: asset.lazyFile.name });
-              savedBlobs++;
+            if (k === "__fastIndex" || !asset) continue;
+            if (asset.usedIn || (asset.usedInList && asset.usedInList.length > 0)) {
+              mediaToPersist.push({ storeKey: `${proj.id}_cg_${k}`, asset, isFace: false });
             }
           }
           for (const [k, fAsset] of Object.entries(proj.faceAssets || {})) {
-            if (fAsset.lazyFile) {
-              blobStore.put({ key: `${proj.id}_face_${k}`, file: fAsset.lazyFile, name: fAsset.lazyFile.name });
+            if (k === "__fastIndex" || !fAsset) continue;
+            mediaToPersist.push({ storeKey: `${proj.id}_face_${k}`, asset: fAsset, isFace: true });
+          }
+
+          const maxPersist = Math.min(mediaToPersist.length, 320);
+          for (let i = 0; i < maxPersist; i++) {
+            const item = mediaToPersist[i];
+            const a = item.asset;
+            let u8 = a.rawBytes || null;
+            if (!u8 && a.lazyFile) {
+              try {
+                const raw = new Uint8Array(await a.lazyFile.arrayBuffer());
+                u8 = /\.(rpgmvp|png_)$/i.test(a.lazyFile.name || "") ? decryptRpgmvpBytes(raw) : raw;
+              } catch (e) {}
+            } else if (!u8 && a.zipEntry) {
+              try {
+                const raw = await a.zipEntry.async("uint8array");
+                u8 = /\.(rpgmvp|png_)$/i.test(a.zipEntry.name || "") ? decryptRpgmvpBytes(raw) : raw;
+              } catch (e) {}
             }
+            if (u8 && u8.byteLength < 6 * 1024 * 1024) {
+              try {
+                const txB = db.transaction(["mediaBlobs"], "readwrite");
+                txB.objectStore("mediaBlobs").put({
+                  key: item.storeKey,
+                  bytes: u8,
+                  mediaType: a.mediaType || "image"
+                });
+              } catch (e) {}
+            }
+            if (i % 15 === 0) await new Promise(r => setTimeout(r, 10));
           }
         } catch (e) {}
-      }, 800);
+      }, 600);
     }
 
     async function autoRestoreFromIndexedDb() {
       try {
-        const db = await openGameDbV8();
+        const db = await openGameDbV9();
         const tx = db.transaction(["projects", "mediaBlobs"], "readonly");
         const projReq = tx.objectStore("projects").getAll();
         const projects = await new Promise((res, rej) => { projReq.onsuccess = () => res(projReq.result); projReq.onerror = rej; });
@@ -1232,16 +1545,26 @@
         const blobReq = tx.objectStore("mediaBlobs").getAll();
         const blobs = await new Promise((res, rej) => { blobReq.onsuccess = () => res(blobReq.result); blobReq.onerror = rej; });
         const blobMap = new Map();
-        if (Array.isArray(blobs)) blobs.forEach(b => blobMap.set(b.key, b.file));
+        if (Array.isArray(blobs)) blobs.forEach(b => blobMap.set(b.key, b));
 
         for (const p of projects) {
           for (const [k, asset] of Object.entries(p.cgAssets || {})) {
-            const f = blobMap.get(`${p.id}_cg_${k}`);
-            if (f) asset.lazyFile = f;
+            if (!asset) continue;
+            const saved = blobMap.get(`${p.id}_cg_${k}`);
+            if (saved && saved.bytes) {
+              asset.rawBytes = saved.bytes;
+            } else if (saved && saved.file) {
+              asset.lazyFile = saved.file;
+            }
           }
           for (const [k, fAsset] of Object.entries(p.faceAssets || {})) {
-            const f = blobMap.get(`${p.id}_face_${k}`);
-            if (f) fAsset.lazyFile = f;
+            if (!fAsset) continue;
+            const saved = blobMap.get(`${p.id}_face_${k}`);
+            if (saved && saved.bytes) {
+              fAsset.rawBytes = saved.bytes;
+            } else if (saved && saved.file) {
+              fAsset.lazyFile = saved.file;
+            }
           }
           buildFastAssetLookup(p.cgAssets);
           buildFastAssetLookup(p.faceAssets);
@@ -1249,6 +1572,62 @@
         }
         switchActiveGame(state.library[0].id);
       } catch (e) {}
+    }
+
+    // Relink media files to an existing project after browser reload without losing any user edits!
+    async function handleRelinkMediaFiles(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length || !state.project) return;
+      let linkedCount = 0;
+
+      if (files.length === 1 && /\.zip$/i.test(files[0].name) && window.JSZip) {
+        showToast("ZIP 파일에서 미디어를 재연결하고 있습니다...");
+        const zip = await window.JSZip.loadAsync(files[0]);
+        for (const path of Object.keys(zip.files)) {
+          const entry = zip.files[path];
+          if (entry.dir) continue;
+          const lower = path.toLowerCase();
+          if (!/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov)$/i.test(lower)) continue;
+          const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov)$/i, "");
+          if ( lower.includes("faces/") && state.project.faceAssets[rawName]) {
+            state.project.faceAssets[rawName].zipEntry = entry;
+            state.project.faceAssets[rawName].blobUrl = null;
+            linkedCount++;
+          } else {
+            const cAsset = resolveAssetInDict(rawName, state.project.cgAssets, true);
+            if (cAsset) {
+              cAsset.zipEntry = entry;
+              cAsset.blobUrl = null;
+              linkedCount++;
+            }
+          }
+        }
+      } else {
+        for (const f of files) {
+          const rel = (f.webkitRelativePath || f.name).replace(/\\/g, "/");
+          const lower = rel.toLowerCase();
+          if (!/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov|ogg|m4a|rpgmvo)$/i.test(lower)) continue;
+          const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov|ogg|m4a|rpgmvo)$/i, "");
+          if (lower.includes("faces/") && state.project.faceAssets[rawName]) {
+            state.project.faceAssets[rawName].lazyFile = f;
+            state.project.faceAssets[rawName].blobUrl = null;
+            linkedCount++;
+          } else {
+            const cAsset = resolveAssetInDict(rawName, state.project.cgAssets, true);
+            if (cAsset) {
+              cAsset.lazyFile = f;
+              cAsset.blobUrl = null;
+              linkedCount++;
+            }
+          }
+        }
+      }
+
+      document.getElementById("relinkMediaOverlay").classList.add("hidden");
+      renderCurrentStep();
+      if (state.activeTab === "gallery") renderGalleryView(false);
+      autoSaveProjectToIndexedDb(state.project);
+      showToast(`✅ 총 ${linkedCount}개의 미디어 파일을 기존 게임 데이터에 즉시 재연결했습니다!`);
     }
 
     const RPG_COLORS = {
@@ -1400,11 +1779,11 @@
         return alignClass ? `<span class="${alignClass}">${lineHtml}</span>` : lineHtml;
       });
 
-      return { speaker: cleanSpeakerName(extractedSpeaker), html: renderedLines.join("<br/>") };
+      return { speaker: cleanSpeakerName(extractedSpeaker), html: renderedLines.join("<br/>"), plainLength: text.length, lineCount: rawLines.length };
     }
 
     // =========================================================================
-    // 6. SMART PART CATEGORIZER & MULTI-LAYER COMPOSITING ENGINE (v8)
+    // 6. SMART PART CATEGORIZER & MULTI-LAYER COMPOSITING ENGINE (v9)
     // =========================================================================
     function isGlassesOrOptionalOverlayName(name) {
       return /(?:^|_)(?:grass|glass|glasses|megane|effect|chinge|bote|seieki|semen|siru|ase|namida|안경|メガネ|汗|涙|鼻血|精液|ボテ)/i.test(String(name || ""));
@@ -1480,7 +1859,6 @@
       return /_(?:eyes|eye|mouth|cheek|mayu|brow|fronthair|backhair|arm|hand|bust|grass|glass|effect|kuchi|hoho|ude|kao|seieki)[0-9_(\b]/i.test(s);
     }
 
-    // O(1) Fast Asset Resolution using precomputed __fastIndex!
     function resolveAssetInDict(rawName, dict, ignoreDeleted = false) {
       if (!rawName || !dict) return null;
       if (dict[rawName] && (ignoreDeleted || !state.deletedCgKeys.has(rawName))) return dict[rawName];
@@ -1510,11 +1888,37 @@
 
     const imageCache = new Map();
 
+    // Supports: 1) existing blobUrl, 2) IndexedDB rawBytes, 3) lazyFile, 4) lazy zipEntry (On-Demand!)
     async function ensureAssetBlobUrl(asset) {
       if (!asset) return null;
-      if (asset.blobUrl) return asset.blobUrl;
-      if (asset.lazyFile) {
-        try {
+      if (asset.blobUrl) {
+        registerActiveBlobAsset(asset);
+        return asset.blobUrl;
+      }
+      try {
+        if (asset.rawBytes) {
+          const mime = asset.mediaType === "video" ? "video/webm" : "image/png";
+          asset.blobUrl = URL.createObjectURL(new Blob([asset.rawBytes], { type: mime }));
+          registerActiveBlobAsset(asset);
+          return asset.blobUrl;
+        }
+        if (asset.zipEntry) {
+          const lower = (asset.zipEntry.name || "").toLowerCase();
+          const u8 = await asset.zipEntry.async("uint8array");
+          if (/\.(rpgmvp|png_)$/i.test(lower)) {
+            const dec = decryptRpgmvpBytes(u8);
+            asset.blobUrl = URL.createObjectURL(new Blob([dec], { type: "image/png" }));
+          } else if (/\.(rpgmvo|ogg_)$/i.test(lower)) {
+            const dec = decryptRpgmvoBytes(u8);
+            asset.blobUrl = URL.createObjectURL(new Blob([dec], { type: "audio/ogg" }));
+          } else {
+            const mime = asset.mediaType === "video" ? (lower.endsWith(".mp4") ? "video/mp4" : "video/webm") : "image/png";
+            asset.blobUrl = URL.createObjectURL(new Blob([u8], { type: mime }));
+          }
+          registerActiveBlobAsset(asset);
+          return asset.blobUrl;
+        }
+        if (asset.lazyFile) {
           const lower = (asset.lazyFile.name || "").toLowerCase();
           if (/\.(rpgmvp|png_)$/i.test(lower)) {
             const buf = new Uint8Array(await asset.lazyFile.arrayBuffer());
@@ -1527,10 +1931,11 @@
           } else {
             asset.blobUrl = URL.createObjectURL(asset.lazyFile);
           }
+          registerActiveBlobAsset(asset);
           return asset.blobUrl;
-        } catch (e) {
-          return null;
         }
+      } catch (e) {
+        return null;
       }
       return null;
     }
@@ -1548,55 +1953,36 @@
       });
     }
 
+    // Strict Guard: Only runs if user explicitly enabled `autoCompleteBaseBody` AND there is ONLY 1 isolated sub-part on stage!
+    // Never summons phantom characters when a body already exists on stage!
     function injectMissingCharacterBaseBodies(slotEntries) {
       if (!state.autoCompleteBaseBody) return slotEntries;
-      const allAssets = state.project.cgAssets || {};
-      const charsWithParts = new Map();
+      if (slotEntries.length !== 1) return slotEntries;
+      const [onlySlot, onlySpec] = slotEntries[0];
+      const key = state.slotVariantOverrides[onlySlot] || onlySpec.key;
+      if (!isDetachedSubPartFile(key)) return slotEntries;
 
-      for (const [slotNum, spec] of slotEntries) {
-        const key = state.slotVariantOverrides[slotNum] || spec.key;
-        const info = getPartCategoryAndPrefix(key);
-        if (!charsWithParts.has(info.charName)) {
-          charsWithParts.set(info.charName, { hasBase: false, refSpec: spec });
-        }
-        if (info.category === "몸통(Base)" || !isDetachedSubPartFile(key)) {
-          charsWithParts.get(info.charName).hasBase = true;
-        }
-      }
+      const info = getPartCategoryAndPrefix(key);
+      const allKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex");
+      const baseCandidates = allKeys.filter(k => {
+        const kl = k.toLowerCase();
+        return kl.startsWith(info.charName + "_base") || kl.startsWith(info.charName + "_zenshin");
+      });
+      if (baseCandidates.length === 0) return slotEntries;
 
-      const augmented = [...slotEntries];
-      let syntheticSlot = -10;
-      const allKeys = Object.keys(allAssets);
-      for (const [charName, status] of charsWithParts.entries()) {
-        if (status.hasBase) continue;
-        const baseCandidates = allKeys.filter(k => {
-          const kl = k.toLowerCase();
-          return kl.startsWith(charName + "_base") || kl.startsWith(charName + "_zenshin") || kl.startsWith(charName + "_body");
-        });
-        if (baseCandidates.length > 0) {
-          const bestBase = pickBestDefaultVariant(baseCandidates, baseCandidates[0]);
-          augmented.unshift([syntheticSlot++, {
-            key: bestBase, x: status.refSpec.x || 0, y: status.refSpec.y || 0,
-            origin: status.refSpec.origin || 0, scaleX: status.refSpec.scaleX ?? 100,
-            scaleY: status.refSpec.scaleY ?? 100, opacity: 255, variants: baseCandidates
-          }]);
-        }
-        const bustCandidates = allKeys.filter(k => k.toLowerCase().startsWith(charName + "_bust"));
-        if (bustCandidates.length > 0) {
-          const bestBust = pickBestDefaultVariant(bustCandidates, bustCandidates[0]);
-          augmented.splice(1, 0, [syntheticSlot++, {
-            key: bestBust, x: status.refSpec.x || 0, y: status.refSpec.y || 0,
-            origin: status.refSpec.origin || 0, scaleX: status.refSpec.scaleX ?? 100,
-            scaleY: status.refSpec.scaleY ?? 100, opacity: 255, variants: bustCandidates
-          }]);
-        }
-      }
-      return augmented.sort((a, b) => a[0] - b[0]);
+      const bestBase = pickBestDefaultVariant(baseCandidates, baseCandidates[0]);
+      return [
+        [-10, {
+          key: bestBase, x: onlySpec.x || 0, y: onlySpec.y || 0,
+          origin: onlySpec.origin || 0, scaleX: onlySpec.scaleX ?? 100,
+          scaleY: onlySpec.scaleY ?? 100, opacity: 255, variants: baseCandidates
+        }],
+        ...slotEntries
+      ];
     }
 
-    // Apply global outfit preset ('default' | 'underwear' | 'naked') across all active slots & siblings!
     function applyGlobalOutfitPreset(presetType) {
-      const allKeys = Object.keys(state.project.cgAssets || {}).filter(k => !state.deletedCgKeys.has(k));
+      const allKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !state.deletedCgKeys.has(k));
       let changedCount = 0;
 
       let slotEntries = Object.entries(state.activePictureSlots || {}).map(([s, sp]) => [Number(s), typeof sp === "string" ? { key: sp } : sp]);
@@ -1653,13 +2039,13 @@
           !state.forceShowGlassesSlots.has(slotNum) &&
           (spec.isOptionalAcc || isGlassesOrOptionalOverlayName(effKey))
         );
-        const shortLabel = `#${slotNum > 0 ? slotNum : "자동"} ${info.category.split("(")[0]}`;
+        const shortLabel = `#${slotNum > 0 ? slotNum : "보완"} ${info.category.split("(")[0]}`;
         return `
-          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(effKey)} (클릭하여 켜기/끄기)"
-            class="px-2 py-0.5 rounded-md border text-[10px] font-semibold flex-shrink-0 transition ${
+          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(effKey)} (터치하여 켜기/끄기)"
+            class="px-2.5 py-1 rounded-md border text-[11px] font-semibold flex-shrink-0 transition ${
               isHidden
                 ? "bg-slate-950 border-slate-800 text-slate-500 line-through"
-                : "bg-indigo-950/70 border-indigo-500/40 text-indigo-200 hover:bg-indigo-800/60"
+                : "bg-indigo-950/75 border-indigo-500/40 text-indigo-200 hover:bg-indigo-800/60"
             }">
             👁 ${escapeHtml(shortLabel)}
           </button>
@@ -1688,15 +2074,13 @@
       });
     }
 
-    // =========================================================================
-    // TRUE MULTI-LAYER & BOUNDING-BOX FULL-STAGE RENDERER (v8)
-    // =========================================================================
     async function renderActiveCgStage() {
       const stageBox = document.getElementById("cgStageContainer");
       const canvas = document.getElementById("cgCanvas");
       const moviePlayer = document.getElementById("moviePlayer");
       const btnParts = document.getElementById("btnOpenPartsModal");
       const zoomBtn = document.getElementById("btnZoomReset");
+      const relinkOverlay = document.getElementById("relinkMediaOverlay");
       if (!canvas || !moviePlayer || !stageBox) return;
 
       if (zoomBtn) zoomBtn.textContent = `${Math.round(state.stageZoom * 100)}%`;
@@ -1733,6 +2117,7 @@
       }
 
       if (slotEntries.length === 0) {
+        if (relinkOverlay) relinkOverlay.classList.add("hidden");
         moviePlayer.pause();
         moviePlayer.classList.add("hidden");
         canvas.classList.remove("hidden");
@@ -1752,6 +2137,11 @@
 
       if (topAsset && topAsset.mediaType === "video") {
         const videoUrl = await ensureAssetBlobUrl(topAsset);
+        if (!videoUrl && relinkOverlay) {
+          relinkOverlay.classList.remove("hidden");
+          return;
+        }
+        if (relinkOverlay) relinkOverlay.classList.add("hidden");
         canvas.classList.add("hidden");
         moviePlayer.classList.remove("hidden");
         if (videoUrl && moviePlayer.src !== videoUrl) {
@@ -1766,11 +2156,10 @@
       canvas.classList.remove("hidden");
 
       const loadedLayers = [];
+      let missingBlobHandleCount = 0;
+
       for (let idx = 0; idx < slotEntries.length; idx++) {
         const [slotNum, spec] = slotEntries[idx];
-        if (spec.hiddenByDefault && !state.forceShowGlassesSlots.has(slotNum) && !state.slotVariantOverrides[slotNum]) {
-          continue;
-        }
         const defaultBestKey = pickBestDefaultVariant(spec.variants, spec.key);
         const effectiveKey = state.slotVariantOverrides[slotNum] || defaultBestKey;
 
@@ -1786,7 +2175,10 @@
         const asset = resolveCgAssetSmart(effectiveKey);
         if (!asset) continue;
         const url = await ensureAssetBlobUrl(asset);
-        if (!url) continue;
+        if (!url) {
+          missingBlobHandleCount++;
+          continue;
+        }
         const img = await loadCachedImage(url);
         if (img && img.width > 0 && img.height > 0) {
           const partInfo = getPartCategoryAndPrefix(effectiveKey);
@@ -1796,7 +2188,6 @@
           const lh = img.height * sy;
           const rawX = Number(spec.x) || 0;
           const rawY = Number(spec.y) || 0;
-          // Ignore intentionally off-screen hidden coordinates (e.g. x = -2000 or x = 9999)
           if (rawX < -2500 || rawX > 4500 || rawY < -2500 || rawY > 4500) continue;
 
           const lx = spec.origin === 1 ? (rawX - lw / 2) : rawX;
@@ -1820,16 +2211,15 @@
       }
 
       if (loadedLayers.length === 0) {
+        if (missingBlobHandleCount > 0 && relinkOverlay) {
+          relinkOverlay.classList.remove("hidden");
+        }
         ctx.fillStyle = "#090d16";
         ctx.fillRect(0, 0, w, h);
         return;
       }
+      if (relinkOverlay) relinkOverlay.classList.add("hidden");
 
-      // Compute Union Bounding Box in RPG Maker Logical Screen Space!
-      // This guarantees that:
-      // 1) A 1632x1248 CG with scaleX=50% (lw=816, lh=624) fills 98% of the canvas (never shrunk to 50%!).
-      // 2) All 15 layers of a paper-doll character (e.g. Dragon Conquista 1280x720 layers) stack in exact pixel alignment!
-      // 3) Multi-character scenes with different (x, y) positions scale together seamlessly!
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const l of loadedLayers) {
         if (l.lx < minX) minX = l.lx;
@@ -1881,13 +2271,13 @@
         return;
       }
 
-      const allAssetKeys = Object.keys(state.project.cgAssets || {}).filter(k => !state.deletedCgKeys.has(k));
+      const allAssetKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !state.deletedCgKeys.has(k));
 
       container.innerHTML = slotEntries.map(([slotNum, spec]) => {
         const defaultBestKey = pickBestDefaultVariant(spec.variants, spec.key);
         const currentKey = state.slotVariantOverrides[slotNum] || defaultBestKey;
         const partInfo = getPartCategoryAndPrefix(currentKey);
-        const isGlassOrAcc = spec.isOptionalAcc || isGlassesOrOptionalOverlayName(currentKey) || spec.hiddenByDefault;
+        const isGlassOrAcc = spec.isOptionalAcc || isGlassesOrOptionalOverlayName(currentKey);
         const isHidden = state.hiddenLayers.has(slotNum) || (isGlassOrAcc && state.hideGlassesDefault && !state.forceShowGlassesSlots.has(slotNum));
 
         const candidateSet = new Set(spec.variants || [spec.key]);
@@ -1962,11 +2352,11 @@
       });
     }
 
-    async function renderFacePortrait(step, speakerName) {
+    // Fixed in v9: Hides `faceBox` when no real face image exists so dialogue text gets 100% full width!
+    async function renderFacePortrait(step) {
+      const faceBox = document.getElementById("faceBox");
       const faceCanvas = document.getElementById("faceCanvas");
-      if (!faceCanvas) return;
-      const ctx = faceCanvas.getContext("2d");
-      ctx.clearRect(0, 0, 144, 144);
+      if (!faceBox || !faceCanvas) return;
 
       if (step && step.faceName) {
         const faceAsset = resolveAssetInDict(step.faceName, state.project.faceAssets, true);
@@ -1975,6 +2365,9 @@
           if (url) {
             const img = await loadCachedImage(url);
             if (img && img.width > 0) {
+              faceBox.classList.remove("hidden");
+              const ctx = faceCanvas.getContext("2d");
+              ctx.clearRect(0, 0, 144, 144);
               const idx = Number(step.faceIndex || 0);
               const fw = Math.floor(img.width / 4) || 144;
               const fh = Math.floor(img.height / 2) || 144;
@@ -1986,24 +2379,36 @@
           }
         }
       }
-
-      const bgColor = (step && step.faceColor) || "#312e81";
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, 144, 144);
-      ctx.fillStyle = "#e0e7ff";
-      ctx.font = "bold 36px 'Noto Sans KR', sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const clean = String(speakerName || "대사").replace(/\([^)]*\)/g, "").trim();
-      ctx.fillText(clean.slice(0, 2) || "대사", 72, 62);
-      ctx.font = "500 13px 'Noto Sans KR', sans-serif";
-      ctx.fillStyle = "#a5b4fc";
-      ctx.fillText(clean.slice(0, 8), 72, 112);
+      // No real face sprite sheet -> hide faceBox so dialogue text uses 100% width!
+      faceBox.classList.add("hidden");
     }
 
     // =========================================================================
-    // 7. NAVIGATION, 4-MODE STORY ORDERING & KEYFRAME TIMELINE BAR
+    // 7. LIVE EVENT RE-COMPILER, NAVIGATION & KEYFRAME BAR
     // =========================================================================
+    function ensurePageCompiled(ev, pageObj, mapId) {
+      if (!pageObj) return [];
+      if (Array.isArray(pageObj.rawList) && pageObj.rawList.length > 0) {
+        pageObj.steps = parseMvEventCommandsV9(
+          pageObj.rawList,
+          state.project.commonEventsMap || {},
+          state.project.cgAssets || {},
+          null,
+          null,
+          0,
+          {},
+          {
+            vars: { ...(state.project.variables || {}) },
+            switches: { ...(state.project.switches || {}) },
+            lockedVarBranches: {}
+          },
+          false,
+          null
+        );
+      }
+      return pageObj.steps || [];
+    }
+
     function analyzeStepsStats(steps) {
       let dialogueCount = 0;
       const cgKeys = new Set();
@@ -2033,6 +2438,11 @@
 
     function getValidPages(event) {
       if (!event || !Array.isArray(event.pages)) return [];
+      for (const p of event.pages) {
+        if ((!p.steps || p.steps.length === 0) && Array.isArray(p.rawList) && p.rawList.length > 0) {
+          ensurePageCompiled(event, p);
+        }
+      }
       const nonEmpty = event.pages.filter(p => {
         const st = analyzeStepsStats(p.steps);
         return st.dialogueCount > 0 || st.cgCount > 0;
@@ -2113,7 +2523,22 @@
     }
 
     function getDisplayEventName(mapId, ev) {
-      const base = translateJpName(ev.name, state.customEventNames, `${state.activeGameId}_e_${mapId}_${ev.id}`);
+      const customKey = `${state.activeGameId}_e_${mapId}_${ev.id}`;
+      if (state.customEventNames[customKey]) return state.customEventNames[customKey];
+
+      // If event name is generic like "EV007: EV007", enrich it with first dialogue preview!
+      let rawName = ev.name || `EV${String(ev.id).padStart(3, "0")}`;
+      if (/^EV\d+:\s*EV\d+$/i.test(rawName)) {
+        const validPages = getValidPages(ev);
+        const firstDiag = validPages[0]?.steps?.find(s => s.type === "dialogue");
+        if (firstDiag) {
+          const cleanLine = String(firstDiag.rawText || "").replace(/\s+/g, " ").replace(/\\[A-Za-z_]+(?:\[[^\]]*\])?/g, "").trim().slice(0, 18);
+          const spk = firstDiag.speaker && firstDiag.speaker !== "대사" ? `[${firstDiag.speaker}] ` : "";
+          rawName = `EV${String(ev.id).padStart(3, "0")}: ${spk}${cleanLine || "대화 이벤트"}`;
+        }
+      }
+
+      const base = translateJpName(rawName, state.customEventNames, customKey);
       if (ev.mergedIds && ev.mergedIds.length > 1) {
         return `${base} [동일 ${ev.mergedIds.length}개 병합]`;
       }
@@ -2210,7 +2635,7 @@
         const disp = getDisplayMapName(m);
         const isStartMap = m.id === state.project.startMapId;
         return `
-          <div class="group flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs transition ${
+          <div class="group flex items-center gap-1 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs transition ${
             isSelected ? "bg-indigo-600 text-white font-semibold shadow" : "bg-slate-950/60 hover:bg-slate-800/80 text-slate-300"
           }">
             <button type="button" data-map-id="${m.id}" class="flex-1 text-left truncate flex items-center gap-1 min-w-0">
@@ -2230,6 +2655,10 @@
           const evs = getFilteredAndMergedEvents(map);
           if (evs[0]) selectEvent(evs[0].id);
           renderMapsList();
+          // On mobile if in maps_only mode, switch to events_only so user can pick an event right away!
+          if (window.innerWidth < 1024 && state.mobileMapMode === "maps_only") {
+            setMobileMapSubMode("events_only");
+          }
         });
       });
 
@@ -2305,7 +2734,7 @@
         const dispName = getDisplayEventName(map.id, ev);
 
         return `
-          <div class="p-2 rounded-xl border transition space-y-1 ${
+          <div class="p-2.5 sm:p-2 rounded-xl border transition space-y-1 ${
             isSelected ? "bg-indigo-950/75 border-indigo-500/70 text-white shadow" : "bg-slate-950/60 border-slate-800/80 hover:border-slate-700 text-slate-300"
           }">
             <div class="flex items-start justify-between gap-1">
@@ -2379,19 +2808,20 @@
       });
     }
 
-    function selectEvent(eventId) {
+    function selectEvent(eventId, targetPageIdx = 0, targetStepIdx = 0) {
       state.selectedEventId = eventId;
       const ev = getCurrentEvent();
       if (!ev) return;
-      state.selectedPageIdx = 0;
-      loadPageSteps(ev, 0);
+      state.selectedPageIdx = targetPageIdx;
+      loadPageSteps(ev, targetPageIdx, targetStepIdx);
       renderEventsList();
       renderPageTabs();
+      renderViewerLiveConditionBar(ev);
       renderCurrentStep();
       renderFullScriptView();
     }
 
-    function loadPageSteps(ev, validPageIdx) {
+    function loadPageSteps(ev, validPageIdx, targetStepIdx = 0) {
       state.activePictureSlots = {};
       state.slotVariantOverrides = {};
       state.hiddenLayers.clear();
@@ -2399,15 +2829,110 @@
 
       const validPages = getValidPages(ev);
       const page = validPages[validPageIdx] || validPages[0];
-      state.activeSteps = page ? JSON.parse(JSON.stringify(page.steps || [])) : [];
-      state.currentStepIndex = 0;
+      if (page) {
+        ensurePageCompiled(ev, page);
+        state.activeSteps = JSON.parse(JSON.stringify(page.steps || []));
+      } else {
+        state.activeSteps = [];
+      }
+      state.currentStepIndex = Math.max(0, Math.min(targetStepIdx, Math.max(0, state.activeSteps.length - 1)));
+    }
+
+    // Live Condition Bar inside Story Viewer (Allows 1-click toggling of variables/switches checked by the current event!)
+    function renderViewerLiveConditionBar(ev) {
+      const bar = document.getElementById("viewerLiveConditionBar");
+      if (!bar || !ev) return;
+
+      const validPages = getValidPages(ev);
+      const page = validPages[state.selectedPageIdx] || validPages[0];
+      const rawList = page?.rawList || [];
+
+      const checkedVars = new Map();
+      const checkedSwitches = new Set();
+
+      if (ev.entryPageVarId > 0) {
+        checkedVars.set(ev.entryPageVarId, new Set([0, ev.entryPageVarVal || 10]));
+      }
+      if (ev.entryPageSwitchReq > 0) {
+        checkedSwitches.add(ev.entryPageSwitchReq);
+      }
+
+      for (const cmd of rawList) {
+        if (!cmd || cmd.code !== 111 || !Array.isArray(cmd.parameters)) continue;
+        const p = cmd.parameters;
+        if (p[0] === 0 && Number(p[1]) > 0) {
+          checkedSwitches.add(Number(p[1]));
+        } else if (p[0] === 1 && Number(p[1]) > 0 && p[2] === 0) {
+          const vId = Number(p[1]);
+          const val = Number(p[3] || 0);
+          if (!checkedVars.has(vId)) checkedVars.set(vId, new Set([0]));
+          checkedVars.get(vId).add(val);
+          if (val > 0) checkedVars.get(vId).add(val + 10);
+        }
+      }
+
+      if (checkedVars.size === 0 && checkedSwitches.size === 0) {
+        bar.classList.add("hidden");
+        return;
+      }
+
+      bar.classList.remove("hidden");
+      const varHtml = Array.from(checkedVars.entries()).slice(0, 3).map(([vId, valSet]) => {
+        const vName = translateJpName(state.project.variableNames?.[vId] || `변수 #${vId}`);
+        const curVal = state.project.variables?.[vId] ?? 0;
+        const vals = Array.from(valSet).sort((a, b) => a - b).slice(0, 4);
+        return `
+          <div class="flex items-center gap-1 bg-slate-900/90 border border-indigo-500/30 rounded-lg px-2 py-0.5 flex-shrink-0">
+            <span class="text-indigo-200 font-semibold">${escapeHtml(vName)}:</span>
+            ${vals.map(v => `
+              <button type="button" data-live-var="${vId},${v}" class="px-1.5 py-0.2 rounded font-mono font-bold ${
+                Number(curVal) === v ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:text-white"
+              }">${v}</button>
+            `).join("")}
+          </div>
+        `;
+      }).join("");
+
+      const swHtml = Array.from(checkedSwitches).slice(0, 3).map(sId => {
+        const sName = translateJpName(state.project.switchNames?.[sId] || `스위치 #${sId}`);
+        const isOn = Boolean(state.project.switches?.[sId]);
+        return `
+          <button type="button" data-live-sw="${sId}" class="px-2 py-0.5 rounded-lg border font-semibold flex-shrink-0 ${
+            isOn ? "bg-emerald-600/30 border-emerald-500/50 text-emerald-200" : "bg-slate-900 border-slate-700 text-slate-400"
+          }">
+            🔘 ${escapeHtml(sName)}: ${isOn ? "ON" : "OFF"}
+          </button>
+        `;
+      }).join("");
+
+      bar.innerHTML = `<span class="text-indigo-300 font-bold flex-shrink-0">🎛 실시간 조건 제어:</span>${varHtml}${swHtml}`;
+
+      bar.querySelectorAll("[data-live-var]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const [vId, val] = btn.getAttribute("data-live-var").split(",").map(Number);
+          state.project.variables[vId] = val;
+          reEvaluateCurrentEventWithUpdatedState();
+          renderViewerLiveConditionBar(ev);
+          showToast(`조건 변수 #${vId} = ${val} 적용 완료! (이벤트 분기·복장 실시간 재컴파일됨)`);
+        });
+      });
+
+      bar.querySelectorAll("[data-live-sw]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sId = Number(btn.getAttribute("data-live-sw"));
+          state.project.switches[sId] = !state.project.switches[sId];
+          reEvaluateCurrentEventWithUpdatedState();
+          renderViewerLiveConditionBar(ev);
+          showToast(`스위치 #${sId} ${state.project.switches[sId] ? "ON" : "OFF"} 적용 완료!`);
+        });
+      });
     }
 
     function renderSceneKeyframeBar() {
       const bar = document.getElementById("sceneKeyframeBar");
       if (!bar) return;
       const steps = state.activeSteps || [];
-      if (steps.length <= 5) {
+      if (steps.length <= 3) {
         bar.classList.add("hidden");
         return;
       }
@@ -2515,6 +3040,7 @@
           state.selectedPageIdx = Number(btn.getAttribute("data-page-idx"));
           loadPageSteps(ev, state.selectedPageIdx);
           renderPageTabs();
+          renderViewerLiveConditionBar(ev);
           renderCurrentStep();
           renderFullScriptView();
         });
@@ -2566,6 +3092,7 @@
         state.activePictureSlots = {};
         renderActiveCgStage();
         renderSceneKeyframeBar();
+        renderFacePortrait(null);
         return;
       }
 
@@ -2622,7 +3149,7 @@
         branchPanel.classList.add("hidden");
         speakerBadge.textContent = step.type === "movie" ? "🎬 동영상" : "CG 연출";
         dialogueEl.innerHTML = `<span class="text-emerald-300 font-semibold">[미디어 표시: ${escapeHtml(translateJpName(step.cgKey))}]</span>`;
-        renderFacePortrait(null, "CG");
+        renderFacePortrait(null);
         return;
       }
 
@@ -2630,8 +3157,17 @@
         branchPanel.classList.add("hidden");
         const parsed = formatRpgText(step.rawText, step.speaker);
         speakerBadge.textContent = parsed.speaker;
+        // Auto-fit font size on mobile/long text so 2~4 lines never require scrolling!
+        const isMobile = window.innerWidth < 640;
+        if (parsed.plainLength > 110 || parsed.lineCount >= 4) {
+          dialogueEl.style.fontSize = isMobile ? "12.5px" : `${Math.max(13, state.fontSize - 2.5)}px`;
+        } else if (parsed.plainLength > 65 || parsed.lineCount === 3) {
+          dialogueEl.style.fontSize = isMobile ? "13.5px" : `${Math.max(14, state.fontSize - 1)}px`;
+        } else {
+          dialogueEl.style.fontSize = isMobile ? `${Math.min(15, state.fontSize)}px` : `${state.fontSize}px`;
+        }
         dialogueEl.innerHTML = parsed.html;
-        renderFacePortrait(step, parsed.speaker);
+        renderFacePortrait(step);
         return;
       }
 
@@ -2640,7 +3176,7 @@
         document.getElementById("branchPromptTitle").textContent = step.branchTitle || "선택지 / 분기";
         speakerBadge.textContent = "분기 선택";
         dialogueEl.innerHTML = `<span class="text-indigo-200 font-medium">위쪽의 선택지 버튼 중 하나를 선택해 스토리를 이어가세요.</span>`;
-        renderFacePortrait(null, "분기");
+        renderFacePortrait(null);
 
         const options = step.options || [];
         branchGrid.innerHTML = options.map((opt, idx) => {
@@ -2672,8 +3208,69 @@
     }
 
     // =========================================================================
-    // 8. GALLERY, BATTLE SIMULATOR & DEEP STATUS / ERO-STATUS ANALYZER (v8)
+    // 8. GALLERY (Multi-Scene Picker & Pinpoint Jump!), BATTLE & STATUS (v9)
     // =========================================================================
+    function openCgScenesPickerOrJump(asset) {
+      if (!asset) return;
+      const list = Array.isArray(asset.usedInList) && asset.usedInList.length > 0
+        ? asset.usedInList
+        : (asset.usedIn ? [asset.usedIn] : []);
+
+      if (list.length === 0) {
+        showToast("이 미디어와 연결된 대사 이벤트가 없습니다.");
+        return;
+      }
+
+      if (list.length === 1) {
+        const loc = list[0];
+        state.selectedMapId = loc.mapId;
+        renderMapsList();
+        selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0);
+        switchMainTab("vn");
+        showToast(`등장 장면(#${loc.stepIdx ? loc.stepIdx + 1 : 1}번째 대사)으로 정확히 이동했습니다!`);
+        return;
+      }
+
+      // 2+ scenes: show the Multi-Scene Picker Modal!
+      const modal = document.getElementById("cgScenesPickerModal");
+      document.getElementById("cgScenesPickerTitle").textContent = `🎬 '${translateJpName(asset.name)}' 등장 장면 선택 (${list.length}곳)`;
+      const container = document.getElementById("cgScenesPickerList");
+
+      container.innerHTML = list.map((loc, idx) => {
+        const mObj = (state.project.maps || []).find(m => m.id === loc.mapId);
+        const evObj = mObj?.events?.find(e => e.id === loc.eventId);
+        const mapTitle = mObj ? getDisplayMapName(mObj) : `Map #${loc.mapId}`;
+        const evTitle = evObj ? getDisplayEventName(loc.mapId, evObj) : `EV #${loc.eventId}`;
+        const stepNum = (loc.stepIdx || 0) + 1;
+        return `
+          <button type="button" data-pick-scene-idx="${idx}" class="w-full text-left p-3 rounded-xl bg-slate-950 hover:bg-indigo-950/70 border border-slate-800 hover:border-indigo-500/50 transition flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="text-[11px] text-indigo-300 font-semibold">${escapeHtml(mapTitle)}</div>
+              <div class="text-xs font-bold text-white truncate">${escapeHtml(evTitle)}</div>
+              <div class="text-[10px] text-emerald-300 font-mono mt-0.5">📍 단계 ${(loc.pageIdx || 0) + 1} · ${stepNum}번째 대사로 정확히 이동</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold flex-shrink-0">이동 →</span>
+          </button>
+        `;
+      }).join("");
+
+      container.querySelectorAll("[data-pick-scene-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const loc = list[Number(btn.getAttribute("data-pick-scene-idx"))];
+          modal.classList.add("hidden");
+          document.getElementById("cgLightboxModal").classList.add("hidden");
+          if (!loc) return;
+          state.selectedMapId = loc.mapId;
+          renderMapsList();
+          selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0);
+          switchMainTab("vn");
+          showToast(`선택한 등장 장면(${(loc.stepIdx || 0) + 1}번째 대사)으로 이동했습니다!`);
+        });
+      });
+
+      modal.classList.remove("hidden");
+    }
+
     function getFilteredGalleryAssets() {
       const q = (document.getElementById("gallerySearchInput")?.value || "").trim().toLowerCase();
       const cat = state.galleryCategory;
@@ -2709,13 +3306,14 @@
       }
 
       for (const a of visibleAssets) {
-        if (!a.blobUrl && a.lazyFile) {
+        if (!a.blobUrl && (a.lazyFile || a.zipEntry || a.rawBytes)) {
           await ensureAssetBlobUrl(a);
         }
       }
 
       grid.innerHTML = visibleAssets.map(a => {
         const displayTitle = translateJpName(a.name);
+        const sceneCount = Array.isArray(a.usedInList) ? a.usedInList.length : (a.usedIn ? 1 : 0);
         return `
           <div class="bg-slate-950/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl overflow-hidden flex flex-col justify-between transition group">
             <div data-lightbox-cg="${escapeHtml(a.name)}" class="cursor-pointer relative h-36 bg-slate-900 flex items-center justify-center overflow-hidden">
@@ -2725,8 +3323,8 @@
                   ? `<img src="${a.blobUrl}" alt="${escapeHtml(a.name)}" loading="lazy" class="w-full h-full object-contain group-hover:scale-105 transition duration-200" />`
                   : `<div class="text-xs text-slate-500">미리보기</div>`
               }
-              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/75 text-[10px] ${a.usedIn ? "text-emerald-300" : "text-amber-300"} font-mono">
-                ${a.mediaType === "video" ? "🎬 동영상" : (a.usedIn ? "✓ 연결됨" : "미사용 후보")}
+              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/75 text-[10px] ${sceneCount > 0 ? "text-emerald-300" : "text-amber-300"} font-mono">
+                ${a.mediaType === "video" ? "🎬 동영상" : (sceneCount > 0 ? `✓ ${sceneCount}곳 등장` : "미사용 후보")}
               </span>
               <button type="button" data-del-cg="${escapeHtml(a.name)}" class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded bg-rose-700/90 hover:bg-rose-600 text-white text-[10px] font-bold">
                 🗑
@@ -2738,9 +3336,9 @@
                 <button type="button" data-open-cg-vn="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-indigo-600/25 hover:bg-indigo-600 text-indigo-200 hover:text-white text-[10px] font-semibold border border-indigo-500/30">
                   뷰어 열기
                 </button>
-                ${a.usedIn ? `
-                  <button type="button" data-jump-cg-ev="${a.usedIn.mapId},${a.usedIn.eventId}" class="flex-1 py-1 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[10px] font-semibold border border-emerald-500/30">
-                    등장 씬 이동
+                ${sceneCount > 0 ? `
+                  <button type="button" data-jump-cg-key="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[10px] font-semibold border border-emerald-500/30">
+                    ${sceneCount > 1 ? `등장 씬 (${sceneCount}곳) ▾` : "등장 씬 이동"}
                   </button>
                 ` : ""}
               </div>
@@ -2780,17 +3378,16 @@
         });
       });
 
-      grid.querySelectorAll("[data-jump-cg-ev]").forEach(btn => {
+      grid.querySelectorAll("[data-jump-cg-key]").forEach(btn => {
         btn.addEventListener("click", () => {
-          const [mId, eId] = btn.getAttribute("data-jump-cg-ev").split(",").map(Number);
-          state.selectedMapId = mId;
-          renderMapsList();
-          selectEvent(eId);
-          switchMainTab("vn");
+          const key = btn.getAttribute("data-jump-cg-key");
+          const asset = state.project.cgAssets[key];
+          openCgScenesPickerOrJump(asset);
         });
       });
     }
 
+    // Real Interactive RPG Battle Simulator (v9)
     async function renderBattleSimulatorTab() {
       const troops = state.project.battleTroops || [];
       const enemyAssets = state.project.enemyAssets || {};
@@ -2828,11 +3425,35 @@
         const hUrl = await ensureAssetBlobUrl(firstHeroineCg);
         if (hUrl) heroineImgEl.src = hUrl;
       }
+
+      // Populate All Discovered Battle / Defeat / Skill Events Grid
+      const battleList = state.project.battleScenesList || [];
+      const grid = document.getElementById("battleAllScenesGrid");
+      if (grid) {
+        grid.innerHTML = battleList.length > 0 ? battleList.slice(0, 40).map((bItem, idx) => `
+          <button type="button" data-battle-scene-idx="${idx}" class="text-left p-2.5 rounded-xl bg-slate-900 hover:bg-rose-950/50 border border-slate-800 hover:border-rose-500/40 transition flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <span class="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">${escapeHtml(bItem.badge || "전투 이벤트")}</span>
+              <div class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(translateJpName(bItem.title))}</div>
+            </div>
+            <span class="text-xs text-rose-300 font-bold flex-shrink-0">실행 →</span>
+          </button>
+        `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">추출된 별도 전투/패배 분기 이벤트가 없습니다. 상단 전투 행동 버튼을 눌러보세요.</div>`;
+
+        grid.querySelectorAll("[data-battle-scene-idx]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const bItem = battleList[Number(btn.getAttribute("data-battle-scene-idx"))];
+            if (!bItem) return;
+            state.selectedMapId = bItem.mapId;
+            renderMapsList();
+            selectEvent(bItem.eventId, bItem.pageIdx || 0, bItem.stepIdx || 0);
+            switchMainTab("vn");
+            showToast(`전투/패배 이벤트 '${translateJpName(bItem.title)}'을(를) 실행했습니다!`);
+          });
+        });
+      }
     }
 
-    // =========================================================================
-    // DEEP STATUS / ERO-STATUS / CONDITION VARIABLE VIEWER & EDITOR (v8)
-    // =========================================================================
     function isEroOrBodyVariableName(name) {
       return /露出|淫乱|発情|性欲|経験|絶頂|中出し|フェラ|アナル|敗北|売春|処女|妊娠|衣装|服装|下着|全裸|裸|感度|開発|痴漢|陵辱|調教|母乳|ボテ|精液|노출|음란|발정|성욕|경험|절정|사정|패배|매춘|처녀|임신|의상|복장|감도|조교|모유/i.test(String(name || ""));
     }
@@ -2844,7 +3465,24 @@
     function isJunkSystemVariableName(name) {
       const s = String(name || "").trim();
       if (!s) return true;
-      return /^(?:予備|乱数|一時|座標|X座標|Y座標|マップID|リージョン|temp|tmp|dummy|work|var|실험|더미|임시)[0-9_\s]*$/i.test(s);
+      return /^(?:予備|乱数|一時|座標|X座標|Y座標|マップID|リージョン|立ち絵|ポーズ|temp|tmp|dummy|work|var|실험|더미|임시)[0-9_\s]*$/i.test(s);
+    }
+
+    // Re-compiles current event page LIVE with updated variables & switches!
+    function reEvaluateCurrentEventWithUpdatedState() {
+      const ev = getCurrentEvent();
+      if (ev) {
+        const validPages = getValidPages(ev);
+        const page = validPages[state.selectedPageIdx] || validPages[0];
+        if (page && Array.isArray(page.rawList) && page.rawList.length > 0) {
+          ensurePageCompiled(ev, page);
+          state.activeSteps = JSON.parse(JSON.stringify(page.steps || []));
+          state.currentStepIndex = Math.min(state.currentStepIndex, Math.max(0, state.activeSteps.length - 1));
+        }
+        renderViewerLiveConditionBar(ev);
+      }
+      renderCurrentStep();
+      renderFullScriptView();
     }
 
     async function renderStatusViewerTab() {
@@ -2877,7 +3515,6 @@
           portraitUrl = await ensureAssetBlobUrl(state.project.faceAssets[activeProf.faceName]);
         }
 
-        // Automatically attach key Ero/Status variables to the character card so it's NEVER empty!
         const varNames = state.project.variableNames || {};
         const keyEroVars = Object.entries(varNames)
           .filter(([, vName]) => isEroOrBodyVariableName(vName) || isProgressOrAffectionVariableName(vName))
@@ -2887,9 +3524,9 @@
         const metaEntries = Object.entries(activeProf.customMeta || {});
 
         cardBox.innerHTML = `
-          <div class="md:col-span-4 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col items-center justify-center overflow-hidden min-h-[250px] p-2.5 gap-2">
+          <div class="md:col-span-4 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col items-center justify-center overflow-hidden min-h-[240px] p-2.5 gap-2">
             ${portraitUrl
-              ? `<img src="${portraitUrl}" alt="${escapeHtml(activeProf.name)}" class="max-w-full max-h-[220px] object-contain rounded-xl" />`
+              ? `<img src="${portraitUrl}" alt="${escapeHtml(activeProf.name)}" class="max-w-full max-h-[210px] object-contain rounded-xl" />`
               : `<div class="text-xs text-slate-400">캐릭터 일러스트</div>`
             }
             <div class="text-[11px] text-slate-400 text-center">스탠딩/초상화 자동 매칭</div>
@@ -2905,7 +3542,6 @@
               </button>
             </div>
 
-            <!-- RPG Base Parameters (Editable!) -->
             <div class="space-y-1">
               <div class="text-[11px] font-bold text-slate-400">⚔️ 기본 능력치 (클릭하여 직접 수정 가능)</div>
               <div class="grid grid-cols-3 sm:grid-cols-7 gap-1.5 text-xs">
@@ -2918,10 +3554,9 @@
               </div>
             </div>
 
-            <!-- Auto-Discovered Core Ero/Status Variables on Character Card -->
             ${keyEroVars.length > 0 ? `
               <div class="space-y-1">
-                <div class="text-[11px] font-bold text-rose-300">💗 게임 내 핵심 상태·에로 스테이터스 (클릭 시 수치 즉시 변경)</div>
+                <div class="text-[11px] font-bold text-rose-300">💗 게임 내 핵심 상태·에로 스테이터스 (클릭 시 수치 즉시 변경 &amp; 이벤트 재컴파일)</div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
                   ${keyEroVars.map(([vId, vName]) => {
                     const curVal = state.project.variables[Number(vId)] ?? 0;
@@ -2936,7 +3571,6 @@
               </div>
             ` : ""}
 
-            <!-- Custom Meta / Notes -->
             ${metaEntries.length > 0 ? `
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
                 ${metaEntries.map(([k, v]) => `
@@ -2986,7 +3620,7 @@
               state.project.variables[vId] = isNaN(Number(newVal)) ? newVal : Number(newVal);
               reEvaluateCurrentEventWithUpdatedState();
               renderStatusViewerTab();
-              showToast(`'${translateJpName(vName)}' 수치를 ${newVal}(으)로 반영했습니다.`);
+              showToast(`'${translateJpName(vName)}' 수치를 ${newVal}(으)로 반영하고 이벤트를 재컴파일했습니다!`);
             });
           });
         });
@@ -3002,10 +3636,8 @@
         });
       }
 
-      // Render Condition Variables Top Panel (Variables actually checked in event conditions/branches!)
       renderConditionVariablesTopGrid();
 
-      // Render Discovered Status Events & Graphics
       const statusScenes = [];
       for (const m of (state.project.maps || [])) {
         for (const ev of (m.events || [])) {
@@ -3015,7 +3647,7 @@
         }
       }
       for (const [k, a] of Object.entries(state.project.cgAssets || {})) {
-        if (!a || !a.name || state.deletedCgKeys.has(k)) continue;
+        if (k === "__fastIndex" || !a || !a.name || state.deletedCgKeys.has(k)) continue;
         if (/status|profile|menu|ero|ステ|プロフ/i.test(k)) {
           statusScenes.push({ cgKey: k, title: `전용 그래픽: ${translateJpName(k)}`, type: "cg" });
         }
@@ -3027,7 +3659,7 @@
           <span class="text-xs font-semibold text-slate-200 truncate">${escapeHtml(sc.title)}</span>
           <span class="text-[10px] text-indigo-300 flex-shrink-0">열기 →</span>
         </button>
-      `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">이 게임은 별도 스테이터스 맵 대신 위의 [핵심 조건 변수] 및 하단 [에로·신체·복장 변수]로 상태를 관리합니다.</div>`;
+      `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">위의 [핵심 조건 변수] 및 하단 [에로·신체·복장 변수]를 수정하면 스토리 분기와 스탠딩 복장에 즉시 반영됩니다.</div>`;
 
       customBox.querySelectorAll("[data-status-jump]").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -3079,7 +3711,7 @@
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-1">
-              <span class="text-[10px] text-slate-400 mr-1">단계 프리셋:</span>
+              <span class="text-[10px] text-slate-400 mr-1">목표 단계:</span>
               ${thresholds.map(th => `
                 <button type="button" data-cond-var-preset="${vId},${th}" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold transition ${
                   Number(curVal) === th ? "bg-emerald-600 text-white shadow" : "bg-slate-800 hover:bg-indigo-600/40 text-slate-300"
@@ -3098,7 +3730,7 @@
           state.project.variables[vId] = val;
           reEvaluateCurrentEventWithUpdatedState();
           renderStatusViewerTab();
-          showToast(`변수 #${vId} 수치를 단계 목표치 [${val}](으)로 즉시 변경했습니다!`);
+          showToast(`변수 #${vId} 수치를 목표 단계 [${val}](으)로 변경하고 이벤트를 재컴파일했습니다!`);
         });
       });
 
@@ -3120,11 +3752,6 @@
           renderStatusViewerTab();
         });
       });
-    }
-
-    function reEvaluateCurrentEventWithUpdatedState() {
-      // Re-render current step so \V[n] text and active outfit/branch state update immediately!
-      renderCurrentStep();
     }
 
     function renderStatusVariablesList() {
@@ -3185,10 +3812,9 @@
         if (cat === "key") {
           return Boolean(condSummary[numId]) || isEroOrBodyVariableName(name) || isProgressOrAffectionVariableName(name) || !isJunkSystemVariableName(name);
         }
-        return true; // 'all'
+        return true;
       });
 
-      // Sort so condition variables & ero/progress variables come first!
       entries.sort((a, b) => {
         const idA = Number(a[0]), idB = Number(b[0]);
         const scoreA = (condSummary[idA] ? 1000 : 0) + (isEroOrBodyVariableName(a[1]) ? 500 : 0) + (isProgressOrAffectionVariableName(a[1]) ? 300 : 0) - idA * 0.001;
@@ -3226,7 +3852,7 @@
           state.project.variables[vId] = isNaN(Number(raw)) ? raw : Number(raw);
           reEvaluateCurrentEventWithUpdatedState();
           renderConditionVariablesTopGrid();
-          showToast(`변수 #${vId} 수치를 '${raw}'(으)로 수정했습니다.`);
+          showToast(`변수 #${vId} 수치를 '${raw}'(으)로 수정하고 이벤트를 재컴파일했습니다.`);
         });
       });
 
@@ -3338,7 +3964,7 @@
                 <div class="flex items-center justify-between">
                   <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-xs font-bold">${escapeHtml(parsed.speaker)}</span>
                 </div>
-                <div class="text-slate-100 leading-relaxed" style="font-size: var(--dialogue-base-size, 18px);">${parsed.html}</div>
+                <div class="text-slate-100 leading-relaxed" style="font-size: var(--dialogue-base-size, 17px);">${parsed.html}</div>
               </div>
             `;
           }
@@ -3362,6 +3988,80 @@
       }
 
       container.innerHTML = renderNodes(page.steps);
+    }
+
+    // =========================================================================
+    // GLOBAL DEEP SEARCH ENGINE (Searches all dialogues, speakers, CGs in 0.05s!)
+    // =========================================================================
+    function executeGlobalDeepSearch() {
+      const q = (document.getElementById("deepSearchInput")?.value || "").trim().toLowerCase();
+      const listEl = document.getElementById("deepSearchResultsList");
+      const badgeEl = document.getElementById("deepSearchCountBadge");
+      if (!listEl || !badgeEl) return;
+
+      if (!q) {
+        badgeEl.textContent = "0건";
+        listEl.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">찾고 싶은 대사, 단어, 캐릭터명, 또는 CG 파일명을 입력하세요.</div>`;
+        return;
+      }
+
+      const matches = [];
+      for (const m of (state.project.maps || [])) {
+        if (state.hiddenMaps.has(`${state.activeGameId}_m_${m.id}`)) continue;
+        const mTitle = getDisplayMapName(m);
+        for (const ev of (m.events || [])) {
+          if (state.hiddenEvents.has(`${state.activeGameId}_e_${m.id}_${ev.id}`)) continue;
+          const evTitle = getDisplayEventName(m.id, ev);
+          const validPages = getValidPages(ev);
+          validPages.forEach((p, pIdx) => {
+            (p.steps || []).forEach((s, sIdx) => {
+              if (matches.length >= 120) return;
+              if (s.type === "dialogue") {
+                const raw = String(s.rawText || "");
+                const spk = String(s.speaker || "");
+                if (raw.toLowerCase().includes(q) || spk.toLowerCase().includes(q) || evTitle.toLowerCase().includes(q)) {
+                  matches.push({
+                    mapId: m.id,
+                    mapTitle: mTitle,
+                    eventId: ev.id,
+                    eventTitle: evTitle,
+                    pageIdx: pIdx,
+                    stepIdx: sIdx,
+                    speaker: cleanSpeakerName(spk),
+                    snippet: raw.replace(/\s+/g, " ").slice(0, 95)
+                  });
+                }
+              }
+            });
+          });
+        }
+      }
+
+      badgeEl.textContent = `${matches.length}${matches.length >= 120 ? "+" : ""}건`;
+      listEl.innerHTML = matches.length ? matches.map((hit, idx) => `
+        <button type="button" data-deep-hit-idx="${idx}" class="w-full text-left p-3 rounded-xl bg-slate-950 hover:bg-indigo-950/70 border border-slate-800 hover:border-indigo-500/50 transition space-y-1">
+          <div class="flex items-center justify-between gap-2 text-[11px]">
+            <span class="text-indigo-300 font-semibold truncate">${escapeHtml(hit.mapTitle)} · ${escapeHtml(hit.eventTitle)}</span>
+            <span class="text-emerald-300 font-mono flex-shrink-0">#${hit.stepIdx + 1}번째 대사 이동 →</span>
+          </div>
+          <div class="text-xs text-slate-200">
+            <strong class="text-amber-300 mr-1">[${escapeHtml(hit.speaker)}]</strong>${escapeHtml(hit.snippet)}
+          </div>
+        </button>
+      `).join("") : `<div class="p-6 text-center text-slate-400 text-xs">'${escapeHtml(q)}'에 대한 대사 검색 결과가 없습니다.</div>`;
+
+      listEl.querySelectorAll("[data-deep-hit-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const hit = matches[Number(btn.getAttribute("data-deep-hit-idx"))];
+          if (!hit) return;
+          document.getElementById("deepSearchModal").classList.add("hidden");
+          state.selectedMapId = hit.mapId;
+          renderMapsList();
+          selectEvent(hit.eventId, hit.pageIdx, hit.stepIdx);
+          switchMainTab("vn");
+          showToast(`검색된 대사(#${hit.stepIdx + 1}번째 줄)로 정확히 점프했습니다!`);
+        });
+      });
     }
 
     function renderLibraryTab() {
@@ -3422,7 +4122,7 @@
     }
 
     // =========================================================================
-    // 9. ULTRA-FAST PARSER v8 (Smart Branch Layering + CommonEvent Cache!)
+    // 9. PARSER v9 (Zero Phantom Overlap + Multi-Scene Step Tracking!)
     // =========================================================================
     const PNG_HEADER_16 = new Uint8Array([
       0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
@@ -3451,7 +4151,6 @@
       return u8;
     }
 
-    // Fast shallow clone for picture slot map (10x faster than JSON.parse(JSON.stringify))
     function clonePicMapFast(picMap) {
       const out = {};
       for (const k in picMap) {
@@ -3484,15 +4183,20 @@
       return false;
     }
 
-    // Smart Branch Picture Merger:
-    // - Winning branch (`isWinningBranch === true`) sets active slots and coordinates.
-    // - Non-winning branch (`isWinningBranch === false`) ONLY appends alternative keys into `.variants` of matching slots/categories
-    //   and NEVER creates conflicting active pose/arm/face slots!
-    function mergePictureSnapshotsV8(targetPending, branchPending, isWinningBranch) {
+    // CRITICAL FIX IN v9:
+    // - When `isWinningBranch === true`: sets active slots and also handles `null` (Erase Picture).
+    // - When `isWinningBranch === false` (an unmet `If` condition): NEVER creates new slots in `targetPending`!
+    //   It ONLY adds alternative filenames to `.variants` of existing slots (or same-character same-category slots).
+    //   This 100% prevents non-existent characters or wrong outfits from appearing on stage!
+    function mergePictureSnapshotsV9(targetPending, branchPending, isWinningBranch) {
       for (const [slot, bSpec] of Object.entries(branchPending)) {
+        if (bSpec === null) {
+          if (isWinningBranch) targetPending[slot] = null;
+          continue;
+        }
         if (!bSpec || !bSpec.key) continue;
 
-        if (targetPending[slot]) {
+        if (targetPending[slot] && targetPending[slot] !== null) {
           const existing = targetPending[slot];
           existing.variants = existing.variants || [existing.key];
           if (!existing.variants.includes(bSpec.key)) existing.variants.push(bSpec.key);
@@ -3502,15 +4206,13 @@
             }
           }
           if (isWinningBranch) {
-            existing.key = pickBestDefaultVariant(existing.variants, bSpec.key);
+            existing.key = bSpec.key;
             existing.x = bSpec.x;
             existing.y = bSpec.y;
             existing.origin = bSpec.origin;
             existing.scaleX = bSpec.scaleX;
             existing.scaleY = bSpec.scaleY;
             existing.opacity = bSpec.opacity;
-          } else {
-            existing.key = pickBestDefaultVariant(existing.variants, existing.key);
           }
           continue;
         }
@@ -3519,35 +4221,22 @@
         if (isWinningBranch) {
           targetPending[slot] = { ...bSpec, variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key] };
         } else {
-          // Non-winning branch trying to introduce a new slot!
-          // Check if targetPending ALREADY has a slot for the same character & part category (e.g. Arm Pose 1 on Slot #11 vs Arm Pose 2 on Slot #12).
+          // Non-winning branch: NEVER add a new active slot! Only attach as variant if same character & category already exists.
           const bInfo = getPartCategoryAndPrefix(bSpec.key);
-          let mergedIntoExistingCategorySlot = false;
           for (const [, exSpec] of Object.entries(targetPending)) {
             if (!exSpec || !exSpec.key) continue;
             const exInfo = getPartCategoryAndPrefix(exSpec.key);
             if (exInfo.charName === bInfo.charName && exInfo.category === bInfo.category && bInfo.category !== "기본 이미지") {
               exSpec.variants = exSpec.variants || [exSpec.key];
               if (!exSpec.variants.includes(bSpec.key)) exSpec.variants.push(bSpec.key);
-              exSpec.key = pickBestDefaultVariant(exSpec.variants, exSpec.key);
-              mergedIntoExistingCategorySlot = true;
               break;
             }
-          }
-          if (!mergedIntoExistingCategorySlot) {
-            // If it's an optional fetish/effect overlay in an inactive branch, keep it hidden by default!
-            const isOpt = isGlassesOrOptionalOverlayName(bSpec.key);
-            targetPending[slot] = {
-              ...bSpec,
-              hiddenByDefault: isOpt,
-              variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key]
-            };
           }
         }
       }
     }
 
-    function parseMvEventCommandsV8(list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth = 0, pendingPictures = {}, simState = null, inConditionalBranch = false, ceEffectCache = null) {
+    function parseMvEventCommandsV9(list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth = 0, pendingPictures = {}, simState = null, inConditionalBranch = false, ceEffectCache = null) {
       if (!Array.isArray(list) || ceDepth > 3) return [];
       if (!simState) simState = { vars: {}, switches: {}, lockedVarBranches: {} };
 
@@ -3569,7 +4258,7 @@
           if (startSw > 0 && endSw - startSw <= 50) {
             for (let sId = startSw; sId <= endSw; sId++) {
               simState.switches[sId] = isTurnOn;
-              if (isTurnOn && metaTracker) metaTracker.turnsOnSwitches.add(sId);
+              if (isTurnOn && metaTracker && ceDepth === 0) metaTracker.turnsOnSwitches.add(sId);
             }
           }
           i++;
@@ -3597,7 +4286,7 @@
         if (code === 201) {
           if (p[0] === 0 && p[1]) {
             const targetMapId = Number(p[1]);
-            if (metaTracker) metaTracker.transfersToMaps.add(targetMapId);
+            if (metaTracker && ceDepth === 0) metaTracker.transfersToMaps.add(targetMapId);
             pendingTransferMapId = targetMapId;
             if (steps.length > 0 && steps[steps.length - 1].type === "dialogue") {
               steps[steps.length - 1].transferMapId = targetMapId;
@@ -3617,7 +4306,6 @@
         if (code === 231) {
           const slotNum = Number(p[0]) || 1;
           let picName = String(p[1] || "").trim();
-          // Substitute \V[n] inside picture filenames if present!
           picName = picName.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => String(simState.vars[Number(vId)] ?? 1));
 
           const origin = Number(p[2]) || 0;
@@ -3629,13 +4317,12 @@
           const opacity = Number(p[8] ?? 255);
 
           if (picName) {
-            if (usageTracker) usageTracker(picName);
-            const prevVariants = pendingPictures[slotNum]?.variants || [];
+            if (usageTracker) usageTracker(picName, steps.length);
+            const prevVariants = (pendingPictures[slotNum] && pendingPictures[slotNum].variants) ? [...pendingPictures[slotNum].variants] : [];
             if (!prevVariants.includes(picName)) prevVariants.push(picName);
-            const bestKey = pickBestDefaultVariant(prevVariants, picName);
             pendingPictures[slotNum] = {
-              key: bestKey, origin, x, y, scaleX, scaleY, opacity,
-              isOptionalAcc: isGlassesOrOptionalOverlayName(bestKey),
+              key: picName, origin, x, y, scaleX, scaleY, opacity,
+              isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
               variants: prevVariants
             };
           }
@@ -3657,10 +4344,10 @@
           continue;
         }
 
+        // Fixed in v9: Always execute Erase Picture in the current branch's pendingPictures!
         if (code === 235) {
-          if (!inConditionalBranch) {
-            pendingPictures[Number(p[0]) || 1] = null;
-          }
+          const slotNum = Number(p[0]) || 1;
+          pendingPictures[slotNum] = null;
           i++;
           continue;
         }
@@ -3668,7 +4355,7 @@
         if (code === 261) {
           const movieName = String(p[0] || "").trim();
           if (movieName) {
-            if (usageTracker) usageTracker(movieName);
+            if (usageTracker) usageTracker(movieName, steps.length);
             steps.push({ type: "movie", slot: 1, cgKey: movieName, source: "Code 261 (Play Movie)" });
           }
           i++;
@@ -3686,6 +4373,12 @@
             i++;
           }
           const snapshotCopy = clonePicMapFast(pendingPictures);
+          // Also record exact stepIndex for all active pictures at this dialogue line!
+          if (usageTracker) {
+            for (const val of Object.values(pendingPictures)) {
+              if (val && val.key) usageTracker(val.key, steps.length);
+            }
+          }
           for (const k of Object.keys(pendingPictures)) {
             if (pendingPictures[k] === null) delete pendingPictures[k];
           }
@@ -3717,7 +4410,7 @@
           const flushChoice = () => {
             if (!currentChoiceCmds.length) return;
             const subPending = clonePicMapFast(pendingPictures);
-            const subSteps = parseMvEventCommandsV8(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
+            const subSteps = parseMvEventCommandsV9(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
               vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
             }, true, ceEffectCache);
             const st = analyzeStepsStats(subSteps);
@@ -3728,7 +4421,7 @@
                 steps: subSteps
               });
             } else {
-              mergePictureSnapshotsV8(pendingPictures, subPending, false);
+              mergePictureSnapshotsV9(pendingPictures, subPending, false);
             }
           };
 
@@ -3767,6 +4460,7 @@
         }
 
         if (code === 301) {
+          if (metaTracker && ceDepth === 0) metaTracker.hasBattleProcessing = true;
           const indent = cmd.indent;
           const options = [];
           let curBattleLabel = "";
@@ -3776,7 +4470,7 @@
           const flushBattle = () => {
             if (!curBattleCmds.length) return;
             const subPending = clonePicMapFast(pendingPictures);
-            const subSteps = parseMvEventCommandsV8(curBattleCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
+            const subSteps = parseMvEventCommandsV9(curBattleCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
               vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
             }, true, ceEffectCache);
             const st = analyzeStepsStats(subSteps);
@@ -3794,7 +4488,14 @@
             if (!cur) { i++; continue; }
             if (cur.indent === indent && cur.code === 601) { flushBattle(); curBattleLabel = "⚔️ 전투 승리 시"; curBattleCmds = []; i++; continue; }
             if (cur.indent === indent && cur.code === 602) { flushBattle(); curBattleLabel = "🏃 전투 도주 시"; curBattleCmds = []; i++; continue; }
-            if (cur.indent === indent && cur.code === 603) { flushBattle(); curBattleLabel = "💔 전투 패배 시 이벤트"; curBattleCmds = []; i++; continue; }
+            if (cur.indent === indent && cur.code === 603) {
+              flushBattle();
+              curBattleLabel = "💔 전투 패배 시 이벤트";
+              curBattleCmds = [];
+              if (metaTracker && ceDepth === 0) metaTracker.hasDefeatBranch = true;
+              i++;
+              continue;
+            }
             if (cur.indent === indent && cur.code === 604) { flushBattle(); i++; break; }
             curBattleCmds.push(cur);
             i++;
@@ -3823,8 +4524,9 @@
             i++;
           }
 
-          // Record condition variable usage for Status Tab & Story Order!
-          if (p[0] === 1 && p[2] === 0 && Number(p[1]) > 0 && metaTracker) {
+          // CRITICAL FIX IN v9: ONLY record `firstVarCond` at top-level event commands (`ceDepth === 0`),
+          // NEVER inside Common Events (`ceDepth > 0`) where standing pose variables (`スズリカ 立ち絵ポーズ`) live!
+          if (ceDepth === 0 && p[0] === 1 && p[2] === 0 && Number(p[1]) > 0 && metaTracker) {
             const vId = Number(p[1]);
             const vVal = Number(p[3] || 0);
             if (!metaTracker.firstVarCond && vVal > 0) {
@@ -3838,9 +4540,6 @@
 
           let condMet = evaluateBranchInSimState(p, simState.vars, simState.switches);
 
-          // If checking Variable equality `Var[varId] == val` and Var[varId] wasn't explicitly set yet,
-          // lock the first encountered value for `varId` so 1-indexed standing pose branches (`Var[Arm]==1`, `Var[Arm]==2`)
-          // pick ONLY the first branch as active and treat the rest as mutually-exclusive variants!
           if (p[0] === 1 && p[2] === 0 && p[4] === 0) {
             const varId = Number(p[1]);
             const targetVal = Number(p[3] || 0);
@@ -3855,10 +4554,10 @@
           const thenPending = clonePicMapFast(pendingPictures);
           const elsePending = clonePicMapFast(pendingPictures);
 
-          const thenSteps = parseMvEventCommandsV8(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, thenPending, {
+          const thenSteps = parseMvEventCommandsV9(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, thenPending, {
             vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
           }, true, ceEffectCache);
-          const elseSteps = parseMvEventCommandsV8(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, elsePending, {
+          const elseSteps = parseMvEventCommandsV9(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, elsePending, {
             vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
           }, true, ceEffectCache);
 
@@ -3866,21 +4565,21 @@
           const elseSt = analyzeStepsStats(elseSteps);
 
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV8(pendingPictures, thenPending, condMet);
+            mergePictureSnapshotsV9(pendingPictures, thenPending, condMet);
             if (elseCmds.length > 0) {
-              mergePictureSnapshotsV8(pendingPictures, elsePending, !condMet);
+              mergePictureSnapshotsV9(pendingPictures, elsePending, !condMet);
             }
             continue;
           }
           if (elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV8(pendingPictures, thenPending, true);
-            if (elseCmds.length > 0) mergePictureSnapshotsV8(pendingPictures, elsePending, false);
+            mergePictureSnapshotsV9(pendingPictures, thenPending, condMet);
+            if (elseCmds.length > 0) mergePictureSnapshotsV9(pendingPictures, elsePending, !condMet);
             steps.push(...thenSteps);
             continue;
           }
           if (thenSt.dialogueCount === 0) {
-            mergePictureSnapshotsV8(pendingPictures, elsePending, true);
-            mergePictureSnapshotsV8(pendingPictures, thenPending, false);
+            mergePictureSnapshotsV9(pendingPictures, elsePending, !condMet);
+            mergePictureSnapshotsV9(pendingPictures, thenPending, condMet);
             steps.push(...elseSteps);
             continue;
           }
@@ -3909,22 +4608,21 @@
           if (metaTracker) metaTracker.calledCommonEvents.add(ceId);
           const ce = commonEventsMap[ceId];
           if (ce && Array.isArray(ce.list)) {
-            // Fast Memoization for Pure-Picture Common Events (speeds up 238-map games by 20x!)
             if (ceEffectCache && ceEffectCache.has(ceId)) {
               const cached = ceEffectCache.get(ceId);
               if (cached.isPurePictureSetup) {
-                mergePictureSnapshotsV8(pendingPictures, cached.pictureOut, true);
+                mergePictureSnapshotsV9(pendingPictures, cached.pictureOut, true);
                 i++;
                 continue;
               }
             }
             const beforePic = clonePicMapFast(pendingPictures);
             const ceOutPic = clonePicMapFast(pendingPictures);
-            const subSteps = parseMvEventCommandsV8(ce.list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth + 1, ceOutPic, simState, inConditionalBranch, ceEffectCache);
+            const subSteps = parseMvEventCommandsV9(ce.list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth + 1, ceOutPic, simState, inConditionalBranch, ceEffectCache);
             if (subSteps.length === 0 && ceEffectCache && !ceEffectCache.has(ceId) && Object.keys(beforePic).length === 0) {
               ceEffectCache.set(ceId, { isPurePictureSetup: true, pictureOut: clonePicMapFast(ceOutPic) });
             }
-            Object.assign(pendingPictures, ceOutPic);
+            mergePictureSnapshotsV9(pendingPictures, ceOutPic, true);
             steps.push(...subSteps);
           }
           i++;
@@ -3940,18 +4638,20 @@
               scriptText += "\n" + String(list[i].parameters[0] || "");
             }
           }
-          // Parse $gameVariables.setValue(id, val)
           const varSetRegex = /\$gameVariables\.setValue\(\s*(\d+)\s*,\s*(-?\d+)\s*\)/g;
           let vm;
           while ((vm = varSetRegex.exec(scriptText)) !== null) {
             simState.vars[Number(vm[1])] = Number(vm[2]);
           }
-          // Parse showPicture in script/plugin
+          const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
+          if (eraseMatch) {
+            pendingPictures[Number(eraseMatch[1]) || 1] = null;
+          }
           const showPicMatch = scriptText.match(/showPicture\(\s*(\d+)\s*,\s*["']([^"']+)["']/i);
           if (showPicMatch) {
             const sNum = Number(showPicMatch[1]) || 1;
             const pName = showPicMatch[2].trim();
-            if (usageTracker) usageTracker(pName);
+            if (usageTracker) usageTracker(pName, steps.length);
             pendingPictures[sNum] = { key: pName, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [pName] };
           }
           const ceMatch = scriptText.match(/reserveCommonEvent\(\s*(\d+)\s*\)/i);
@@ -3959,7 +4659,7 @@
             const ceId = Number(ceMatch[1]);
             if (metaTracker) metaTracker.calledCommonEvents.add(ceId);
             if (commonEventsMap[ceId]) {
-              steps.push(...parseMvEventCommandsV8(commonEventsMap[ceId].list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth + 1, pendingPictures, simState, inConditionalBranch, ceEffectCache));
+              steps.push(...parseMvEventCommandsV9(commonEventsMap[ceId].list, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth + 1, pendingPictures, simState, inConditionalBranch, ceEffectCache));
             }
           }
           i++;
@@ -4037,13 +4737,14 @@
               partCategory: partInfo.category,
               isGlassesOrAcc: isGlassesOrOptionalOverlayName(rawName),
               lazyFile: f,
-              blobUrl: null
+              blobUrl: null,
+              usedInList: []
             };
           } else if (lower.includes("movies/") && /\.(webm|mp4|ogv|mov)$/i.test(lower)) {
             const rawName = rel.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
             cgAssets[rawName] = {
               name: rawName, folder: "movies", mediaType: "video", label: `🎬 ${rawName}`,
-              groupPrefix: rawName, partCategory: "동영상", lazyFile: f, blobUrl: URL.createObjectURL(f)
+              groupPrefix: rawName, partCategory: "동영상", lazyFile: f, blobUrl: null, usedInList: []
             };
           } else if ((lower.includes("audio/se/") || lower.includes("audio/me/") || lower.includes("voice/")) && /\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i.test(lower)) {
             const rawName = rel.split("/").pop().replace(/\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i, "");
@@ -4051,14 +4752,12 @@
           }
         }
 
-        // Read all JSON files concurrently in parallel!
         await Promise.all(jsonFileObjs.map(async (item) => {
           try {
             jsonFiles[item.name] = JSON.parse(await item.file.text());
           } catch (e) {}
         }));
 
-        // Build O(1) hash lookup BEFORE map parsing!
         buildFastAssetLookup(cgAssets);
         buildFastAssetLookup(faceAssets);
 
@@ -4073,9 +4772,10 @@
       }
     }
 
+    // Fixed in v9: Lazy On-Demand ZIP Decompression (`zipEntry`) so Mobile Safari NEVER crashes or auto-refreshes!
     async function handleZipFileLoad(file) {
       if (!file || !window.JSZip) return;
-      showToast(`ZIP 패키지(${file.name})를 고속 로드하고 있습니다...`);
+      showToast(`ZIP 패키지(${file.name})를 메모리 절약 모드로 고속 로드 중입니다...`);
       try {
         const t0 = performance.now();
         const zip = await window.JSZip.loadAsync(file);
@@ -4083,15 +4783,12 @@
           const pkgJson = JSON.parse(await zip.files["story_package.json"].async("string"));
           for (const [, asset] of Object.entries(pkgJson.cgAssets || {})) {
             if (asset && asset.zipPath && zip.files[asset.zipPath]) {
-              const u8 = await zip.files[asset.zipPath].async("uint8array");
-              const mime = asset.mediaType === "video" ? "video/webm" : "image/png";
-              asset.blobUrl = URL.createObjectURL(new Blob([u8], { type: mime }));
+              asset.zipEntry = zip.files[asset.zipPath];
             }
           }
           for (const [, fAsset] of Object.entries(pkgJson.faceAssets || {})) {
             if (fAsset && fAsset.zipPath && zip.files[fAsset.zipPath]) {
-              const u8 = await zip.files[fAsset.zipPath].async("uint8array");
-              fAsset.blobUrl = URL.createObjectURL(new Blob([u8], { type: "image/png" }));
+              fAsset.zipEntry = zip.files[fAsset.zipPath];
             }
           }
           pkgJson.id = "game_" + Date.now();
@@ -4111,49 +4808,54 @@
         const audioAssets = {};
         let pluginsJsText = "";
 
+        const jsonEntries = [];
+
         for (const path of Object.keys(zip.files)) {
           const entry = zip.files[path];
           if (entry.dir) continue;
           const lower = path.toLowerCase();
           if (lower.endsWith("js/plugins.js") || lower === "plugins.js") {
             try { pluginsJsText = await entry.async("string"); } catch (e) {}
-          } else if (lower.endsWith(".json")) {
-            try { jsonFiles[path.split("/").pop().toLowerCase()] = JSON.parse(await entry.async("string")); } catch (e) {}
+          } else if (lower.endsWith(".json") && (lower.includes("/data/") || !lower.includes("/"))) {
+            jsonEntries.push({ name: path.split("/").pop().toLowerCase(), entry });
           } else if (lower.includes("faces/") && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
             const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
-            const u8 = await entry.async("uint8array");
-            const dec = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(u8) : u8;
-            faceAssets[rawName] = { name: rawName, blobUrl: URL.createObjectURL(new Blob([dec], { type: "image/png" })) };
+            faceAssets[rawName] = { name: rawName, zipEntry: entry, blobUrl: null };
           } else if ((lower.includes("enemies/") || lower.includes("sv_enemies/")) && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
             const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
-            const u8 = await entry.async("uint8array");
-            const dec = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(u8) : u8;
-            enemyAssets[rawName] = { name: rawName, folder: "img/enemies", mediaType: "image", blobUrl: URL.createObjectURL(new Blob([dec], { type: "image/png" })) };
+            enemyAssets[rawName] = { name: rawName, folder: "img/enemies", mediaType: "image", zipEntry: entry, blobUrl: null };
           } else if (
-            (lower.includes("pictures/") || lower.includes("parallaxes/") || lower.includes("tachie/") || lower.includes("stand/") || lower.includes("cg/") || lower.includes("status/")) &&
+            (lower.includes("pictures/") || lower.includes("parallaxes/") || lower.includes("tachie/") ||
+             lower.includes("stand/") || lower.includes("cg/") || lower.includes("status/") ||
+             lower.includes("menu/") || lower.includes("ero/") || lower.includes("cutin/")) &&
             /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)
           ) {
             const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
-            const u8 = await entry.async("uint8array");
-            const dec = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(u8) : u8;
             const partInfo = getPartCategoryAndPrefix(rawName);
             cgAssets[rawName] = {
               name: rawName, folder: "img/pictures", mediaType: "image", label: rawName,
               groupPrefix: partInfo.partPrefix, partCategory: partInfo.category,
               isGlassesOrAcc: isGlassesOrOptionalOverlayName(rawName),
-              blobUrl: URL.createObjectURL(new Blob([dec], { type: "image/png" }))
+              zipEntry: entry, blobUrl: null, usedInList: []
             };
           } else if (lower.includes("movies/") && /\.(webm|mp4|ogv|mov)$/i.test(lower)) {
             const rawName = path.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
-            const u8 = await entry.async("uint8array");
-            const mime = lower.endsWith(".mp4") ? "video/mp4" : "video/webm";
             cgAssets[rawName] = {
               name: rawName, folder: "movies", mediaType: "video", label: `🎬 ${rawName}`,
               groupPrefix: rawName, partCategory: "동영상",
-              blobUrl: URL.createObjectURL(new Blob([u8], { type: mime }))
+              zipEntry: entry, blobUrl: null, usedInList: []
             };
+          } else if ((lower.includes("audio/se/") || lower.includes("audio/me/") || lower.includes("voice/")) && /\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i.test(lower)) {
+            const rawName = path.split("/").pop().replace(/\.(ogg|m4a|wav|mp3|rpgmvo|ogg_)$/i, "");
+            audioAssets[rawName] = { name: rawName, zipEntry: entry, blobUrl: null };
           }
         }
+
+        await Promise.all(jsonEntries.map(async (item) => {
+          try {
+            jsonFiles[item.name] = JSON.parse(await item.entry.async("string"));
+          } catch (e) {}
+        }));
 
         buildFastAssetLookup(cgAssets);
         buildFastAssetLookup(faceAssets);
@@ -4166,6 +4868,10 @@
       } catch (err) {
         showToast(`ZIP 로드 오류: ${err.message}`);
       }
+    }
+
+    function isNonStoryTempOrPoseVarName(vName) {
+      return /立ち絵|ポーズ|表情|衣装|服装|座標|X座標|Y座標|乱数|一時|予備|マップID|リージョン|temp|tmp|pose|stand|face|cloth|coord/i.test(String(vName || ""));
     }
 
     function registerParsedGameProject(jsonFiles, cgAssets, enemyAssets, faceAssets, audioAssets, fallbackTitle, pluginsJsText = "", loadMs = 0) {
@@ -4191,6 +4897,10 @@
       if (Array.isArray(enemiesArr)) {
         enemiesArr.forEach(en => { if (en && en.id) enemiesMap[en.id] = en; });
       }
+      const skillsMap = {};
+      if (Array.isArray(skillsArr)) {
+        skillsArr.forEach(sk => { if (sk && sk.id) skillsMap[sk.id] = sk; });
+      }
 
       const variableNames = {};
       if (Array.isArray(sys.variables)) {
@@ -4210,7 +4920,6 @@
         });
       }
 
-      // Extract \V[n] status labels from plugins.js and CommonEvents.json!
       const extractedPluginStatusMeta = {};
       if (pluginsJsText) {
         const vLabelRegex = /([^\s"'\\<>:;,\n]{2,18})[\s:：]*\\[vV]\[(\d+)\]/g;
@@ -4263,7 +4972,6 @@
               }
             }
 
-            // Read real RPG Maker base parameters from Classes.json!
             const clObj = classesObjMap[ac.classId] || {};
             const lv = Math.max(1, Number(ac.initialLevel) || 1);
             const pArr = Array.isArray(clObj.params) ? clObj.params : [];
@@ -4328,13 +5036,19 @@
         prefixToAssetKeys.get(pfx).push(k);
       }
 
+      // Multi-Scene & Exact Step Tracker (`usedInList`)!
       function markAssetAndSiblingsUsed(rawKey, locObj) {
         const asset = resolveAssetInDict(rawKey, cgAssets, true);
         if (!asset) return;
         if (!asset.usedIn) asset.usedIn = locObj;
+        asset.usedInList = asset.usedInList || [];
+        if (asset.usedInList.length < 30 && !asset.usedInList.some(x => x.mapId === locObj.mapId && x.eventId === locObj.eventId && x.pageIdx === locObj.pageIdx)) {
+          asset.usedInList.push(locObj);
+        }
         const pfx = asset.groupPrefix || getVariationPrefix(asset.name);
         for (const sibKey of (prefixToAssetKeys.get(pfx) || [])) {
-          if (cgAssets[sibKey] && !cgAssets[sibKey].usedIn) cgAssets[sibKey].usedIn = locObj;
+          const sib = cgAssets[sibKey];
+          if (sib && !sib.usedIn) sib.usedIn = locObj;
         }
       }
 
@@ -4343,13 +5057,16 @@
       const rawMapRecords = new Map();
       const ceEffectCache = new Map();
       const conditionVarSummary = {};
+      const battleScenesList = [];
 
       function recordVarConditionUsage(varId, val) {
         if (!varId || varId <= 0) return;
+        const vName = variableNames[varId] || "";
+        if (isNonStoryTempOrPoseVarName(vName)) return; // Ignore standing pose / temp vars!
         if (!conditionVarSummary[varId]) {
           conditionVarSummary[varId] = {
             varId,
-            name: variableNames[varId] || `진행/조건 변수 #${varId}`,
+            name: vName || `진행/조건 변수 #${varId}`,
             thresholdsSet: new Set([0]),
             eventsCount: 0
           };
@@ -4374,7 +5091,9 @@
             transfersToMaps: new Set(),
             calledCommonEvents: new Set(),
             firstVarCond: null,
-            varThresholds: new Map()
+            varThresholds: new Map(),
+            hasBattleProcessing: false,
+            hasDefeatBranch: false
           };
           let entryPageSwitchReq = null;
           let entryPageVarId = 0;
@@ -4388,11 +5107,11 @@
             if (c.variableValid && c.variableId) {
               recordVarConditionUsage(Number(c.variableId), Number(c.variableValue || 0));
             }
-            const steps = parseMvEventCommandsV8(
+            const steps = parseMvEventCommandsV9(
               p.list || [],
               commonEventsMap,
               cgAssets,
-              (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId, eventId: ev.id, pageIdx: idx }),
+              (usedCgName, stepIdx) => markAssetAndSiblingsUsed(usedCgName, { mapId, eventId: ev.id, pageIdx: idx, stepIdx: stepIdx || 0 }),
               metaTracker,
               0,
               {},
@@ -4403,10 +5122,10 @@
             const st = analyzeStepsStats(steps);
             if ((st.dialogueCount > 0 || st.cgCount > 0) && entryPageSwitchReq === null) {
               if (p.trigger === 3) entryPageAutorun = true;
-              if (c.variableValid && c.variableId) {
+              if (c.variableValid && c.variableId && !isNonStoryTempOrPoseVarName(variableNames[c.variableId])) {
                 entryPageVarId = Number(c.variableId);
                 entryPageVarVal = Number(c.variableValue || 0);
-              } else if (metaTracker.firstVarCond) {
+              } else if (metaTracker.firstVarCond && !isNonStoryTempOrPoseVarName(variableNames[metaTracker.firstVarCond.varId])) {
                 entryPageVarId = metaTracker.firstVarCond.varId;
                 entryPageVarVal = metaTracker.firstVarCond.val;
               }
@@ -4414,7 +5133,7 @@
               else if (c.switch2Valid && c.switch2Id) entryPageSwitchReq = Number(c.switch2Id);
               else entryPageSwitchReq = 0;
             }
-            return { pageIndex: idx + 1, conditionLabel: `단계 ${idx + 1}`, steps };
+            return { pageIndex: idx + 1, conditionLabel: `단계 ${idx + 1}`, rawList: p.list || [], steps };
           });
 
           for (const [vId, thSet] of metaTracker.varThresholds.entries()) {
@@ -4432,7 +5151,7 @@
           const evNumMatch = String(ev.name || "").match(/(?:ev|cg|h|scene|회상|이벤트)\s*0*(\d+)/i);
           const cgSeqNum = evNumMatch ? Number(evNumMatch[1]) : (totalStats.c > 0 ? ev.id : 5000 + ev.id);
 
-          events.push({
+          const evRecord = {
             id: ev.id,
             name: `EV${String(ev.id).padStart(3, "0")}: ${ev.name || `EV${String(ev.id).padStart(3, "0")}`}`,
             isParallelOrHud: isParallel || totalStats.d === 0,
@@ -4449,7 +5168,19 @@
             storyOrder: 999999,
             storyReason: "",
             pages
-          });
+          };
+          events.push(evRecord);
+
+          if ((metaTracker.hasBattleProcessing || metaTracker.hasDefeatBranch || /敗北|戦闘|ボス|패배|전투|보스|lose|defeat/i.test(ev.name || "")) && totalStats.d > 0) {
+            battleScenesList.push({
+              title: `${mapTitle} · EV${String(ev.id).padStart(3, "0")}: ${ev.name || ""}`,
+              mapId,
+              eventId: ev.id,
+              pageIdx: 0,
+              stepIdx: 0,
+              badge: metaTracker.hasDefeatBranch ? "💔 패배 분기 포함" : "⚔️ 전투 이벤트"
+            });
+          }
         }
 
         if (events.length > 0) {
@@ -4460,14 +5191,14 @@
       const standaloneCeEvents = [];
       for (const ce of Object.values(commonEventsMap)) {
         if (!ce) continue;
-        const isStatusOrRecollectionCe = /ステータス|プロフィール|エロステ|回想|衣装|status|profile|ero|memory|cg/i.test(ce.name || "");
-        if (globalCalledCommonEvents.has(ce.id) && !isStatusOrRecollectionCe) continue;
+        const isStatusOrRecollectionOrBattleCe = /ステータス|プロフィール|エロステ|回想|衣装|敗北|戦闘|拘束|status|profile|ero|memory|cg|defeat|battle/i.test(ce.name || "");
+        if (globalCalledCommonEvents.has(ce.id) && !isStatusOrRecollectionOrBattleCe) continue;
         const metaTracker = { turnsOnSwitches: new Set(), transfersToMaps: new Set(), calledCommonEvents: new Set(), firstVarCond: null, varThresholds: new Map() };
-        const steps = parseMvEventCommandsV8(
+        const steps = parseMvEventCommandsV9(
           ce.list || [],
           commonEventsMap,
           cgAssets,
-          (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0 }),
+          (usedCgName, stepIdx) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0, stepIdx: stepIdx || 0 }),
           metaTracker,
           0,
           {},
@@ -4480,7 +5211,7 @@
           standaloneCeEvents.push({
             id: ce.id,
             name: `CE${String(ce.id).padStart(3, "0")}: ${ce.name || "공통 이벤트"}`,
-            isParallelOrHud: st.dialogueCount === 0 && !isStatusOrRecollectionCe,
+            isParallelOrHud: st.dialogueCount === 0 && !isStatusOrRecollectionOrBattleCe,
             entryPageSwitchReq: ce.switchId || 0,
             entryPageVarId: 0,
             entryPageVarVal: 0,
@@ -4493,8 +5224,19 @@
             manualOrder: 900000 + ce.id,
             storyOrder: 800000 + ce.id,
             storyReason: "공통 스토리/스테이터스/스킬 연동 이벤트",
-            pages: [{ pageIndex: 1, conditionLabel: "단계 1", steps }]
+            pages: [{ pageIndex: 1, conditionLabel: "단계 1", rawList: ce.list || [], steps }]
           });
+
+          if (/敗北|戦闘|拘束|패배|전투|구속|스킬|lose|defeat/i.test(ce.name || "")) {
+            battleScenesList.push({
+              title: `CE${String(ce.id).padStart(3, "0")}: ${ce.name || "공통 전투 이벤트"}`,
+              mapId: 9000,
+              eventId: ce.id,
+              pageIdx: 0,
+              stepIdx: 0,
+              badge: "💥 전투/구속 커먼"
+            });
+          }
         }
       }
       if (standaloneCeEvents.length > 0) {
@@ -4508,13 +5250,22 @@
           const firstMem = (tr.members || [])[0];
           const enemyObj = firstMem ? enemiesMap[firstMem.enemyId] : null;
           const enemyKey = enemyObj ? enemyObj.battlerName : Object.keys(enemyAssets)[0];
+          const enemySkills = [];
+          if (enemyObj && Array.isArray(enemyObj.actions)) {
+            for (const act of enemyObj.actions) {
+              const sk = skillsMap[act.skillId];
+              if (sk && sk.id > 2 && sk.name) {
+                enemySkills.push({ id: sk.id, name: sk.name, message: sk.message1 || sk.description || "" });
+              }
+            }
+          }
           const validPages = [];
           tr.pages.forEach((p, idx) => {
-            const steps = parseMvEventCommandsV8(
+            const steps = parseMvEventCommandsV9(
               p.list || [],
               commonEventsMap,
               cgAssets,
-              (usedCgName) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9500, eventId: tr.id, pageIdx: idx }),
+              (usedCgName, stepIdx) => markAssetAndSiblingsUsed(usedCgName, { mapId: 9500, eventId: tr.id, pageIdx: idx, stepIdx: stepIdx || 0 }),
               null,
               0,
               {},
@@ -4524,11 +5275,11 @@
             );
             const st = analyzeStepsStats(steps);
             if (st.dialogueCount > 0 || st.cgCount > 0) {
-              validPages.push({ pageIndex: idx + 1, conditionLabel: `전투 단계 ${idx + 1}`, steps });
+              validPages.push({ pageIndex: idx + 1, conditionLabel: `전투 단계 ${idx + 1}`, rawList: p.list || [], steps });
             }
           });
           if (validPages.length > 0 || enemyKey) {
-            battleTroops.push({ id: tr.id, name: `BTL${String(tr.id).padStart(3, "0")}: ${tr.name || "전투"}`, enemyKey, pages: validPages });
+            battleTroops.push({ id: tr.id, name: `BTL${String(tr.id).padStart(3, "0")}: ${tr.name || "전투"}`, enemyKey, skills: enemySkills, pages: validPages });
           }
         }
       }
@@ -4543,6 +5294,10 @@
               id: sk.id, name: sk.name, message: sk.message1 || sk.description || "",
               linkedEvent: { mapId: 9000, eventId: ceEffect.dataId }
             });
+          } else if (sk.id > 3 && sk.message1) {
+            battleSkills.push({
+              id: sk.id, name: sk.name, message: sk.message1
+            });
           }
         }
       }
@@ -4556,7 +5311,6 @@
         }
       }
 
-      // Finalize conditionVarSummary
       const finalCondSummary = {};
       for (const [vId, obj] of Object.entries(conditionVarSummary)) {
         finalCondSummary[vId] = {
@@ -4567,7 +5321,7 @@
         };
       }
 
-      // Story Order Engine
+      // Causal Topological Story Order Engine
       const mapVisitRank = new Map();
       const mapQueue = [startMapId];
       mapVisitRank.set(startMapId, 1);
@@ -4661,6 +5415,7 @@
         title: sys.gameTitle || fallbackTitle,
         engine: "RPG Maker MV/MZ",
         startMapId,
+        commonEventsMap,
         actors: actorsMap,
         actorProfiles,
         variableNames,
@@ -4673,6 +5428,7 @@
         enemyAssets,
         audioAssets,
         battleTroops,
+        battleScenesList,
         battleSkills,
         battleStates,
         maps: sortedMaps
@@ -4681,11 +5437,11 @@
       state.library.unshift(newGame);
       switchActiveGame(newGame.id);
       autoSaveProjectToIndexedDb(newGame);
-      showToast(`⚡ '${newGame.title}' 초고속 로드 완료! (${loadMs ? (loadMs / 1000).toFixed(1) + "초 · " : ""}맵 ${sortedMaps.length}개 · 미디어 ${allCgKeys.length}개)`);
+      showToast(`⚡ '${newGame.title}' 로드 완료! (${loadMs ? (loadMs / 1000).toFixed(1) + "초 · " : ""}맵 ${sortedMaps.length}개 · 미디어 ${allCgKeys.length}개)`);
     }
 
     // =========================================================================
-    // 10. HIGH-SPEED LARGE GAME ZIP EXPORTER (STORE Mode + Progress Bar!)
+    // 10. HIGH-SPEED LARGE GAME ZIP EXPORTER
     // =========================================================================
     async function executeHighSpeedZipExport(usedMediaOnly) {
       if (!window.JSZip) return;
@@ -4697,7 +5453,10 @@
 
       try {
         const zip = new window.JSZip();
-        const exportProj = JSON.parse(JSON.stringify(state.project));
+        const exportProj = JSON.parse(JSON.stringify(state.project, (key, val) => {
+          if (key === "zipEntry" || key === "lazyFile" || key === "rawBytes" || key === "blobUrl") return undefined;
+          return val;
+        }));
 
         for (const delKey of state.deletedCgKeys) {
           if (exportProj.cgAssets) delete exportProj.cgAssets[delKey];
@@ -4726,12 +5485,16 @@
           }
 
           try {
-            let bytes = null;
-            if (origAsset.lazyFile) {
+            let bytes = origAsset.rawBytes || null;
+            if (!bytes && origAsset.lazyFile) {
               const rawBuf = new Uint8Array(await origAsset.lazyFile.arrayBuffer());
               const lower = (origAsset.lazyFile.name || "").toLowerCase();
               bytes = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(rawBuf) : rawBuf;
-            } else if (origAsset.blobUrl && !origAsset.blobUrl.startsWith("data:")) {
+            } else if (!bytes && origAsset.zipEntry) {
+              const rawBuf = await origAsset.zipEntry.async("uint8array");
+              const lower = (origAsset.zipEntry.name || "").toLowerCase();
+              bytes = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(rawBuf) : rawBuf;
+            } else if (!bytes && origAsset.blobUrl && !origAsset.blobUrl.startsWith("data:")) {
               const resp = await fetch(origAsset.blobUrl);
               bytes = new Uint8Array(await resp.arrayBuffer());
             }
@@ -4740,7 +5503,6 @@
               const zPath = `media/cg_${k}.${ext}`;
               zip.file(zPath, bytes, { compression: "STORE" });
               exportProj.cgAssets[k].zipPath = zPath;
-              delete exportProj.cgAssets[k].blobUrl;
             }
           } catch (e) {}
         }
@@ -4748,12 +5510,16 @@
         for (const [k, origFace] of Object.entries(state.project.faceAssets || {})) {
           if (k === "__fastIndex" || !exportProj.faceAssets || !exportProj.faceAssets[k]) continue;
           try {
-            let bytes = null;
-            if (origFace.lazyFile) {
+            let bytes = origFace.rawBytes || null;
+            if (!bytes && origFace.lazyFile) {
               const rawBuf = new Uint8Array(await origFace.lazyFile.arrayBuffer());
               const lower = (origFace.lazyFile.name || "").toLowerCase();
               bytes = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(rawBuf) : rawBuf;
-            } else if (origFace.blobUrl && !origFace.blobUrl.startsWith("data:")) {
+            } else if (!bytes && origFace.zipEntry) {
+              const rawBuf = await origFace.zipEntry.async("uint8array");
+              const lower = (origFace.zipEntry.name || "").toLowerCase();
+              bytes = /\.(rpgmvp|png_)$/i.test(lower) ? decryptRpgmvpBytes(rawBuf) : rawBuf;
+            } else if (!bytes && origFace.blobUrl && !origFace.blobUrl.startsWith("data:")) {
               const resp = await fetch(origFace.blobUrl);
               bytes = new Uint8Array(await resp.arrayBuffer());
             }
@@ -4761,7 +5527,6 @@
               const zPath = `media/face_${k}.png`;
               zip.file(zPath, bytes, { compression: "STORE" });
               exportProj.faceAssets[k].zipPath = zPath;
-              delete exportProj.faceAssets[k].blobUrl;
             }
           } catch (e) {}
         }
@@ -4795,8 +5560,59 @@
     }
 
     // =========================================================================
-    // 11. EVENT LISTENERS & INTERACTIVE STAGE ZOOM/PAN
+    // 11. MOBILE SUB-MODE LAYOUT & EVENT LISTENERS (Zero Black Void!)
     // =========================================================================
+    function setMobileMapSubMode(mode) {
+      state.mobileMapMode = mode;
+      document.querySelectorAll("[data-mob-map-mode]").forEach(btn => {
+        const m = btn.getAttribute("data-mob-map-mode");
+        btn.className = m === mode
+          ? "flex-1 py-1.5 rounded-lg font-bold bg-indigo-600 text-white"
+          : "flex-1 py-1.5 rounded-lg font-semibold text-slate-300";
+      });
+      if (state.activeTab === "maps_mobile") {
+        applyMobilePanelVisibility("maps_mobile");
+      }
+    }
+
+    function applyMobilePanelVisibility(tab) {
+      const pMaps = document.getElementById("panelMaps");
+      const pEvents = document.getElementById("panelEvents");
+      const pMain = document.getElementById("panelMainViewer");
+      const subNav = document.getElementById("mobileMapsSubNav");
+
+      if (window.innerWidth >= 1024) {
+        if (subNav) subNav.classList.add("hidden");
+        pMaps.className = "hidden lg:flex lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        pEvents.className = "hidden lg:flex lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        pMain.className = "flex-1 flex lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0 h-full";
+        return;
+      }
+
+      if (tab === "maps_mobile") {
+        if (subNav) subNav.classList.remove("hidden");
+        pMain.classList.add("hidden");
+        pMain.classList.remove("flex");
+
+        if (state.mobileMapMode === "maps_only") {
+          pMaps.className = "flex-1 flex bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+          pEvents.className = "hidden";
+        } else if (state.mobileMapMode === "events_only") {
+          pMaps.className = "hidden";
+          pEvents.className = "flex-1 flex bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        } else {
+          // Clean 42% / 58% full-height split on mobile with ZERO empty black void!
+          pMaps.className = "h-[42%] flex-shrink-0 flex bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+          pEvents.className = "flex-1 flex bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        }
+      } else {
+        if (subNav) subNav.classList.add("hidden");
+        pMaps.className = "hidden lg:flex lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        pEvents.className = "hidden lg:flex lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0";
+        pMain.className = "flex-1 flex lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0 h-full";
+      }
+    }
+
     function switchMainTab(tab) {
       state.activeTab = tab;
       const views = {
@@ -4823,21 +5639,27 @@
         }
       }
 
-      const pMaps = document.getElementById("panelMaps");
-      const pEvents = document.getElementById("panelEvents");
-      const pMain = document.getElementById("panelMainViewer");
-      if (window.innerWidth < 1024) {
-        if (tab === "maps_mobile") {
-          pMaps.classList.remove("hidden"); pMaps.classList.add("flex", "h-1/2");
-          pEvents.classList.remove("hidden"); pEvents.classList.add("flex", "h-1/2");
-          pMain.classList.add("hidden");
-        } else {
-          pMaps.classList.add("hidden"); pMaps.classList.remove("flex", "h-1/2");
-          pEvents.classList.add("hidden"); pEvents.classList.remove("flex", "h-1/2");
-          pMain.classList.remove("hidden");
+      // Update mobile nav bar highlight
+      const mobBtns = {
+        maps_mobile: "mobNavMaps",
+        vn: "mobNavVn",
+        gallery: "mobNavGallery",
+        battle: "mobNavBattle",
+        status: "mobNavStatus",
+        library: "mobNavLibrary"
+      };
+      for (const [k, mId] of Object.entries(mobBtns)) {
+        const mb = document.getElementById(mId);
+        if (mb) {
+          mb.className = k === tab
+            ? "flex flex-col items-center py-1 text-indigo-400 font-bold"
+            : "flex flex-col items-center py-1 text-slate-400";
         }
       }
 
+      applyMobilePanelVisibility(tab);
+
+      if (tab === "vn") renderActiveCgStage();
       if (tab === "order") renderStoryOrderTimeline();
       if (tab === "script") renderFullScriptView();
       if (tab === "gallery") renderGalleryView(false);
@@ -4888,6 +5710,11 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      const initialLib = buildInitialLibrary();
+      state.library = initialLib;
+      state.activeGameId = initialLib[0].id;
+      state.project = initialLib[0];
+
       autoRestoreFromIndexedDb();
 
       document.getElementById("tabVnMode").addEventListener("click", () => switchMainTab("vn"));
@@ -4907,14 +5734,38 @@
       document.getElementById("mobNavStatus").addEventListener("click", () => switchMainTab("status"));
       document.getElementById("mobNavLibrary").addEventListener("click", () => switchMainTab("library"));
 
+      document.querySelectorAll("[data-mob-map-mode]").forEach(btn => {
+        btn.addEventListener("click", () => setMobileMapSubMode(btn.getAttribute("data-mob-map-mode")));
+      });
+
+      // Global Deep Search Modal
+      document.getElementById("btnOpenDeepSearchModal").addEventListener("click", () => {
+        document.getElementById("deepSearchModal").classList.remove("hidden");
+        executeGlobalDeepSearch();
+        document.getElementById("deepSearchInput").focus();
+      });
+      document.getElementById("btnCloseDeepSearchModal").addEventListener("click", () => {
+        document.getElementById("deepSearchModal").classList.add("hidden");
+      });
+      document.getElementById("deepSearchInput").addEventListener("input", () => executeGlobalDeepSearch());
+
+      // Multi-Scene Picker Modal Close
+      document.getElementById("btnCloseCgScenesPicker").addEventListener("click", () => {
+        document.getElementById("cgScenesPickerModal").classList.add("hidden");
+      });
+
+      // Relink Media Inputs
+      document.getElementById("relinkFolderInput").addEventListener("change", (e) => handleRelinkMediaFiles(e.target.files));
+      document.getElementById("relinkZipInput").addEventListener("change", (e) => handleRelinkMediaFiles(e.target.files));
+
       // Stage Fit & Zoom Controls
       document.getElementById("btnFitContain").addEventListener("click", () => {
         state.stageFitMode = "contain";
         state.stageZoom = 1.0;
         state.stagePanX = 0;
         state.stagePanY = 0;
-        document.getElementById("btnFitContain").className = "px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold";
-        document.getElementById("btnFitCover").className = "px-1.5 py-0.5 rounded text-slate-300 hover:text-white";
+        document.getElementById("btnFitContain").className = "px-2 py-0.5 rounded bg-indigo-600 text-white font-bold";
+        document.getElementById("btnFitCover").className = "px-2 py-0.5 rounded text-slate-300 hover:text-white";
         renderActiveCgStage();
       });
       document.getElementById("btnFitCover").addEventListener("click", () => {
@@ -4922,8 +5773,8 @@
         state.stageZoom = 1.0;
         state.stagePanX = 0;
         state.stagePanY = 0;
-        document.getElementById("btnFitCover").className = "px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold";
-        document.getElementById("btnFitContain").className = "px-1.5 py-0.5 rounded text-slate-300 hover:text-white";
+        document.getElementById("btnFitCover").className = "px-2 py-0.5 rounded bg-indigo-600 text-white font-bold";
+        document.getElementById("btnFitContain").className = "px-2 py-0.5 rounded text-slate-300 hover:text-white";
         renderActiveCgStage();
       });
       document.getElementById("btnZoomIn").addEventListener("click", () => {
@@ -4941,7 +5792,6 @@
         renderActiveCgStage();
       });
 
-      // Mouse Wheel Zoom & Drag-to-Pan on Stage Canvas
       const cgCanvas = document.getElementById("cgCanvas");
       let isDraggingStage = false;
       let dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
@@ -4980,7 +5830,6 @@
         document.getElementById("cgLightboxModal").classList.remove("hidden");
       });
 
-      // Quick Outfit Preset Buttons (Inline & Modal)
       document.getElementById("btnQuickOutfitDefault").addEventListener("click", () => applyGlobalOutfitPreset("default"));
       document.getElementById("btnQuickOutfitUnder").addEventListener("click", () => applyGlobalOutfitPreset("underwear"));
       document.getElementById("btnQuickOutfitNaked").addEventListener("click", () => applyGlobalOutfitPreset("naked"));
@@ -4988,7 +5837,6 @@
       document.getElementById("btnPresetUnderwearOutfit").addEventListener("click", () => applyGlobalOutfitPreset("underwear"));
       document.getElementById("btnPresetNakedOutfit").addEventListener("click", () => applyGlobalOutfitPreset("naked"));
 
-      // Status Variable Category Filter Tabs
       document.querySelectorAll("[data-var-cat]").forEach(btn => {
         btn.addEventListener("click", () => {
           state.statusVarCategory = btn.getAttribute("data-var-cat");
@@ -5001,13 +5849,11 @@
         });
       });
 
-      // 4-Mode Order Switchers
       document.getElementById("sortOrderModeSelect").addEventListener("change", (e) => setSortOrderMode(e.target.value));
       document.querySelectorAll("[data-order-mode-btn]").forEach(btn => {
         btn.addEventListener("click", () => setSortOrderMode(btn.getAttribute("data-order-mode-btn")));
       });
 
-      // Add Custom Stat Field in Status Tab
       document.getElementById("btnAddCustomStatField").addEventListener("click", () => {
         const profiles = state.project.actorProfiles || [];
         const activeProf = profiles[state.selectedStatusActorIdx] || profiles[0];
@@ -5022,7 +5868,6 @@
         });
       });
 
-      // High-Speed Export Modal
       document.getElementById("btnOpenExportModal").addEventListener("click", () => {
         document.getElementById("exportZipModal").classList.remove("hidden");
       });
@@ -5133,18 +5978,29 @@
         const troops = state.project.battleTroops || [];
         const tr = troops[state.selectedBattleTroopIdx] || troops[0];
         if (tr && tr.pages && tr.pages[0]) {
+          ensurePageCompiled(tr, tr.pages[0]);
           state.activeSteps = JSON.parse(JSON.stringify(tr.pages[0].steps || []));
           state.currentStepIndex = 0;
           document.getElementById("activeEventTitle").textContent = translateJpName(tr.name);
           switchMainTab("vn");
           renderCurrentStep();
         } else {
-          document.getElementById("battleLogMessage").textContent = "전투 턴 진행: 적과 대치하며 공방을 주고받습니다!";
+          const bList = state.project.battleScenesList || [];
+          if (bList[0]) {
+            state.selectedMapId = bList[0].mapId;
+            renderMapsList();
+            selectEvent(bList[0].eventId, bList[0].pageIdx || 0, bList[0].stepIdx || 0);
+            switchMainTab("vn");
+          } else {
+            document.getElementById("battleLogMessage").textContent = "전투 턴 진행: 적과 대치하며 공방을 주고받습니다!";
+          }
         }
       });
       document.getElementById("btnBattleEnemySkill").addEventListener("click", async () => {
-        const skills = state.project.battleSkills || [];
-        const sk = skills[0];
+        const troops = state.project.battleTroops || [];
+        const tr = troops[state.selectedBattleTroopIdx] || troops[0];
+        const trSkills = (tr && tr.skills && tr.skills.length) ? tr.skills : (state.project.battleSkills || []);
+        const sk = trSkills[Math.floor(Math.random() * Math.max(1, trSkills.length))];
         if (sk && sk.linkedEvent) {
           state.selectedMapId = sk.linkedEvent.mapId;
           renderMapsList();
@@ -5152,9 +6008,9 @@
           switchMainTab("vn");
         } else {
           document.getElementById("battleLogMessage").textContent = sk
-            ? `💥 적 특수 스킬 발동: [${translateJpName(sk.name)}] — ${translateJpName(sk.message || "")}`
+            ? `💥 적 특수 스킬 발동: [${translateJpName(sk.name)}] — ${translateJpName(sk.message || "특수 구속 공격!")}`
             : "💥 적이 특수 구속/상태이상 스킬을 발동했습니다!";
-          const altCg = Object.values(state.project.cgAssets || {}).find(a => a && a.name && /naked|break|damage|ev/i.test(a.name));
+          const altCg = Object.values(state.project.cgAssets || {}).find(a => a && a.name && /naked|break|damage|ev|h/i.test(a.name));
           if (altCg) {
             const url = await ensureAssetBlobUrl(altCg);
             if (url) document.getElementById("battleStageHeroineImg").src = url;
@@ -5163,7 +6019,7 @@
       });
       document.getElementById("btnBattleStateChange").addEventListener("click", async () => {
         const states = state.project.battleStates || [];
-        const st = states[0];
+        const st = states[Math.floor(Math.random() * Math.max(1, states.length))];
         document.getElementById("battleLogMessage").textContent = st
           ? `💫 상태이상 발동: [${translateJpName(st.name)}] ${translateJpName(st.message1 || "")}`
           : "💫 캐릭터의 복장/상태가 변화했습니다!";
@@ -5174,16 +6030,15 @@
         }
       });
       document.getElementById("btnBattleDefeatScene").addEventListener("click", () => {
-        for (const m of (state.project.maps || [])) {
-          for (const ev of (m.events || [])) {
-            if (/敗北|패배|lose|defeat|H|구속/i.test(ev.name)) {
-              state.selectedMapId = m.id;
-              renderMapsList();
-              selectEvent(ev.id);
-              switchMainTab("vn");
-              return;
-            }
-          }
+        const bList = state.project.battleScenesList || [];
+        const defeatItem = bList.find(x => /패배|敗北|lose|defeat/i.test(x.title || x.badge)) || bList[0];
+        if (defeatItem) {
+          state.selectedMapId = defeatItem.mapId;
+          renderMapsList();
+          selectEvent(defeatItem.eventId, defeatItem.pageIdx || 0, defeatItem.stepIdx || 0);
+          switchMainTab("vn");
+          showToast(`패배/전투 이벤트 '${translateJpName(defeatItem.title)}'을(를) 실행했습니다!`);
+          return;
         }
         document.getElementById("btnBattleNextTurn").click();
       });
@@ -5274,13 +6129,7 @@
       });
       document.getElementById("lightboxJumpBtn").addEventListener("click", () => {
         const asset = state.project.cgAssets[state.lightboxCgKey];
-        document.getElementById("cgLightboxModal").classList.add("hidden");
-        if (asset && asset.usedIn) {
-          state.selectedMapId = asset.usedIn.mapId;
-          renderMapsList();
-          selectEvent(asset.usedIn.eventId);
-          switchMainTab("vn");
-        }
+        openCgScenesPickerOrJump(asset);
       });
 
       const dBox = document.getElementById("dialogueBoxPro");
@@ -5306,7 +6155,10 @@
       document.getElementById("btnNextEventFromEnd").addEventListener("click", () => advanceNextStoryEvent());
       document.getElementById("btnJumpNextStoryEvent").addEventListener("click", () => advanceNextStoryEvent());
 
-      window.addEventListener("resize", () => renderActiveCgStage());
+      window.addEventListener("resize", () => {
+        applyMobilePanelVisibility(state.activeTab);
+        renderActiveCgStage();
+      });
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           document.getElementById("cgLightboxModal").classList.add("hidden");
@@ -5314,6 +6166,8 @@
           document.getElementById("settingsModal").classList.add("hidden");
           document.getElementById("partsCustomizerModal").classList.add("hidden");
           document.getElementById("exportZipModal").classList.add("hidden");
+          document.getElementById("deepSearchModal").classList.add("hidden");
+          document.getElementById("cgScenesPickerModal").classList.add("hidden");
           return;
         }
         const tag = (e.target && e.target.tagName) || "";
@@ -5373,6 +6227,7 @@
         state.fontSize = val;
         document.documentElement.style.setProperty("--dialogue-base-size", `${val}px`);
         document.getElementById("fontSizeLabel").textContent = `${val}px`;
+        renderCurrentStep();
       });
 
       const setSceneFilter = (f) => {
