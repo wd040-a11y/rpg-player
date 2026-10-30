@@ -1544,9 +1544,15 @@
     }
 
     function getNormalizedSeriesKey(raw) {
-      const base = normalizeAssetLookupKey(raw);
-      // Normalizes spaces (including full-width Japanese space \u3000) and trailing/middle digits (e.g. 居酒屋　雨2 -> 居酒屋雨#)
-      return base
+      const rel = normalizeAssetRelativeKey(raw);
+      if (!rel) return "";
+      if (rel.includes("/")) {
+        const idx = rel.lastIndexOf("/");
+        const dirPart = rel.slice(0, idx + 1).replace(/[\s\u3000]+/g, "");
+        const leafPart = rel.slice(idx + 1).replace(/[\s\u3000_\-]+/g, "").replace(/[0-9０-９]+/g, "#");
+        return dirPart + leafPart;
+      }
+      return rel
         .replace(/[\s\u3000_\-]+/g, "")
         .replace(/[0-9０-９]+/g, "#");
     }
@@ -2018,17 +2024,25 @@
     // 6. SMART PART CATEGORIZER, OPAQUE BOUNDS DETECTOR & COMPOSITING (v10)
     // =========================================================================
     function isDummyBlackOrSystemPicture(picName) {
-      const s = String(picName || "").split("/").pop().toLowerCase();
+      const full = String(picName || "").replace(/\\/g, "/").toLowerCase();
+      const s = full.split("/").pop();
       if (!s) return true;
-      return /^(?:bg_black|bg_white|black|white|fade|blank|empty|dummy|none|clear|暗転|黒|白|透明|window|mapui|msgwin|meswin|talkwin|textbox|fukidashi|ui_frame|mes_frame|msg_frame|win_bg|mes_bg|gauge|hud|cursor|number|icon)/i.test(s);
+      if (/^(?:system_ui|mapui|battle_ui|system_event_window|onomatope|backeffect00blank)/i.test(s)) return true;
+      if (/(?:_hud\d*|^hud_|^ui_frame|^mes_frame|^msg_frame)/i.test(s)) return true;
+      return /^(?:bg_black|bg_white|black|white|darkness|fade|blank|empty|dummy|none|clear|暗転|黒|白|透明|window|msgwin|meswin|talkwin|textbox|fukidashi|win_bg|mes_bg|gauge|hud|cursor|number|icon|coin|cup)$/i.test(s);
     }
 
     function isGlassesOrOptionalOverlayName(name) {
-      return /(?:^|_)(?:grass|glass|glasses|megane|effect|chinge|bote|seieki|semen|siru|ase|namida|안경|メガネ|汗|涙|鼻血|精液|ボテ)/i.test(String(name || ""));
+      return /(?:^|_|\/)(?:grass|glass|glasses|megane|effect|option|chinge|bote|seieki|semen|siru|ase|namida|debuff|안경|メガネ|汗|涙|鼻血|精液|ボテ)/i.test(String(name || ""));
     }
 
     function extractCharacterStem(picName) {
-      const s = String(picName || "").split("/").pop();
+      const norm = String(picName || "").replace(/\\/g, "/");
+      if (norm.includes("/")) {
+        const firstSeg = norm.split("/")[0];
+        if (/standing/i.test(firstSeg)) return firstSeg.toLowerCase();
+      }
+      const s = norm.split("/").pop();
       const under = s.split("_")[0];
       if (under && under.length < s.length) return under.toLowerCase();
       const camel = s.match(/^([A-Z][a-z]+)/);
@@ -2037,18 +2051,69 @@
     }
 
     function getBaseStemPrefix(name) {
-      const s = String(name || "").split("/").pop();
-      const m = s.match(/^(.+?)(?:_[0-9a-zA-Z()]{1,14}|\s*\d+)$/);
-      return m ? m[1] : s;
+      const norm = String(name || "").replace(/\\/g, "/");
+      const dirPrefix = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/") + 1) : "";
+      const s = norm.split("/").pop();
+      const m = s.match(/^(.+?)(?:_[0-9a-zA-Z()]{1,14}|\s*\d+|[0-9]+)$/);
+      const stem = (m && m[1].length >= 2) ? m[1] : (dirPrefix ? norm.slice(0, norm.lastIndexOf("/")) : s);
+      return dirPrefix ? (m && m[1].length >= 2 ? dirPrefix + m[1] : norm.slice(0, norm.lastIndexOf("/"))) : stem;
     }
 
-    // FIXED IN v12 (`image_5d8081.jpg` Dragon Conquista Reiri Missing Arms / Bust Fix!):
-    // Separates Bust (`가슴`), Under (`속옷`), Cloth (`복장`), FrontHair (`앞머리`), BackHair (`뒷머리`), Face (`얼굴`), Eyes (`눈`), Arm (`팔/자세`)
-    // into distinct categories so `Reiri_Bust` (#18) and `Reiri_Cloth` (#19) or `FrontHair` and `BackHair` NEVER swallow each other!
     function getPartCategoryAndPrefix(picName) {
-      const s = String(picName || "").split("/").pop();
+      const norm = String(picName || "").replace(/\\/g, "/");
+      const dirPrefix = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/")) : "";
+      const s = norm.split("/").pop();
+
+      // 1) Folder-based Standing Parts (e.g. `100Standing_Heroine/Body/...`, `MOD/Hair/A1`)
+      if (dirPrefix) {
+        const folderParts = dirPrefix.split("/");
+        const leafFolder = folderParts[folderParts.length - 1].toLowerCase();
+        const rootFolder = folderParts[0].toLowerCase();
+        if (/standing/i.test(rootFolder) || /^(?:hair|body|cloth|eyes|eyebrows|mouth|option|specialface)$/i.test(leafFolder)) {
+          let cat = `파츠(${leafFolder})`;
+          if (leafFolder === "body") cat = "몸통(Base)";
+          else if (leafFolder === "cloth") cat = "복장(Cloth)";
+          else if (leafFolder === "eyes" || leafFolder === "eye") cat = "눈(Eyes)";
+          else if (leafFolder === "eyebrows" || leafFolder === "eyeblow") cat = "눈썹(Brow)";
+          else if (leafFolder === "mouth") cat = "입(Mouth)";
+          else if (leafFolder === "hair") cat = "머리카락(Hair)";
+          else if (leafFolder === "option" || leafFolder === "specialface" || leafFolder.startsWith("back")) cat = "안경/이펙트(Acc)";
+          return { charName: rootFolder, partPrefix: dirPrefix, category: cat };
+        }
+      }
+
+      // 2) Unholy Maiden `chara_heroine_battle*`, `chara_face*`, `chara_battle_armor*`, `chara_debuff*`
+      if (/^chara_heroine_battle[16789]|^chara_heroine_battle11/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_body", category: "몸통(Base)" };
+      }
+      if (/^chara_heroine_battle[23]$/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_skin", category: "피부(Skin)" };
+      }
+      if (/^chara_face\d+|^chara_battle_zach(?:_a\d|[3456])?$/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_face", category: "얼굴(Face)" };
+      }
+      if (/^chara_battle_armor_leotard|^chara_heroine_battle1[02345]/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_under", category: "속옷(Under)" };
+      }
+      if (/^chara_battle_armor_(?!leotard)/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_armor", category: "복장(Cloth)" };
+      }
+      if (/^chara_battle_head_/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_head", category: "머리장식(Head)" };
+      }
+      if (/^chara_battle_ssword|^chara_battle_axe|^chara_battle_spear/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_weapon", category: "무기(Weapon)" };
+      }
+      if (/^chara_battle_shield_/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: "chara_heroine_shield", category: "방패(Shield)" };
+      }
+      if (/^chara_debuff\d+|^chara_battle_zach2$/i.test(s)) {
+        return { charName: "chara_heroine", partPrefix: s.replace(/\d+$/, ""), category: "안경/이펙트(Acc)" };
+      }
+
+      // 3) Standard `CharName_PartName_01` (Dragon Conquista etc.)
       const m = s.match(/^([A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff]+)_([A-Za-z]+)/);
-      if (m) {
+      if (m && !/^(?:cgevent|mod|system|battle|ero|ev\d+)/i.test(m[1])) {
         const charName = m[1];
         const rawPart = m[2];
         const lowerPart = rawPart.toLowerCase();
@@ -2067,9 +2132,11 @@
         else if (/^(?:hair|kami)/i.test(lowerPart)) cat = "머리카락(Hair)";
         else if (/^(?:mayu|brow)/i.test(lowerPart)) cat = "눈썹(Brow)";
         else if (/^(?:grass|glass|glasses|megane|effect|seieki|semen|bote)/i.test(lowerPart)) cat = "안경/이펙트(Acc)";
-        return { charName: charName.toLowerCase(), partPrefix: `${charName}_${rawPart}`, category: cat };
+        const fullPrefix = dirPrefix ? `${dirPrefix}/${charName}_${rawPart}` : `${charName}_${rawPart}`;
+        return { charName: charName.toLowerCase(), partPrefix: fullPrefix, category: cat };
       }
-      return { charName: extractCharacterStem(s), partPrefix: getBaseStemPrefix(s), category: "기본 이미지" };
+
+      return { charName: extractCharacterStem(norm), partPrefix: getBaseStemPrefix(norm), category: "기본 이미지" };
     }
 
     function getVariationPrefix(name) {
@@ -2470,14 +2537,17 @@
       const chipsBox = document.getElementById("inlineLayerChipsList");
       if (!bar || !chipsBox) return;
 
-      if (!slotEntries || slotEntries.length <= 1) {
+      const visualEntries = (slotEntries || []).filter(([, sp]) => sp && !sp.isTextPicture && sp.key);
+      if (visualEntries.length <= 1) {
         bar.classList.add("hidden");
         return;
       }
       bar.classList.remove("hidden");
 
-      chipsBox.innerHTML = slotEntries.map(([slotNum, spec]) => {
+      chipsBox.innerHTML = visualEntries.map(([slotNum, spec]) => {
         const effKey = state.slotVariantOverrides[slotNum] || pickBestDefaultVariant(spec.variants, spec.key);
+        const asset = resolveCgAssetSmart(effKey);
+        const thumbUrl = asset?.blobUrl || "";
         const info = getPartCategoryAndPrefix(effKey);
         const isHidden = state.hiddenLayers.has(slotNum) || (
           state.hideGlassesDefault &&
@@ -2486,21 +2556,43 @@
         );
         const shortLabel = `#${slotNum > 0 ? slotNum : "보완"} ${info.category.split("(")[0]}`;
         return `
-          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(effKey)} (터치하여 켜기/끄기)"
-            class="px-2.5 py-1 rounded-md border text-[11px] font-semibold flex-shrink-0 transition ${
+          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(translateJpName(effKey))} (터치하여 켜기/끄기)"
+            class="px-2 py-1 rounded-md border text-[11px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5 transition ${
               isHidden
-                ? "bg-slate-950 border-slate-800 text-slate-500 line-through"
+                ? "bg-slate-950 border-slate-800 text-slate-500 line-through opacity-60"
                 : "bg-indigo-950/75 border-indigo-500/40 text-indigo-200 hover:bg-indigo-800/60"
             }">
-            👁 ${escapeHtml(shortLabel)}
+            <span class="w-5 h-5 rounded bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
+              ${thumbUrl
+                ? `<img src="${thumbUrl}" data-quick-thumb-key="${escapeHtml(effKey)}" class="w-full h-full object-contain" alt="" />`
+                : `<img data-quick-thumb-key="${escapeHtml(effKey)}" class="w-full h-full object-contain hidden" alt="" />`
+              }
+            </span>
+            <span>👁 ${escapeHtml(shortLabel)}</span>
           </button>
         `;
       }).join("");
 
+      // Hydrate any missing chip thumbnails asynchronously
+      visualEntries.forEach(async ([, spec], idx) => {
+        const slotNum = visualEntries[idx][0];
+        const effKey = state.slotVariantOverrides[slotNum] || pickBestDefaultVariant(spec.variants, spec.key);
+        const asset = resolveCgAssetSmart(effKey);
+        if (asset && !asset.blobUrl) {
+          const url = await ensureAssetBlobUrl(asset);
+          if (url) {
+            chipsBox.querySelectorAll(`[data-quick-thumb-key="${CSS.escape(effKey)}"]`).forEach(img => {
+              img.src = url;
+              img.classList.remove("hidden");
+            });
+          }
+        }
+      });
+
       chipsBox.querySelectorAll("[data-quick-toggle-slot]").forEach(btn => {
         btn.addEventListener("click", () => {
           const sNum = Number(btn.getAttribute("data-quick-toggle-slot"));
-          const spec = slotEntries.find(x => x[0] === sNum)?.[1];
+          const spec = visualEntries.find(x => x[0] === sNum)?.[1];
           const effKey = state.slotVariantOverrides[sNum] || (spec ? spec.key : "");
           const isGlass = spec?.isOptionalAcc || isGlassesOrOptionalOverlayName(effKey);
 
@@ -2738,14 +2830,14 @@
       }
     }
 
-    function renderPartsCustomizerModal() {
+    async function renderPartsCustomizerModal() {
       const container = document.getElementById("partsModalContent");
       let slotEntries = Object.entries(state.activePictureSlots || {})
         .map(([slot, spec]) => {
           const obj = typeof spec === "string" ? { key: spec, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } : spec;
           return [Number(slot), obj];
         })
-        .filter(([, obj]) => obj && obj.key && !isDummyBlackOrSystemPicture(obj.key))
+        .filter(([, obj]) => obj && !obj.isTextPicture && obj.key && !isDummyBlackOrSystemPicture(obj.key))
         .sort((a, b) => a[0] - b[0]);
 
       slotEntries = injectMissingCharacterBaseBodies(slotEntries);
@@ -2756,10 +2848,15 @@
       }
 
       const allAssetKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !state.deletedCgKeys.has(k));
+      const thumbKeysToHydrate = new Set();
 
       container.innerHTML = slotEntries.map(([slotNum, spec]) => {
         const defaultBestKey = pickBestDefaultVariant(spec.variants, spec.key);
         const currentKey = state.slotVariantOverrides[slotNum] || defaultBestKey;
+        const curAsset = resolveCgAssetSmart(currentKey);
+        const curThumbUrl = curAsset?.blobUrl || "";
+        thumbKeysToHydrate.add(currentKey);
+
         const partInfo = getPartCategoryAndPrefix(currentKey);
         const isGlassOrAcc = spec.isOptionalAcc || isGlassesOrOptionalOverlayName(currentKey);
         const isHidden = state.hiddenLayers.has(slotNum) || (isGlassOrAcc && state.hideGlassesDefault && !state.forceShowGlassesSlots.has(slotNum));
@@ -2772,33 +2869,71 @@
           }
         }
         const candidates = Array.from(candidateSet).sort((a, b) => scoreDefaultCandidatePriority(b) - scoreDefaultCandidatePriority(a));
+        const thumbCandidates = candidates.slice(0, 24);
+        for (const tk of thumbCandidates) thumbKeysToHydrate.add(tk);
 
         return `
-          <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
-                  ${slotNum < 0 ? "자동보완 베이스" : `슬롯 #${slotNum}`}
-                </span>
-                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">${escapeHtml(partInfo.category)}</span>
-                <span class="text-xs font-bold text-white truncate">${escapeHtml(translateJpName(currentKey))}</span>
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-14 h-14 rounded-lg bg-slate-900 border border-indigo-500/40 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-inner">
+                  ${curThumbUrl
+                    ? `<img src="${curThumbUrl}" data-part-modal-thumb="${escapeHtml(currentKey)}" class="w-full h-full object-contain" alt="" />`
+                    : `<img data-part-modal-thumb="${escapeHtml(currentKey)}" class="w-full h-full object-contain hidden" alt="" />`
+                  }
+                </div>
+                <div class="min-w-0 space-y-1">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
+                      ${slotNum < 0 ? "자동보완 베이스" : `슬롯 #${slotNum}`}
+                    </span>
+                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">${escapeHtml(partInfo.category)}</span>
+                  </div>
+                  <div class="text-xs font-bold text-white truncate" title="${escapeHtml(currentKey)}">${escapeHtml(translateJpName(currentKey))}</div>
+                </div>
               </div>
-              <button type="button" data-toggle-layer="${slotNum}" data-is-glass="${isGlassOrAcc ? "1" : "0"}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${
+              <button type="button" data-toggle-layer="${slotNum}" data-is-glass="${isGlassOrAcc ? "1" : "0"}" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0 ${
                 isHidden ? "bg-rose-900/60 text-rose-200 border border-rose-500/40" : "bg-emerald-600/30 text-emerald-200 border border-emerald-500/40"
               }">
                 ${isHidden ? "👁‍🗨 숨김 상태 (클릭 시 표시)" : "👁 표시 중"}
               </button>
             </div>
             ${candidates.length > 1 ? `
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] text-slate-400 flex-shrink-0">바리에이션(${candidates.length}종):</span>
-                <select data-slot-select="${slotNum}" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                  ${candidates.map(cKey => `
-                    <option value="${escapeHtml(cKey)}" ${cKey === currentKey ? "selected" : ""}>
-                      ${escapeHtml(translateJpName(cKey))}
-                    </option>
-                  `).join("")}
-                </select>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400 flex-shrink-0">바리에이션(${candidates.length}종):</span>
+                  <select data-slot-select="${slotNum}" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    ${candidates.map(cKey => `
+                      <option value="${escapeHtml(cKey)}" ${cKey === currentKey ? "selected" : ""}>
+                        ${escapeHtml(translateJpName(cKey))}
+                      </option>
+                    `).join("")}
+                  </select>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
+                  ${thumbCandidates.map(cKey => {
+                    const cAsset = resolveCgAssetSmart(cKey);
+                    const cUrl = cAsset?.blobUrl || "";
+                    const isSelected = cKey === currentKey;
+                    const shortName = translateJpName(cKey.split("/").pop() || cKey).slice(-12);
+                    return `
+                      <button type="button" data-slot-thumb-pick="${slotNum}" data-variant-key="${escapeHtml(cKey)}" title="${escapeHtml(translateJpName(cKey))}"
+                        class="flex-shrink-0 w-16 p-1 rounded-lg border text-center transition flex flex-col items-center gap-1 ${
+                          isSelected
+                            ? "bg-indigo-950/90 border-emerald-400 ring-1 ring-emerald-400/60"
+                            : "bg-slate-900/80 border-slate-800 hover:border-indigo-500/50"
+                        }">
+                        <div class="w-12 h-12 rounded bg-slate-950 flex items-center justify-center overflow-hidden">
+                          ${cUrl
+                            ? `<img src="${cUrl}" data-part-modal-thumb="${escapeHtml(cKey)}" class="w-full h-full object-contain" alt="" />`
+                            : `<img data-part-modal-thumb="${escapeHtml(cKey)}" class="w-full h-full object-contain hidden" alt="" />`
+                          }
+                        </div>
+                        <span class="text-[9px] text-slate-300 truncate w-full">${escapeHtml(shortName)}</span>
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
               </div>
             ` : `<div class="text-[11px] text-slate-500">동일 부위 바리에이션 없음 (단일 파츠)</div>`}
           </div>
@@ -2834,6 +2969,33 @@
           renderPartsCustomizerModal();
         });
       });
+
+      container.querySelectorAll("[data-slot-thumb-pick]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const slotNum = Number(btn.getAttribute("data-slot-thumb-pick"));
+          const vKey = btn.getAttribute("data-variant-key");
+          if (!vKey) return;
+          state.slotVariantOverrides[slotNum] = vKey;
+          state.hiddenLayers.delete(slotNum);
+          state.forceShowGlassesSlots.add(slotNum);
+          renderActiveCgStage();
+          renderPartsCustomizerModal();
+        });
+      });
+
+      // Hydrate missing thumbnails in the background and populate `<img>` tags in-place
+      for (const tk of thumbKeysToHydrate) {
+        const asset = resolveCgAssetSmart(tk);
+        if (asset && !asset.blobUrl) {
+          ensureAssetBlobUrl(asset).then(url => {
+            if (!url) return;
+            container.querySelectorAll(`[data-part-modal-thumb="${CSS.escape(tk)}"]`).forEach(img => {
+              img.src = url;
+              img.classList.remove("hidden");
+            });
+          });
+        }
+      }
     }
 
     async function renderFacePortrait(step) {
@@ -2999,26 +3161,59 @@
         const st = p._stats || analyzeStepsStats(p.steps);
         return st.dialogueCount > 0 || st.cgCount > 0;
       });
+      if (nonEmpty.length > 1) {
+        const unlockedOnly = nonEmpty.filter(p => {
+          const st = p._stats || analyzeStepsStats(p.steps);
+          if (st.dialogueCount <= 1 && st.cgCount === 0) {
+            const firstTxt = String(p.steps?.[0]?.rawText || "").trim();
+            if (/^(?:미개방|未開放|잠겨|잠김|아직\s*개방|해금되지|locked)/i.test(firstTxt)) return false;
+          }
+          return true;
+        });
+        if (unlockedOnly.length > 0) return unlockedOnly;
+      }
       return nonEmpty.length > 0 ? nonEmpty : unhidden.slice(0, 1);
     }
 
-    function getEventContentSignature(ev, mapId) {
+    function extractEventDialogueList(ev, mapId) {
       const validPages = getValidPages(ev, mapId);
-      const firstLines = [];
+      const lines = [];
       for (const p of validPages) {
         for (const s of (p.steps || [])) {
-          if (s.type === "dialogue" && firstLines.length < 3) {
-            firstLines.push(s.rawText.trim());
+          if (s.type === "dialogue" && s.rawText) {
+            const norm = String(s.rawText).replace(/\s+/g, " ").trim();
+            if (norm) lines.push(norm);
+          } else if (s.type === "branch" && Array.isArray(s.options)) {
+            lines.push("BR:" + s.options.map(o => o.label).join(","));
           }
+          if (lines.length >= 12) break;
         }
+        if (lines.length >= 12) break;
       }
+      return lines;
+    }
+
+    function getEventContentSignature(ev, mapId) {
+      const firstLines = extractEventDialogueList(ev, mapId).slice(0, 3);
       if (firstLines.length === 0) return null;
       return `${ev.entryPageSwitchReq || 0}_${ev.entryPageVarId || 0}_${ev.entryPageVarVal || 0}::${firstLines.join("|")}`;
     }
 
-    function isHudOrSystemDummyEvent(ev, st) {
+    function isSystemMapInitEventName(name) {
+      const s = String(name || "");
+      return /ダンジョンスタートアップ|ダンジョン開始処理|街中屋内移動直後処理|던전\s*스타트업|던전\s*개시\s*처리|거리\s*실내\s*이동\s*직후\s*처리|맵\s*이동\s*직후\s*처리|マップ移動直後処理|イベントストッパー|シンボル非追跡|隠密シンボル|デバッグ|debug/i.test(s);
+    }
+
+    function isHudOrSystemDummyEvent(ev, st, mapName = "") {
       if (st.dialogueCount === 0 && st.cgCount === 0) return true;
       if (ev.isParallelOrHud && st.dialogueCount === 0) return true;
+      if (isSystemMapInitEventName(ev.name)) return true;
+      // Filter out 0-dialogue events on normal maps (`2층 아이템 항아리` etc.) unless on a Recollection/Gallery/OP/ED map or event
+      if (st.dialogueCount === 0) {
+        const combinedTitle = `${mapName} ${ev.name || ""}`;
+        const isRecollectionOrCgScene = /回想|회상|갤러리|cg|gallery|memory|room|op|오프닝|オープニング|ed|엔딩|エンディング/i.test(combinedTitle);
+        if (!isRecollectionOrCgScene) return true;
+      }
       return false;
     }
 
@@ -3029,9 +3224,19 @@
       return ev.storyOrder ?? ev.id;
     }
 
+    function isDialoguePrefixOrSubset(shortLines, longLines) {
+      if (!shortLines.length || !longLines.length || shortLines.length > longLines.length) return false;
+      if (shortLines[0].length < 8 && shortLines.length === 1 && longLines.length > 1) return false;
+      for (let i = 0; i < shortLines.length; i++) {
+        if (shortLines[i] !== longLines[i]) return false;
+      }
+      return true;
+    }
+
     function getFilteredAndMergedEvents(map) {
       if (!map || !Array.isArray(map.events)) return [];
       const sigMap = new Map();
+      const condBucketMap = new Map();
       const result = [];
 
       const rawEvents = [...map.events].sort((a, b) => {
@@ -3048,20 +3253,59 @@
           return acc;
         }, { dialogueCount: 0, cgCount: 0 });
 
-        if (state.hideSystemHudEvents && isHudOrSystemDummyEvent(ev, st)) continue;
+        if (state.hideSystemHudEvents && isHudOrSystemDummyEvent(ev, st, map.name || "")) continue;
         if (state.sceneFilter === "cg" && st.cgCount === 0) continue;
         if (state.sceneFilter === "fav" && !state.favoriteEvents.has(`${state.activeGameId}_${map.id}_${ev.id}`)) continue;
 
         if (state.mergeIdenticalEvents) {
-          const sig = getEventContentSignature(ev, map.id);
+          const dLines = extractEventDialogueList(ev, map.id);
+          const condKey = `${ev.entryPageSwitchReq || 0}_${ev.entryPageVarId || 0}_${ev.entryPageVarVal || 0}`;
+          const sig = dLines.length > 0 ? `${condKey}::${dLines.slice(0, 3).join("|")}` : null;
+
           if (sig && sigMap.has(sig)) {
             const primary = sigMap.get(sig);
-            primary.mergedIds = primary.mergedIds || [primary.id];
-            if (!primary.mergedIds.includes(ev.id)) primary.mergedIds.push(ev.id);
+            const primLines = primary._dLines || [];
+            // If `ev` has MORE dialogue lines than `primary` (`EV149` vs `EV150`), upgrade `primary` in-place to `ev`'s fuller content!
+            if (dLines.length > primLines.length) {
+              const mergedIds = primary.mergedIds ? [...primary.mergedIds] : [primary.id];
+              if (!mergedIds.includes(ev.id)) mergedIds.push(ev.id);
+              Object.assign(primary, ev, { mergedIds, _dLines: dLines });
+            } else {
+              primary.mergedIds = primary.mergedIds || [primary.id];
+              if (!primary.mergedIds.includes(ev.id)) primary.mergedIds.push(ev.id);
+            }
             continue;
           }
-          const clone = { ...ev, mergedIds: [ev.id] };
+
+          // Prefix / Subset Dialogue Merger (`image_4c2f1e.png`: `EV149` with 2 boxes vs `EV150..153` with 1 box of the same opening dialogue!)
+          if (dLines.length > 0 && condBucketMap.has(condKey)) {
+            const bucket = condBucketMap.get(condKey);
+            let mergedIntoExisting = false;
+            for (const existing of bucket) {
+              const exLines = existing._dLines || [];
+              if (isDialoguePrefixOrSubset(dLines, exLines)) {
+                existing.mergedIds = existing.mergedIds || [existing.id];
+                if (!existing.mergedIds.includes(ev.id)) existing.mergedIds.push(ev.id);
+                mergedIntoExisting = true;
+                break;
+              } else if (isDialoguePrefixOrSubset(exLines, dLines)) {
+                const mergedIds = existing.mergedIds ? [...existing.mergedIds] : [existing.id];
+                if (!mergedIds.includes(ev.id)) mergedIds.push(ev.id);
+                Object.assign(existing, ev, { mergedIds, _dLines: dLines });
+                if (sig) sigMap.set(sig, existing);
+                mergedIntoExisting = true;
+                break;
+              }
+            }
+            if (mergedIntoExisting) continue;
+          }
+
+          const clone = { ...ev, mergedIds: [ev.id], _dLines: dLines };
           if (sig) sigMap.set(sig, clone);
+          if (dLines.length > 0) {
+            if (!condBucketMap.has(condKey)) condBucketMap.set(condKey, []);
+            condBucketMap.get(condKey).push(clone);
+          }
           result.push(clone);
         } else {
           result.push({ ...ev, mergedIds: [ev.id] });
@@ -3089,7 +3333,13 @@
         }
       }
 
-      const base = translateJpName(rawName, state.customEventNames, customKey);
+      let base = translateJpName(rawName, state.customEventNames, customKey);
+      if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0 && state.project?.variableNames) {
+        const vLabel = translateJpName(state.project.variableNames[ev.entryPageVarId] || `변수#${ev.entryPageVarId}`).replace(/\([^)]*\)/g, "").trim();
+        base += ` [${vLabel}≥${ev.entryPageVarVal}]`;
+      } else if (ev.entryPageAutorun && !/자동|OP|오프닝/i.test(base)) {
+        base += ` [자동실행]`;
+      }
       if (ev.mergedIds && ev.mergedIds.length > 1) {
         return `${base} [동일 ${ev.mergedIds.length}개 병합]`;
       }
@@ -3663,20 +3913,38 @@
     function syncPictureSlotsAtStep(stepIndex) {
       state.activePictureSlots = {};
       const steps = state.activeSteps || [];
-      for (let i = 0; i <= stepIndex && i < steps.length; i++) {
-        const s = steps[i];
-        if (s.pictureSnapshot) {
-          for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
-            if (val === null) delete state.activePictureSlots[slot];
-            else state.activePictureSlots[slot] = val;
+      if (!steps.length) return;
+      const targetIdx = Math.max(0, Math.min(stepIndex, steps.length - 1));
+      const curStep = steps[targetIdx];
+
+      // Each step's `pictureSnapshot` is already the complete active picture state at that moment!
+      // Using `curStep.pictureSnapshot` directly prevents erased/branch-local/superseded CGs from earlier steps from sticking on screen!
+      if (curStep && curStep.pictureSnapshot && Object.keys(curStep.pictureSnapshot).length > 0) {
+        for (const [slot, val] of Object.entries(curStep.pictureSnapshot)) {
+          if (val !== null && val !== undefined) {
+            state.activePictureSlots[slot] = val;
           }
         }
-        if (s.type === "cg" || s.type === "movie") {
-          state.activePictureSlots[s.slot || 1] = {
-            key: s.cgKey, x: s.x || 0, y: s.y || 0, origin: s.origin || 0,
-            scaleX: s.scaleX ?? 100, scaleY: s.scaleY ?? 100, opacity: s.opacity ?? 255
-          };
+      } else {
+        // Fallback: look backwards for the nearest step with a snapshot
+        for (let i = targetIdx; i >= 0; i--) {
+          const s = steps[i];
+          if (s && s.pictureSnapshot && Object.keys(s.pictureSnapshot).length > 0) {
+            for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
+              if (val !== null && val !== undefined) {
+                state.activePictureSlots[slot] = val;
+              }
+            }
+            break;
+          }
         }
+      }
+      if (curStep && (curStep.type === "cg" || curStep.type === "movie") && curStep.cgKey) {
+        state.activePictureSlots[curStep.slot || 1] = {
+          key: curStep.cgKey, x: curStep.x || 0, y: curStep.y || 0, origin: curStep.origin || 0,
+          scaleX: curStep.scaleX ?? 100, scaleY: curStep.scaleY ?? 100, opacity: curStep.opacity ?? 255,
+          variants: curStep.pictureSnapshot?.[curStep.slot || 1]?.variants || [curStep.cgKey]
+        };
       }
     }
 
@@ -4391,16 +4659,68 @@
     // with real `DTextPicture` coordinates, background graphics (`Prof_Base`, `H-Prof1_Base1`, `H-Prof2_Base1`, `eroStaBack01`),
     // `CharacterPictureManager` menu portraits, and `ExtraWindow` / `System.json` parameters!
     // =========================================================================
-    function executeNativeStatusCeSnapshot(ceId) {
-      const ce = state.project?.commonEventsMap?.[ceId];
-      if (!ce || !Array.isArray(ce.list)) return { snapshot: {}, referencedVars: [], referencedSwitches: [] };
-
-      const simVars = { ...(state.project.variables || {}) };
-      const simSwitches = { ...(state.project.switches || {}) };
+    function executeNativeStatusCeSnapshot(ceId, activePageObj = null) {
+      const simVars = { ...(state.project?.variables || {}) };
+      const simSwitches = { ...(state.project?.switches || {}) };
       const refVars = new Set();
       const refSwitches = new Set();
       const slots = {};
       let pendingDText = null;
+
+      // Architecture 3: Prison Hero `SceneLewdStatus` (`lewd_status/background`, `lewd_status/body/stage_1..4`, `LewdStatus.json`)
+      if (activePageObj && activePageObj.type === "scene_lewd_status") {
+        const txtRes = state.project?.textResourcesMap || {};
+        const stageVarId = Number(activePageObj.lewdStageVar || 122);
+        const lv1VarId = Number(activePageObj.lewdLevel1Var || 124);
+        const lv2VarId = Number(activePageObj.lewdLevel2Var || 123);
+        refVars.add(stageVarId);
+        refVars.add(lv1VarId);
+        refVars.add(lv2VarId);
+
+        const curStage = Math.max(1, Math.min(4, Number(activePageObj.stageOverride || simVars[stageVarId] || 1)));
+        const partKey = state.selectedLewdBodyPart || "PUSSY";
+        const partDefs = {
+          PUSSY:   { label: txtRes["0900-011-n011-0"] || "용사의 보지", texts: ["0910-001-n001-0","0910-002-n002-0","0910-003-n003-0","0910-004-n004-0"] },
+          BREASTS: { label: txtRes["0900-012-n012-0"] || "용사의 가슴", texts: ["0920-001-n001-0","0920-002-n002-0","0920-003-n003-0","0920-004-n004-0"] },
+          BUTT:    { label: txtRes["0900-013-n013-0"] || "용사의 엉덩이", texts: ["0930-001-n001-0","0930-002-n002-0","0930-003-n003-0","0930-004-n004-0"] },
+          MOUTH:   { label: txtRes["0900-014-n014-0"] || "용사의 입", texts: ["0940-001-n001-0","0940-002-n002-0","0940-003-n003-0","0940-004-n004-0"] },
+          WOMB:    { label: txtRes["0900-017-n017-0"] || "용사의 자궁", texts: ["0950-001-n001-0","0950-002-n002-0","0950-003-n003-0","0950-004-n004-0"] },
+          MIND:    { label: txtRes["0900-018-n018-0"] || "용사의 정신", texts: ["0960-001-n001-0","0960-002-n002-0","0960-003-n003-0","0960-004-n004-0"] }
+        };
+        const activePart = partDefs[partKey] || partDefs.PUSSY;
+        const descTextRaw = txtRes[activePart.texts[curStage - 1]] || "";
+        // Wrap description text cleanly at 25 chars per line
+        const wrappedLines = [];
+        for (let idx = 0; idx < descTextRaw.length; idx += 25) {
+          wrappedLines.push(descTextRaw.slice(idx, idx + 25));
+        }
+
+        const bgAsset = resolveCgAssetSmart("lewd_status/background");
+        if (bgAsset) slots[1] = { key: bgAsset.name, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255 };
+        const bodyBgAsset = resolveCgAssetSmart("lewd_status/body_background");
+        if (bodyBgAsset) slots[2] = { key: bodyBgAsset.name, origin: 0, x: 840, y: 20, scaleX: 66, scaleY: 66, opacity: 255 };
+        const stageBodyAsset = resolveCgAssetSmart(`lewd_status/body/stage_${curStage}`) || resolveCgAssetSmart("100Standing_Heroine/Body/HeroineBody00NudeNormal");
+        if (stageBodyAsset) slots[3] = { key: stageBodyAsset.name, origin: 0, x: 690, y: -40, scaleX: 55, scaleY: 55, opacity: 255 };
+        const frameAsset = resolveCgAssetSmart("lewd_status/frame");
+        if (frameAsset) slots[4] = { key: frameAsset.name, origin: 0, x: 0, y: 0, scaleX: 66, scaleY: 66, opacity: 255 };
+
+        const titleStr = txtRes["0900-003-n003-0"] || "죄수 번호 4608";
+        slots[10] = { key: "__dtext__", isTextPicture: true, dText: `\C[14]【${titleStr}】 — 에로스테 ${curStage}단계 (${activePart.label})`, fontSize: 28, origin: 0, x: 36, y: 26, scaleX: 100, scaleY: 100, opacity: 255 };
+        const menuLines = Object.entries(partDefs).map(([k, pd]) => k === partKey ? `▶ \C[17]${pd.label}\\C[0]` : `   ${pd.label}`).join("\n\n");
+        slots[11] = { key: "__dtext__", isTextPicture: true, dText: menuLines, fontSize: 22, origin: 0, x: 36, y: 105, scaleX: 100, scaleY: 100, opacity: 255 };
+        slots[12] = { key: "__dtext__", isTextPicture: true, dText: wrappedLines.join("\n"), fontSize: 19, origin: 0, x: 360, y: 100, scaleX: 100, scaleY: 100, opacity: 255 };
+        const lv1Label = txtRes["0900-030-n030-0"] || "용사 레벨";
+        const lv2Label = txtRes["0900-031-n031-0"] || "창부 레벨";
+        slots[13] = {
+          key: "__dtext__", isTextPicture: true,
+          dText: `\\C[6]${lv1Label}: ${simVars[lv1VarId] ?? 50}   \\C[27]${lv2Label}: ${simVars[lv2VarId] ?? 0}   \C[14]수감 기록 단계: Stage ${curStage}/4`,
+          fontSize: 22, origin: 0, x: 36, y: 635, scaleX: 100, scaleY: 100, opacity: 255
+        };
+        return { snapshot: slots, referencedVars: Array.from(refVars), referencedSwitches: Array.from(refSwitches), isSceneLewdStatus: true, curStage };
+      }
+
+      const ce = state.project?.commonEventsMap?.[ceId];
+      if (!ce || !Array.isArray(ce.list)) return { snapshot: {}, referencedVars: [], referencedSwitches: [] };
 
       function runList(list, depth = 0) {
         if (!Array.isArray(list) || depth > 5) return;
@@ -4409,6 +4729,14 @@
           const cmd = list[i];
           if (!cmd) continue;
           const indent = cmd.indent || 0;
+          if (cmd.code === 109) {
+            i++;
+            while (i < list.length) {
+              if (list[i] && list[i].code === 409 && (list[i].indent || 0) === indent) break;
+              i++;
+            }
+            continue;
+          }
           while (branchStack.length > 0 && branchStack[branchStack.length - 1].indent >= indent) {
             if (branchStack[branchStack.length - 1].indent === indent && (cmd.code === 411 || cmd.code === 412)) break;
             branchStack.pop();
@@ -4456,15 +4784,17 @@
             for (let s = s1; s <= s2; s++) simSwitches[s] = isOn;
           } else if (cmd.code === 122) {
             const v1 = Number(p[0]) || 0, v2 = Number(p[1]) || v1, op = Number(p[2]) || 0, opType = Number(p[3]) || 0;
-            if (opType === 0 || opType === 1) {
-              const rhs = opType === 0 ? (Number(p[4]) || 0) : (Number(simVars[Number(p[4])] || 0));
-              if (opType === 1 && Number(p[4]) > 0) refVars.add(Number(p[4]));
+            if (opType === 0 || opType === 1 || opType === 2 || opType === 4) {
+              let rhs = 0;
+              if (opType === 0) rhs = Number(p[4]) || 0;
+              else if (opType === 1) { rhs = simVars[Number(p[4])] ?? 0; if (Number(p[4]) > 0) refVars.add(Number(p[4])); }
+              else if (opType === 2) rhs = Number.isFinite(Number(p[4])) ? Number(p[4]) : 0;
+              else if (opType === 4) rhs = evalScriptOperandValue(p[4], simVars);
               for (let v = v1; v <= v2; v++) {
-                refVars.add(v);
-                const cur = Number(simVars[v] || 0);
-                if (op === 0) simVars[v] = rhs;
-                else if (op === 1) simVars[v] = cur + rhs;
-                else if (op === 2) simVars[v] = cur - rhs;
+                if (typeof rhs === "number") refVars.add(v);
+                if (op === 0 || typeof rhs === "string") simVars[v] = rhs;
+                else if (op === 1) simVars[v] = (Number(simVars[v]) || 0) + Number(rhs);
+                else if (op === 2) simVars[v] = (Number(simVars[v]) || 0) - Number(rhs);
               }
             }
           } else if (cmd.code === 357 && (p[0] === "DTextPicture" || p[1] === "dText" || p[1] === "set")) {
@@ -4527,10 +4857,75 @@
         }
       }
 
+      // Architecture 2: Unholy Maiden `Scene_oristatus` (Run CE#112 Achieve Refresh + CE#96 Rank Assessment + CE#282 Eroste UI)
+      if (activePageObj && activePageObj.type === "unholy_oristatus") {
+        // Pre-populate experience labels #221..#243 so even 0x counts show their Korean names clearly
+        const expLabelMap = {
+          221: "절정:", 223: "자위:", 225: "항문:", 227: "장난감:",
+          229: "섹스:", 231: "구강:", 233: "매춘:", 235: "질내사정:",
+          237: "노출:", 239: "정액 삼키기:", 241: "배뇨:", 243: "배변:"
+        };
+        for (const [lk, lv] of Object.entries(expLabelMap)) {
+          if (!simVars[lk]) simVars[lk] = lv;
+        }
+        if (!simVars[249]) simVars[249] = (Number(simVars[230]) > 0) ? "\\C[27]비처녀 (개통 완료)\\C[0]" : "\\C[6]처녀 (순결)\\C[0]";
+        if (!simVars[250]) simVars[250] = (Number(simVars[81]) >= 50) ? "\\C[27]음란에 눈뜬 몸\\C[0]" : "이성 유지 중";
+        if (!simVars[248]) simVars[248] = `음란도 ${Number(simVars[81] || 0)}% · 성적 매력 ${Number(simVars[260] || 0)}`;
+        const ce96 = state.project?.commonEventsMap?.[96];
+        if (ce96 && Array.isArray(ce96.list)) runList(ce96.list, 0);
+        const ce112 = state.project?.commonEventsMap?.[112];
+        if (ce112 && Array.isArray(ce112.list)) runList(ce112.list, 0);
+      }
+
       runList(ce.list, 0);
 
       for (const [k, v] of Object.entries(simVars)) {
         state.project.variables[k] = v;
+      }
+
+      if (activePageObj && activePageObj.type === "unholy_oristatus") {
+        [81, 202, 260, 201, 222, 224, 226, 228, 230, 232, 234, 236, 238, 240, 242, 244, 41, 42, 43, 44, 45, 46, 561, 183].forEach(v => refVars.add(v));
+        const bgUi = resolveCgAssetSmart("mapui_menu");
+        if (bgUi) slots[1] = { key: bgUi.name, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255 };
+        // Compose CharacterPictureManager Heroine Standing Layers on the right
+        if (state.project.menuCharacterLayers && state.project.menuCharacterLayers[1]) {
+          let extraSlot = 20;
+          for (const layer of state.project.menuCharacterLayers[1]) {
+            const asset = resolveCgAssetSmart(layer.fileName);
+            if (asset) {
+              slots[extraSlot++] = { key: asset.name, origin: 0, x: 420, y: 0, scaleX: 100, scaleY: 100, opacity: 255 };
+            }
+          }
+        }
+        // Compose Scene_oristatus left-side windows
+        slots[60] = {
+          key: "__dtext__", isTextPicture: true,
+          dText: `\C[14]【신체 이력 & 상태 (Scene_oristatus)】\\C[0]\n${simVars[249] || ""}\n${simVars[250] || ""} (${simVars[248] || ""})
+\\C[6]교섭력: ${simVars[202] || 0}  \\C[27]성적 매력: ${simVars[260] || 0}  \C[2]자위력: ${simVars[201] || 0}`,
+          fontSize: 21, origin: 0, x: 28, y: 24, scaleX: 100, scaleY: 100, opacity: 255
+        };
+        slots[61] = {
+          key: "__dtext__", isTextPicture: true,
+          dText: `\\C[27]【성경험 카운트 (Achieve Refresh)】\\C[0]
+` +
+            `절정: ${simVars[222] || 0}회   자위: ${simVars[224] || 0}회   섹스: ${simVars[230] || 0}회
+` +
+            `질내사정: ${simVars[236] || 0}회   구강: ${simVars[232] || 0}회   항문: ${simVars[226] || 0}회
+` +
+            `매춘: ${simVars[234] || 0}회   장난감: ${simVars[228] || 0}회   노출: ${simVars[238] || 0}회
+` +
+            `정액삼킴: ${simVars[240] || 0}회   배뇨: ${simVars[242] || 0}회   배변: ${simVars[244] || 0}회`,
+          fontSize: 21, origin: 0, x: 28, y: 195, scaleX: 100, scaleY: 100, opacity: 255
+        };
+        slots[62] = {
+          key: "__dtext__", isTextPicture: true,
+          dText: `\C[17]【전투 능력 랭크 (CE #96) & 부위 개발도】\\C[0]
+` +
+            `근력(${simVars[41] || 0}): ${simVars[461] || "F"}  기량(${simVars[42] || 0}): ${simVars[462] || "F"}  민첩(${simVars[43] || 0}): ${simVars[463] || "F"}\n` +
+            `지성(${simVars[44] || 0}): ${simVars[464] || "F"}  체력(${simVars[45] || 0}): ${simVars[465] || "F"}  정신(${simVars[466] || 0}): ${simVars[466] || "F"}\n` +
+            `음란도: ${simVars[81] || 0}%   발정률: ${simVars[203] || 0}%   피로도: ${simVars[47] || 0}%`,
+          fontSize: 21, origin: 0, x: 28, y: 415, scaleX: 100, scaleY: 100, opacity: 255
+        };
       }
 
       const hasProfBase = Object.values(slots).some(s => s && /^Prof_Base$/i.test(String(s.key || "")));
@@ -4582,7 +4977,7 @@
       if (nativePages.length > 0 && !state.selectedStatusBgKey) {
         if (state.selectedNativeStatusPageIdx >= nativePages.length) state.selectedNativeStatusPageIdx = 0;
         const activePage = nativePages[state.selectedNativeStatusPageIdx] || nativePages[0];
-        const execResult = executeNativeStatusCeSnapshot(activePage.ceId);
+        const execResult = executeNativeStatusCeSnapshot(activePage.ceId, activePage);
 
         const charModeSwitches = execResult.referencedSwitches.filter(sId => {
           const sName = state.project.switchNames?.[sId] || "";
@@ -4638,7 +5033,15 @@
                   <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">🎮 원본 인게임 스테이터스 렌더러</span>
                   <span class="font-bold text-white">${escapeHtml(translateJpName(activePage.title))} (CE #${activePage.ceId})</span>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex flex-wrap items-center gap-1">
+                  ${execResult.isSceneLewdStatus ? [
+                    ["PUSSY", "보지"], ["BREASTS", "가슴"], ["BUTT", "엉덩이"],
+                    ["MOUTH", "입"], ["WOMB", "자궁"], ["MIND", "정신"]
+                  ].map(([pk, pl]) => `
+                    <button type="button" data-lewd-part-btn="${pk}" class="px-2 py-0.5 rounded text-[11px] font-bold ${
+                      (state.selectedLewdBodyPart || "PUSSY") === pk ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-300 hover:text-white"
+                    }">${pl}</button>
+                  `).join("") : ""}
                   ${nativePages.map((pg, idx) => `
                     <button type="button" data-native-status-page-sub="${idx}" class="px-2.5 py-0.5 rounded text-[11px] font-bold ${
                       idx === state.selectedNativeStatusPageIdx ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"
@@ -4724,6 +5127,12 @@
           document.getElementById("btnZoomNativeStatusCanvas")?.addEventListener("click", openZoom);
         }
 
+        boardBox.querySelectorAll("[data-lewd-part-btn]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.selectedLewdBodyPart = btn.getAttribute("data-lewd-part-btn");
+            renderStatusViewerTab();
+          });
+        });
         boardBox.querySelectorAll("[data-native-status-page-sub]").forEach(btn => {
           btn.addEventListener("click", () => {
             state.selectedNativeStatusPageIdx = Number(btn.getAttribute("data-native-status-page-sub"));
@@ -5502,8 +5911,15 @@
         return p[2] === 0 ? swVal : !swVal;
       }
       if (condType === 1) {
-        const v1 = Number(simVars[p[1]] || 0);
-        const v2 = p[2] === 0 ? Number(p[3] || 0) : Number(simVars[p[3]] || 0);
+        const rawV1 = simVars[p[1]];
+        const rawV2 = p[2] === 0 ? p[3] : simVars[p[3]];
+        if (typeof rawV1 === "string" || typeof rawV2 === "string") {
+          const s1 = String(rawV1 ?? "");
+          const s2 = String(rawV2 ?? "");
+          return p[4] === 5 ? s1 !== s2 : s1 === s2;
+        }
+        const v1 = Number(rawV1 || 0);
+        const v2 = Number(rawV2 || 0);
         switch (p[4]) {
           case 0: return v1 === v2;
           case 1: return v1 >= v2;
@@ -5514,10 +5930,56 @@
           default: return v1 === v2;
         }
       }
-      // Self Switch OFF (`p[2] === 1`) or Actor in Party (`condType === 4 && p[2] === 0`) defaults to true!
       if (condType === 2) return p[2] === 1;
-      if (condType === 4 && p[2] === 0) return true;
+      if (condType === 4) {
+        // p[2] === 0: Actor in Party -> Only Protagonist (Actor #1) is in party by default (prevents CE#341 dumping all 15 companion farewells!)
+        if (p[2] === 0) return Number(p[1]) === 1;
+        // p[2] === 2 (Name), 3 (Skill learned), 4 (Weapon): return true so skill-unlocked scenes (e.g. Map055 EV#140) are accessible
+        if (p[2] === 2 || p[2] === 3 || p[2] === 4) return true;
+        // p[2] === 5 (Armor like Slave Mask #608) or p[2] === 6 (Abnormal State like #11 Petrified, #117 Slime, #128 Futanari): false by default
+        return false;
+      }
+      if (condType === 7 || condType === 8 || condType === 9 || condType === 10) return true;
+      if (condType === 12) {
+        const sc = String(p[1] || "");
+        if (/getSelfVariable|Math\.random|randomInt|!\$gameParty\.inBattle/i.test(sc)) return true;
+        return false;
+      }
       return false;
+    }
+
+    function evalScriptOperandValue(rawExpr, simVars) {
+      const s = String(rawExpr ?? "").trim();
+      if (!s) return 0;
+      if ((s.startsWith("`") && s.endsWith("`")) || (s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) {
+        return s.slice(1, -1).replace(/\\n/g, "\n").replace(/\\\\/g, "\\");
+      }
+      if (/Math\.randomInt|Math\.random/i.test(s)) return 0;
+      const num = Number(s);
+      if (!isNaN(num)) return num;
+      return s;
+    }
+
+    function substituteSimVarsInText(rawStr, simVars) {
+      if (!rawStr) return "";
+      return String(rawStr).replace(/\\[vV]\[(\d+)\]/g, (full, idStr) => {
+        const vId = Number(idStr);
+        const val = simVars ? simVars[vId] : undefined;
+        if (typeof val === "string" && val.length > 0) return val;
+        if (typeof val === "number" && (vId === 91 || vId === 372 || vId === 373 || val !== 0)) return String(val);
+        return full;
+      });
+    }
+
+    function cleanChoiceOptionLabel(rawLabel, simVars) {
+      let s = substituteSimVarsInText(String(rawLabel || ""), simVars);
+      s = s
+        .replace(/(?:en|if)\s*\([^)]*\)/gi, "")
+        .replace(/\\[iIcC]\[\d+\]/g, "")
+        .replace(/\\fs\[\d+\]/gi, "")
+        .replace(/\\[><^!.|{}]/g, "")
+        .trim();
+      return s || String(rawLabel || "").trim();
     }
 
     // FIXED IN v10 (`image_6933fa.jpg` Dragon Conquista Missing Arms Fix!):
@@ -5779,24 +6241,106 @@
         }
       };
 
-      // Clean up stale standing sprites (`makina_tat` on Slot #6) when a full-screen Event CG (`makina15_0` on Slot #1) is active (`image_5baf1f.jpg` fix!)
+      const syncAdvCharacterToPictures = () => {
+        const advCfg = simState.advConfig || state.project?.advCharactersConfig;
+        if (!advCfg || !simState.advState) return;
+        for (let s = 101; s <= 116; s++) delete pendingPictures[s];
+        const activeKey = simState.advState.activeKey;
+        if (!activeKey) return;
+        const charDef = advCfg[activeKey];
+        const charState = simState.advState.chars?.[activeKey];
+        if (!charDef || !charState || !charState.visible) return;
+        const partOrder = ["back1", "back2", "body", "cloth", "eyeblow", "eye", "mouth", "hair", "option1", "option2", "option3", "option4", "option5", "option6", "option7", "option8"];
+        let slotNum = 101;
+        for (const pName of partOrder) {
+          const pSt = charState.parts[pName];
+          const pArr = charDef.parts[pName];
+          if (!pSt || !pSt.visible || !Array.isArray(pArr) || pSt.index < 0 || pSt.index >= pArr.length) continue;
+          let rawKey = pArr[pSt.index];
+          if (!rawKey || isDummyBlackOrSystemPicture(rawKey)) continue;
+          const resolved = cgAssetsDict ? resolveAssetInDict(rawKey, cgAssetsDict, true) : null;
+          if (resolved) rawKey = resolved.name;
+          const allVariants = pArr.filter(x => x && !isDummyBlackOrSystemPicture(x));
+          if (usageTracker) usageTracker(rawKey, steps.length);
+          if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(rawKey);
+          pendingPictures[slotNum] = {
+            key: rawKey, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255,
+            isOptionalAcc: pName.startsWith("option") || pName.startsWith("back"),
+            variants: allVariants.length > 0 ? allVariants : [rawKey]
+          };
+          slotsUpdatedInCurrentStep.add(slotNum);
+          slotNum++;
+        }
+      };
+
+      const ensureAdvCharInitialized = (charKey) => {
+        const advCfg = simState.advConfig || state.project?.advCharactersConfig;
+        if (!advCfg || !advCfg[charKey]) return null;
+        if (!simState.advState) simState.advState = { activeKey: null, chars: {} };
+        if (!simState.advState.chars[charKey]) {
+          const def = advCfg[charKey];
+          const parts = {};
+          for (const k of Object.keys(def.parts || {})) {
+            const isCore = (k === "body" || k === "eyeblow" || k === "eye" || k === "mouth" || k === "hair" || (k === "cloth" && Number(simState.vars[203] ?? 1) > 0));
+            const defaultIdx = (k === "cloth" && Number(simState.vars[203] ?? 1) > 0) ? Math.max(0, Number(simState.vars[203] || 1) - 1) : 0;
+            parts[k] = { index: defaultIdx, visible: isCore && (def.parts[k]?.length > 0) };
+          }
+          if (def.presets && def.presets["全体リセット"]) {
+            for (const pr of def.presets["全体リセット"]) {
+              if (pr.part === "cloth" && Number(simState.vars[203] ?? 1) > 0) {
+                parts.cloth = { index: Math.max(0, Number(simState.vars[203] || 1) - 1), visible: true };
+              } else {
+                parts[pr.part] = { index: Math.max(0, Number(pr.index || 1) - 1), visible: pr.visible === "true" || pr.visible === true };
+              }
+            }
+          }
+          simState.advState.chars[charKey] = { visible: false, parts };
+        }
+        return simState.advState.chars[charKey];
+      };
+
       const buildCleanStepSnapshot = () => {
         const snap = clonePicMapFast(pendingPictures);
         const lowSlotEventCg = Object.entries(snap).find(([sNum, sp]) => {
           const n = Number(sNum);
-          return n >= 1 && n <= 4 && sp && sp.key && !sp.isTextPicture && !isDummyBlackOrSystemPicture(sp.key) && !isStandingOrTachieFileName(sp.key) && /(?:ev|cg|h_|scene|\d{2}_\d)/i.test(sp.key);
+          return n >= 1 && n <= 9 && sp && sp.key && !sp.isTextPicture && !isDummyBlackOrSystemPicture(sp.key) && !isStandingOrTachieFileName(sp.key) && !/^300background\//i.test(sp.key) && /(?:200eventcg|ev|cg|h_|scene|\d{2}_\d)/i.test(sp.key);
         });
         if (lowSlotEventCg) {
           for (const [sNum, sp] of Object.entries(snap)) {
             const n = Number(sNum);
-            if (n > Number(lowSlotEventCg[0]) && sp && sp.key && isStandingOrTachieFileName(sp.key) && !slotsUpdatedInCurrentStep.has(n)) {
+            if (((n > Number(lowSlotEventCg[0]) && isStandingOrTachieFileName(sp?.key)) || (n >= 101 && n <= 116)) && !slotsUpdatedInCurrentStep.has(n)) {
               delete snap[sNum];
-              delete pendingPictures[sNum];
+              if (n < 101) delete pendingPictures[sNum];
+            }
+          }
+        }
+        // Unholy Maiden CharacterPictureManager standing fallback: when Switch #57 is ON and no CG/standing is currently on stage, show Heroine standing layers
+        const cpmLayers = simState.cpmLayers || state.project?.menuCharacterLayers?.[1];
+        if (cpmLayers && cpmLayers.length > 0 && simState.switches[57] !== false && !simState.switches[22]) {
+          const hasAnyVisual = Object.values(snap).some(sp => sp && sp.key && !sp.isTextPicture && !isDummyBlackOrSystemPicture(sp.key));
+          if (!hasAnyVisual) {
+            let cSlot = 201;
+            for (const layer of cpmLayers) {
+              let fName = layer.fileName;
+              if (layer.isFace && Number(simState.vars[183]) > 0) {
+                const faceMap = { 1: "chara_battle_zach3", 2: "chara_battle_zach4", 3: "chara_battle_zach5", 4: "chara_battle_zach6", 5: "chara_face7", 6: "chara_face8", 7: "chara_face9", 8: "chara_face10", 9: "chara_face11", 10: "chara_face12", 11: "chara_face13", 13: "chara_face15", 14: "chara_face17" };
+                if (faceMap[Number(simState.vars[183])]) fName = faceMap[Number(simState.vars[183])];
+              }
+              const resolved = cgAssetsDict ? resolveAssetInDict(fName, cgAssetsDict, true) : null;
+              const finalKey = resolved ? resolved.name : fName;
+              if (finalKey && (!cgAssetsDict || cgAssetsDict[finalKey])) {
+                snap[cSlot++] = {
+                  key: finalKey, origin: 0, x: Number(layer.x) || 0, y: Number(layer.y) || 0, scaleX: 100, scaleY: 100, opacity: 255,
+                  variants: layer.variants || [finalKey]
+                };
+              }
             }
           }
         }
         return snap;
       };
+
+      const unmetFallbackBranches = [];
 
       while (i < list.length) {
         if (++opsBudget.count > opsBudget.max) break;
@@ -5804,6 +6348,21 @@
         if (!cmd) { i++; continue; }
         const code = cmd.code;
         const p = cmd.parameters || [];
+
+        // RPG Maker MZ Code 109 (Skip) .. Code 409 (End Skip) disabled block!
+        // Prevents commented-out developer scratchpads (e.g. CE #1 lines 0..228 in Unholy Maiden) from executing!
+        if (code === 109) {
+          const skipIndent = cmd.indent;
+          i++;
+          while (i < list.length) {
+            if (list[i] && list[i].code === 409 && list[i].indent === skipIndent) {
+              i++;
+              break;
+            }
+            i++;
+          }
+          continue;
+        }
 
         if (code === 230) {
           hadWaitSinceLastCgFlush = true;
@@ -5840,24 +6399,53 @@
           continue;
         }
 
+        if (code === 104) {
+          const targetVarId = Number(p[0]) || 0;
+          if (targetVarId > 0) {
+            const expectedVal = simState.expectedItemVarValues?.[targetVarId];
+            if (expectedVal !== undefined) {
+              simState.vars[targetVarId] = expectedVal;
+            } else {
+              for (let look = i + 1; look < Math.min(list.length, i + 15); look++) {
+                const lc = list[look];
+                if (lc && lc.code === 111 && lc.parameters?.[0] === 1 && Number(lc.parameters?.[1]) === targetVarId && Number(lc.parameters?.[3]) > 0) {
+                  simState.vars[targetVarId] = Number(lc.parameters[3]);
+                  break;
+                }
+              }
+            }
+          }
+          i++;
+          continue;
+        }
+
         if (code === 122) {
           const startVar = Number(p[0]) || 0;
           const endVar = Number(p[1]) || startVar;
           const op = Number(p[2]) || 0;
           const operandType = Number(p[3]) || 0;
-          if (startVar > 0 && endVar - startVar <= 50 && (operandType === 0 || operandType === 1 || operandType === 2)) {
+          if (startVar > 0 && endVar - startVar <= 50 && (operandType === 0 || operandType === 1 || operandType === 2 || operandType === 3 || operandType === 4)) {
             let val = 0;
             if (operandType === 0) val = Number(p[4]) || 0;
-            else if (operandType === 1) val = Number(simState.vars[Number(p[4])] ?? 0);
-            else if (operandType === 2) val = Number(p[4]) || 1;
+            else if (operandType === 1) val = simState.vars[Number(p[4])] ?? 0;
+            else if (operandType === 2) val = Number.isFinite(Number(p[4])) ? Number(p[4]) : 0;
+            else if (operandType === 3) val = 1;
+            else if (operandType === 4) val = evalScriptOperandValue(p[4], simState.vars);
 
             for (let vId = startVar; vId <= endVar; vId++) {
-              const cur = Number(simState.vars[vId] || 0);
-              if (op === 0) simState.vars[vId] = val;
-              else if (op === 1) simState.vars[vId] = cur + val;
-              else if (op === 2) simState.vars[vId] = cur - val;
-              if (metaTracker && ceDepth <= 1 && metaTracker.setsVars) {
-                metaTracker.setsVars.set(vId, { op, val, result: simState.vars[vId] });
+              if (typeof val === "string") {
+                simState.vars[vId] = val;
+              } else {
+                const cur = Number(simState.vars[vId] || 0);
+                if (op === 0) simState.vars[vId] = val;
+                else if (op === 1) simState.vars[vId] = cur + val;
+                else if (op === 2) simState.vars[vId] = cur - val;
+                else if (op === 3) simState.vars[vId] = cur * val;
+                else if (op === 4 && val !== 0) simState.vars[vId] = Math.trunc(cur / val);
+                else if (op === 5 && val !== 0) simState.vars[vId] = cur % val;
+              }
+              if (metaTracker && ceDepth <= 1 && metaTracker.setsVars && typeof simState.vars[vId] === "number") {
+                metaTracker.setsVars.set(vId, { op, val: Number(val) || 0, result: simState.vars[vId] });
               }
             }
           }
@@ -5902,20 +6490,31 @@
           const opacity = rawOpacity > 0 ? rawOpacity : 255;
 
           if (!rawPicParam && pendingDText) {
-            pendingPictures[slotNum] = {
-              key: "__dtext__",
-              isTextPicture: true,
-              dText: pendingDText.text,
-              fontSize: pendingDText.fontSize,
-              origin, x, y, scaleX, scaleY, opacity
-            };
+            // In Story Viewer (`parseMvEventCommandsV10`), skip HUD DTextPicture overlays (`Slots #51..#59` like `0/150%` Fatigue or Eroste side HUD);
+            // Status screens use `executeNativeStatusCeSnapshot` which renders all DTextPictures natively!
+            const isStatusOrRecCe = slotNum < 50 && ceDepth === 0;
+            if (isStatusOrRecCe) {
+              pendingPictures[slotNum] = {
+                key: "__dtext__",
+                isTextPicture: true,
+                dText: substituteSimVarsInText(pendingDText.text, simState.vars),
+                fontSize: pendingDText.fontSize,
+                origin, x, y, scaleX, scaleY, opacity
+              };
+              slotsUpdatedInCurrentStep.add(slotNum);
+              updateLastNonEmptyPictures();
+            }
             pendingDText = null;
-            slotsUpdatedInCurrentStep.add(slotNum);
-            updateLastNonEmptyPictures();
             i++;
             continue;
           }
           pendingDText = null;
+          if (!rawPicParam) {
+            pendingPictures[slotNum] = null;
+            slotsUpdatedInCurrentStep.delete(slotNum);
+            i++;
+            continue;
+          }
 
           let picName = rawPicParam.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => {
             const curV = simState.vars[Number(vId)];
@@ -5967,6 +6566,27 @@
             for (const dv of dynamicVariants) {
               if (!prevVariants.includes(dv)) prevVariants.push(dv);
             }
+            // Cross-Fade Slot Anti-Overlap (`#80 -> #81 -> #82 -> #83` in Unholy Maiden CE#240, CE#340, CE#358):
+            // When a new full-frame image of the same series is placed on a higher/different slot, clear earlier slots of the same series!
+            const newPartCat = getPartCategoryAndPrefix(picName).category;
+            const newSeriesKey = getNormalizedSeriesKey(picName);
+            const isExOverlay = /(?:_ex\d*|onomatope)$/i.test(picName);
+            if (newPartCat === "기본 이미지" && !isExOverlay && newSeriesKey) {
+              for (const [exSlotStr, exSpec] of Object.entries(pendingPictures)) {
+                const exSlot = Number(exSlotStr);
+                if (exSlot === slotNum || !exSpec || !exSpec.key || exSpec.isTextPicture) continue;
+                if (/(?:_ex\d*|onomatope)$/i.test(exSpec.key)) continue;
+                const exCat = getPartCategoryAndPrefix(exSpec.key).category;
+                if (exCat === "기본 이미지") {
+                  const exSeries = getNormalizedSeriesKey(exSpec.key);
+                  if (exSeries === newSeriesKey || (exSlot >= 60 && slotNum >= 60 && /^(?:cgevent_|mod\/scenes\/|200eventcg\/)/i.test(picName) && /^(?:cgevent_|mod\/scenes\/|200eventcg\/)/i.test(exSpec.key) && !slotsUpdatedInCurrentStep.has(exSlot))) {
+                    pendingPictures[exSlot] = null;
+                    slotsUpdatedInCurrentStep.delete(exSlot);
+                  }
+                }
+              }
+            }
+
             pendingPictures[slotNum] = {
               key: picName, origin, x, y, scaleX, scaleY, opacity,
               isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
@@ -5975,6 +6595,9 @@
             slotsUpdatedInCurrentStep.add(slotNum);
             hadDialogueSinceLastPic = false;
             updateLastNonEmptyPictures();
+          } else {
+            pendingPictures[slotNum] = null;
+            slotsUpdatedInCurrentStep.delete(slotNum);
           }
           i++;
           continue;
@@ -6093,15 +6716,24 @@
           for (const k of Object.keys(pendingPictures)) {
             if (pendingPictures[k] === null) delete pendingPictures[k];
           }
+          const resolvedSpeaker = substituteSimVarsInText(speakerFromParam, simState.vars) || "대사";
+          const rawJoined = lines.join("\n");
+          let resolvedText = substituteSimVarsInText(rawJoined, simState.vars);
+          const singleVarMatch = rawJoined.trim().match(/^\\[vV]\[(\d+)\]$/);
+          if (singleVarMatch && simState.varStringAlternatives?.[Number(singleVarMatch[1])]?.length > 1) {
+            const altList = simState.varStringAlternatives[Number(singleVarMatch[1])];
+            resolvedText = altList[0] + "\n\C[16]─── [인사말/대사 바리에이션 " + altList.length + "종] ───\\C[0]\n" +
+              altList.slice(1).map((t, idx) => `• ${t.replace(/\n/g, " ")}`).join("\n");
+          }
           steps.push({
             type: "dialogue",
-            speaker: speakerFromParam || "대사",
+            speaker: resolvedSpeaker,
             faceName,
             faceIndex,
             faceColor: "#6366f1",
             audioKey: pendingAudioKey,
             transferMapId: pendingTransferMapId,
-            rawText: lines.join("\n"),
+            rawText: resolvedText,
             source: "Code 101/401",
             pictureSnapshot: snapshotCopy
           });
@@ -6124,12 +6756,16 @@
             if (!currentChoiceCmds.length || opsBudget.count > opsBudget.max) return;
             const subPending = clonePicMapFast(pendingPictures);
             const subSteps = parseMvEventCommandsV10(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
-              vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
+              ...simState,
+              vars: { ...simState.vars },
+              switches: { ...simState.switches },
+              lockedVarBranches: {}
             }, true, ceEffectCache, activeCeStack, opsBudget);
             const st = analyzeStepsStats(subSteps);
             if (st.dialogueCount > 0 || st.cgCount > 0) {
+              const cleanedLbl = cleanChoiceOptionLabel(currentChoiceLabel, simState.vars);
               options.push({
-                label: `선택: ${currentChoiceLabel}`,
+                label: `선택: ${cleanedLbl}`,
                 preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
                 steps: subSteps
               });
@@ -6278,25 +6914,58 @@
             }
           }
 
+          // Guard clause check: if `elseCmds` (or `thenCmds`) ends with `Jump to Label "end"` (code 119) or `Exit Event Processing` (code 115) and has <= 4 commands,
+          // ensure we don't accidentally jump to "end" when the other branch is empty (meaning fallthrough to the rest of the event!)
           const thenPending = clonePicMapFast(pendingPictures);
           const elsePending = clonePicMapFast(pendingPictures);
+          const thenSimState = {
+            ...simState,
+            vars: { ...simState.vars },
+            switches: { ...simState.switches },
+            lockedVarBranches: {}
+          };
+          const elseSimState = {
+            ...simState,
+            vars: { ...simState.vars },
+            switches: { ...simState.switches },
+            lockedVarBranches: {}
+          };
 
-          const thenSteps = parseMvEventCommandsV10(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, thenPending, {
-            vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
-          }, true, ceEffectCache, activeCeStack, opsBudget);
+          const thenSteps = parseMvEventCommandsV10(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, thenPending, thenSimState, true, ceEffectCache, activeCeStack, opsBudget);
 
           const elseSteps = (elseCmds.length > 0 && opsBudget.count <= opsBudget.max)
-            ? parseMvEventCommandsV10(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, elsePending, {
-                vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
-              }, true, ceEffectCache, activeCeStack, opsBudget)
+            ? parseMvEventCommandsV10(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, elsePending, elseSimState, true, ceEffectCache, activeCeStack, opsBudget)
             : [];
+
+          // Collect string variable alternatives (e.g. Var #439 random greetings across `If Var #88 == 0..10`)
+          for (const [vk, vv] of Object.entries(thenSimState.vars)) {
+            if (typeof vv === "string" && vv.length > 0 && vv !== simState.vars[vk]) {
+              if (!simState.varStringAlternatives) simState.varStringAlternatives = {};
+              if (!simState.varStringAlternatives[vk]) {
+                simState.varStringAlternatives[vk] = [];
+                if (typeof simState.vars[vk] === "string" && simState.vars[vk]) simState.varStringAlternatives[vk].push(simState.vars[vk]);
+              }
+              if (!simState.varStringAlternatives[vk].includes(vv)) simState.varStringAlternatives[vk].push(vv);
+            }
+          }
+
+          // Propagate variable & switch updates from the winning branch back into `simState`!
+          if (condMet) {
+            Object.assign(simState.vars, thenSimState.vars);
+            Object.assign(simState.switches, thenSimState.switches);
+            if (thenSimState.advState) simState.advState = thenSimState.advState;
+          } else if (elseCmds.length > 0) {
+            Object.assign(simState.vars, elseSimState.vars);
+            Object.assign(simState.switches, elseSimState.switches);
+            if (elseSimState.advState) simState.advState = elseSimState.advState;
+          }
 
           const thenSt = analyzeStepsStats(thenSteps);
           const elseSt = analyzeStepsStats(elseSteps);
 
-          // FIXED IN v13 (`image_5c0939.jpg` & `image_5baf1f.jpg`):
-          // Winning branch (`condMet` for `then`, `!condMet` for `else`) MUST be merged FIRST with `allowErase = true`,
-          // and non-winning branch merged second with `allowErase = false`!
+          // FIXED IN v15:
+          // 1) When `thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0`:
+          //    Only apply picture changes if `condMet` is true (or `elseCmds.length > 0` when `!condMet`), and only attach same-character part variants from the non-winning branch.
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
             if (condMet) {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
@@ -6315,12 +6984,25 @@
             if (condMet) {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
               if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
-            } else {
-              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+              updateLastNonEmptyPictures();
+              steps.push(...thenSteps);
+              continue;
             }
+            // `condMet === false` and `elseSt.dialogueCount === 0`:
+            // Do NOT unconditionally push `thenSteps` when `condMet === false`!
+            // Inside Common Events (`ceDepth > 0`) or for Party/Actor/Script checks (`p[0] === 4` or `p[0] === 12`), an unmet `If` without `Else` MUST be skipped
+            // so `CE #31` (Slime/Petrification/Urination), `CE #341` (15 Companion Farewells), `CE #510` (Random 0..5), and `Map055 EV#142` don't dump unmet branches!
+            if (elseCmds.length > 0) {
+              mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+            }
+            mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
             updateLastNonEmptyPictures();
-            steps.push(...thenSteps);
+            if (ceDepth === 0 && p[0] !== 4 && p[0] !== 12 && thenSt.dialogueCount > 0) {
+              let condLabel = `추가 조건 분기 #${unmetFallbackBranches.length + 1}`;
+              if (p[0] === 0) condLabel = `스위치 #${p[1]} ${p[2] === 0 ? "ON" : "OFF"} 분기`;
+              else if (p[0] === 1) condLabel = `변수 #${p[1]} (${p[3]}) 조건 분기`;
+              unmetFallbackBranches.push({ label: condLabel, steps: thenSteps, pending: thenPending });
+            }
             continue;
           }
           if (thenSt.dialogueCount === 0) {
@@ -6367,9 +7049,15 @@
 
         const executeCommonEventCall = (ceId) => {
           if (!ceId || activeCeStack.has(ceId) || ceDepth >= 4) return;
-          if (metaTracker && metaTracker.calledCommonEvents) metaTracker.calledCommonEvents.add(ceId);
           const ce = commonEventsMap[ceId];
           if (!ce || !Array.isArray(ce.list)) return;
+          const ceName = String(ce.name || "");
+          // Skip H-option chastity rejection checks (`CE #360, #361, #365`), companion breakup hook (`CE #341`),
+          // dungeon/indoor step post-processors (`CE #9, #10, #31, #32, #33, #36, #363`), and Eroste side HUD (`CE #282`) during story playback!
+          if (/H\s*option\s*rejection|H選択肢拒否|Breaking\s*Up\s*with\s*Your\s*Peers|仲間と別れる際の処理|Immediately\s*after\s*moving|移動直後処理|time\s*management\s*system|時間管理システム|Fatigue\s*result\s*processing|疲労結果処理|Display\s*of\s*Eroste\s*UI|エロステUIの表示/i.test(ceName)) {
+            return;
+          }
+          if (metaTracker && metaTracker.calledCommonEvents) metaTracker.calledCommonEvents.add(ceId);
 
           if (ceEffectCache && ceEffectCache.has(ceId)) {
             const cached = ceEffectCache.get(ceId);
@@ -6417,7 +7105,7 @@
               usedCgs: new Set()
             };
             const isoBudget = { count: 0, max: 4500 };
-            const isoSim = { vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {} };
+            const isoSim = { ...simState, vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {} };
 
             for (const c of ce.list) {
               if (c && c.code === 235 && c.indent === 0) {
@@ -6452,7 +7140,7 @@
               const firstOutfitSw = Number(ce.list[0].parameters[1]);
               if (firstOutfitSw > 0 && !isoSim.switches[firstOutfitSw]) {
                 const retryPic = {};
-                const retrySim = { vars: { ...simState.vars }, switches: { ...simState.switches, [firstOutfitSw]: true }, lockedVarBranches: {} };
+                const retrySim = { ...simState, vars: { ...simState.vars }, switches: { ...simState.switches, [firstOutfitSw]: true }, lockedVarBranches: {} };
                 const retryBudget = { count: 0, max: 4500 };
                 parseMvEventCommandsV10(ce.list, commonEventsMap, cgAssetsDict, null, isoMeta, ceDepth + 1, retryPic, retrySim, inConditionalBranch, ceEffectCache, activeCeStack, retryBudget);
                 if (Object.values(retryPic).filter(v => v && v.key).length > nonNullIsoSlots.length) {
@@ -6520,6 +7208,17 @@
         };
 
         if (code === 117) {
+          // Look ahead 1..8 commands for `If Var #X == ItemID` (e.g. `EV#46: 힐다` checking `If Var #292 == 448` right after `Call CE #103`)
+          for (let look = i + 1; look < Math.min(list.length, i + 10); look++) {
+            const lc = list[look];
+            if (lc && lc.code === 111 && lc.parameters?.[0] === 1 && lc.parameters?.[2] === 0 && Number(lc.parameters?.[3]) > 0) {
+              const checkVarId = Number(lc.parameters[1]);
+              const checkVal = Number(lc.parameters[3]);
+              if (!simState.expectedItemVarValues) simState.expectedItemVarValues = {};
+              simState.expectedItemVarValues[checkVarId] = checkVal;
+              break;
+            }
+          }
           executeCommonEventCall(Number(p[0]));
           i++;
           continue;
@@ -6534,6 +7233,239 @@
             };
             i++;
             continue;
+          }
+
+          if (code === 357 && p[0] === "MessageSelectPicture" && p[1] === "SET_UP") {
+            try {
+              const args = p[3] || {};
+              const idList = JSON.parse(args.pictureIdList || "[]").map(Number);
+              if (idList.length > 1) {
+                for (let idx = 1; idx < idList.length; idx++) {
+                  pendingPictures[idList[idx]] = null;
+                }
+                updateLastNonEmptyPictures();
+              }
+            } catch (e) {}
+            i++;
+            continue;
+          }
+
+          if (code === 357 && p[0] === "MNKR_TMLogWindowMZ" && p[1] === "addLog") {
+            const args = p[3] || {};
+            const logText = substituteSimVarsInText(String(args.text || "").trim(), simState.vars);
+            // Skip guard-clause failure logs that are immediately followed by Jump to Label "end" (code 119)
+            let isGuardAbort = false;
+            for (let look = i + 1; look < Math.min(list.length, i + 4); look++) {
+              if (list[look] && list[look].code === 119) { isGuardAbort = true; break; }
+            }
+            if (logText && !isGuardAbort && ceDepth === 0) {
+              steps.push({
+                type: "dialogue",
+                speaker: "📋 행동 결과",
+                faceName: "",
+                faceIndex: 0,
+                rawText: logText,
+                source: "TMLogWindowMZ",
+                pictureSnapshot: buildCleanStepSnapshot()
+              });
+            }
+            i++;
+            continue;
+          }
+
+          if (code === 357 && (String(p[0] || "").includes("AdvExtention") || p[1] === "message" || p[1] === "showCharacter" || p[1] === "hideCharacter" || p[1] === "hideAllCharacter" || p[1] === "setCharacterPartIndex" || p[1] === "setCharacterParts" || p[1] === "callPreset" || p[1] === "resetCharacter" || p[1] === "runEffect" || p[1] === "showEffectPicture" || p[1] === "advLeave")) {
+            const cmdName = String(p[1] || "");
+            const args = (p[3] && typeof p[3] === "object") ? p[3] : {};
+            const advCfg = simState.advConfig || state.project?.advCharactersConfig;
+
+            // Consume following 657 comment lines and extract fallback JP character name if needed
+            let commentCharName = "";
+            while (i + 1 < list.length && list[i + 1] && list[i + 1].code === 657) {
+              i++;
+              const cLine = String(list[i].parameters?.[0] || "");
+              const mName = cLine.match(/^対象キャラ名\s*=\s*(.+)$/);
+              if (mName && mName[1].trim()) commentCharName = mName[1].trim();
+            }
+
+            const resolveAdvCharKey = () => {
+              if (!advCfg) return null;
+              const rawN = String(args.name || "").trim();
+              const acId = Number(args.actor || 0);
+              if (rawN && advCfg[`name:${rawN}`]) return `name:${rawN}`;
+              if (commentCharName && advCfg[`name:${commentCharName}`]) return `name:${commentCharName}`;
+              if (acId > 0 && advCfg[`actor:${acId}`]) return `actor:${acId}`;
+              if (rawN) {
+                const normN = rawN.replace(/\s+/g, "");
+                for (const k of Object.keys(advCfg)) {
+                  if (k.replace(/\s+/g, "").includes(normN)) return k;
+                }
+              }
+              return acId > 0 ? `actor:${acId}` : (simState.advState?.activeKey || "actor:1");
+            };
+
+            if (cmdName === "showCharacter") {
+              const ck = resolveAdvCharKey();
+              const chSt = ck ? ensureAdvCharInitialized(ck) : null;
+              if (chSt) {
+                chSt.visible = true;
+                simState.advState.activeKey = ck;
+                syncAdvCharacterToPictures();
+                updateLastNonEmptyPictures();
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "hideCharacter" || cmdName === "hideAllCharacter" || cmdName === "advLeave") {
+              if (cmdName === "hideAllCharacter" || cmdName === "advLeave") {
+                if (simState.advState) {
+                  simState.advState.activeKey = null;
+                  for (const ch of Object.values(simState.advState.chars || {})) ch.visible = false;
+                }
+                for (let s = 101; s <= 116; s++) delete pendingPictures[s];
+              } else {
+                const ck = resolveAdvCharKey();
+                if (ck && simState.advState?.chars?.[ck]) {
+                  simState.advState.chars[ck].visible = false;
+                  if (simState.advState.activeKey === ck) {
+                    const anotherVisible = Object.entries(simState.advState.chars).find(([, v]) => v && v.visible);
+                    simState.advState.activeKey = anotherVisible ? anotherVisible[0] : null;
+                  }
+                  syncAdvCharacterToPictures();
+                }
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "setCharacterPartIndex") {
+              const ck = resolveAdvCharKey();
+              const chSt = ck ? ensureAdvCharInitialized(ck) : null;
+              if (chSt && args.part) {
+                const idx = Math.max(0, (Number(args.index) || 1) - 1);
+                const vis = args.visible === "true" || args.visible === true;
+                chSt.parts[args.part] = { index: idx, visible: vis };
+                if (!simState.advState.activeKey) {
+                  chSt.visible = true;
+                  simState.advState.activeKey = ck;
+                }
+                syncAdvCharacterToPictures();
+                updateLastNonEmptyPictures();
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "setCharacterParts") {
+              const ck = resolveAdvCharKey();
+              const chSt = ck ? ensureAdvCharInitialized(ck) : null;
+              if (chSt && args.parts) {
+                try {
+                  const pList = typeof args.parts === "string" ? JSON.parse(args.parts) : args.parts;
+                  for (const rawP of pList) {
+                    const po = typeof rawP === "string" ? JSON.parse(rawP) : (rawP._parameter || rawP);
+                    if (po && po.part) {
+                      chSt.parts[po.part] = { index: Math.max(0, (Number(po.index) || 1) - 1), visible: po.visible === "true" || po.visible === true };
+                    }
+                  }
+                  if (!simState.advState.activeKey) { chSt.visible = true; simState.advState.activeKey = ck; }
+                  syncAdvCharacterToPictures();
+                  updateLastNonEmptyPictures();
+                } catch (e) {}
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "callPreset" || cmdName === "resetCharacter") {
+              const ck = resolveAdvCharKey();
+              const chSt = ck ? ensureAdvCharInitialized(ck) : null;
+              const pName = cmdName === "resetCharacter" ? "全体リセット" : String(args.presetName || "全体リセット");
+              const presetArr = advCfg?.[ck]?.presets?.[pName];
+              if (chSt && Array.isArray(presetArr)) {
+                for (const po of presetArr) {
+                  if (po.part === "cloth" && pName === "全体リセット" && Number(simState.vars[203] ?? 1) > 0) {
+                    chSt.parts.cloth = { index: Math.max(0, Number(simState.vars[203] || 1) - 1), visible: true };
+                  } else {
+                    chSt.parts[po.part] = { index: Math.max(0, (Number(po.index) || 1) - 1), visible: po.visible === "true" || po.visible === true };
+                  }
+                }
+                if (!simState.advState.activeKey) { chSt.visible = true; simState.advState.activeKey = ck; }
+                syncAdvCharacterToPictures();
+                updateLastNonEmptyPictures();
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "runEffect" || cmdName === "showEffectPicture") {
+              const rawPic = cmdName === "runEffect" ? String(args.picture || "").trim() : String(simState.vars[11] || "").trim();
+              const slotNum = Number(cmdName === "runEffect" ? args.pictureId : simState.vars[12]) || 5;
+              if (rawPic && !isDummyBlackOrSystemPicture(rawPic)) {
+                const resolved = cgAssetsDict ? resolveAssetInDict(rawPic, cgAssetsDict, true) : null;
+                const finalPic = resolved ? resolved.name : rawPic;
+                if (usageTracker) usageTracker(finalPic, steps.length);
+                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(finalPic);
+                pendingPictures[slotNum] = { key: finalPic, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [finalPic] };
+                slotsUpdatedInCurrentStep.add(slotNum);
+                updateLastNonEmptyPictures();
+              }
+              i++;
+              continue;
+            }
+            if (cmdName === "message") {
+              const txtRes = simState.textResources || state.project?.textResourcesMap || {};
+              const lbl = String(args.label || "").trim();
+              let rawMsg = String(args.text || "").trim();
+              if (!rawMsg && lbl && txtRes[lbl]) rawMsg = String(txtRes[lbl]).trim();
+              if (!rawMsg && args.comment) rawMsg = String(args.comment).trim();
+              if (rawMsg) {
+                if (args.preset && String(args.preset).trim()) {
+                  const ck = resolveAdvCharKey();
+                  const chSt = ck ? ensureAdvCharInitialized(ck) : null;
+                  const presetArr = advCfg?.[ck]?.presets?.[String(args.preset).trim()];
+                  if (chSt && Array.isArray(presetArr)) {
+                    for (const po of presetArr) {
+                      chSt.parts[po.part] = { index: Math.max(0, (Number(po.index) || 1) - 1), visible: po.visible === "true" || po.visible === true };
+                    }
+                    chSt.visible = true;
+                    simState.advState.activeKey = ck;
+                    syncAdvCharacterToPictures();
+                  }
+                } else if (args.autoActivate !== "false" && (Number(args.actor) > 0 || args.name)) {
+                  const ck = resolveAdvCharKey();
+                  if (ck && advCfg?.[ck] && !simState.advState?.activeKey) {
+                    const chSt = ensureAdvCharInitialized(ck);
+                    if (chSt) {
+                      chSt.visible = true;
+                      simState.advState.activeKey = ck;
+                      syncAdvCharacterToPictures();
+                    }
+                  }
+                }
+                const spk = String(args.altName || args.name || (Number(args.actor) === 1 ? "시르셰" : Number(args.actor) === 2 ? "리노" : Number(args.actor) === 3 ? "보로게즈" : "") || "대사").trim();
+                const voiceKey = String(args.voice || (args.useVoice !== "false" && lbl ? lbl : "") || pendingAudioKey || "").trim() || null;
+                const snapshotCopy = buildCleanStepSnapshot();
+                if (usageTracker) {
+                  for (const val of Object.values(snapshotCopy)) {
+                    if (val && val.key && !val.isTextPicture) usageTracker(val.key, steps.length);
+                  }
+                }
+                steps.push({
+                  type: "dialogue",
+                  speaker: substituteSimVarsInText(spk, simState.vars),
+                  faceName: "",
+                  faceIndex: 0,
+                  faceColor: "#6366f1",
+                  audioKey: voiceKey,
+                  transferMapId: pendingTransferMapId,
+                  rawText: substituteSimVarsInText(rawMsg, simState.vars),
+                  source: "AdvExtention",
+                  pictureSnapshot: snapshotCopy
+                });
+                pendingAudioKey = null;
+                pendingTransferMapId = null;
+                hadDialogueSinceLastPic = true;
+                slotsUpdatedInCurrentStep.clear();
+              }
+              i++;
+              continue;
+            }
           }
           if (code === 356) {
             const rawPluginCmd = String(p[0] || "").trim();
@@ -6576,10 +7508,23 @@
             }
           }
           if (/erasePicture/i.test(scriptText)) {
-            const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
-            if (eraseMatch) {
+            const loopEraseMatch = scriptText.match(/for\s*\([^;]*?(\d+)\s*;[^;]*?<=?\s*(\d+)[^)]*\)\s*\{?\s*\$gameScreen\.erasePicture/i);
+            if (loopEraseMatch) {
               updateLastNonEmptyPictures();
-              pendingPictures[Number(eraseMatch[1]) || 1] = null;
+              const startSlot = Number(loopEraseMatch[1]) || 1;
+              const endSlot = Math.min(200, Number(loopEraseMatch[2]) || startSlot);
+              for (let s = startSlot; s <= endSlot; s++) {
+                pendingPictures[s] = null;
+                slotsUpdatedInCurrentStep.delete(s);
+              }
+            } else {
+              const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
+              if (eraseMatch) {
+                updateLastNonEmptyPictures();
+                const s = Number(eraseMatch[1]) || 1;
+                pendingPictures[s] = null;
+                slotsUpdatedInCurrentStep.delete(s);
+              }
             }
           }
           if (/showPicture/i.test(scriptText)) {
@@ -6588,37 +7533,44 @@
               const sNum = Number(showPicMatch[1]) || 1;
               const pName = showPicMatch[2].trim();
               if (!isDummyBlackOrSystemPicture(pName)) {
-                if (usageTracker) usageTracker(pName, steps.length);
-                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(pName);
-                pendingPictures[sNum] = { key: pName, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [pName] };
+                const resolved = cgAssetsDict ? resolveAssetInDict(pName, cgAssetsDict, true) : null;
+                const finalKey = resolved ? resolved.name : pName;
+                if (usageTracker) usageTracker(finalKey, steps.length);
+                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(finalKey);
+                pendingPictures[sNum] = { key: finalKey, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [finalKey] };
                 slotsUpdatedInCurrentStep.add(sNum);
                 updateLastNonEmptyPictures();
               }
             }
           }
 
-          if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 600) {
+          // Strict Zero-False-Positive Video/Picture Plugin Matcher (v15):
+          // Never tokenizes math/variable scripts (`controlSelfVariable`, `MPP_MapLight`, `PictureControlExtend`) into numbers like `"1"` or `"100"`!
+          const isNonMediaPlugin = /^(?:MPP_|MNKR_|PANDA_|SimpleVoice|ParallelBgs|FilterController|PictureControlExtend|Torigoya|TRP_)/i.test(String(p[0] || "")) ||
+            /controlSelfVariable|setDarkness|clearParamPlus|SceneManager/i.test(scriptText);
+          if (!isNonMediaPlugin && cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 500 && /movie|video|play|pict|cg|anime|cutin/i.test(scriptText)) {
             const candidateTokens = new Set();
-            const quotedRegex = /["'「]([^"'」\n]{2,80})["'」]/g;
+            const quotedRegex = /["'「]([^"'」\n]{3,80})["'」]/g;
             let qm;
             while ((qm = quotedRegex.exec(scriptText)) !== null) {
-              candidateTokens.add(qm[1].trim());
+              const tok = qm[1].trim();
+              if (/[A-Za-z가-힣\u3040-\u30ff\u4e00-\u9fff]/.test(tok) && !/^(?:true|false|null|none|default|normal|wait|loop)$/i.test(tok)) {
+                candidateTokens.add(tok);
+              }
             }
-            const wordTokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_\-\u3000 ]{3,}/g) || [];
-            for (const wt of wordTokens) {
-              candidateTokens.add(wt.trim());
-              for (const sub of wt.split(/[\s\u3000]+/)) {
-                if (sub.length >= 3) candidateTokens.add(sub);
+            if (code === 356) {
+              for (const sub of scriptText.split(/[\s\u3000]+/).slice(1)) {
+                if (sub.length >= 4 && /[A-Za-z가-힣\u3040-\u30ff\u4e00-\u9fff]/.test(sub)) {
+                  candidateTokens.add(sub);
+                }
               }
             }
 
-            let pluginSlotCounter = 50;
             for (const tk of candidateTokens) {
               const hit = resolveAssetInDict(tk, cgAssetsDict, true);
-              if (hit && !isDummyBlackOrSystemPicture(hit.name)) {
+              if (hit && hit.mediaType === "video" && !isDummyBlackOrSystemPicture(hit.name)) {
                 const sKey = getNormalizedSeriesKey(hit.name);
                 const seriesSibs = cgAssetsDict.__fastIndex.seriesMap?.get(sKey) || [hit];
-
                 if (usageTracker) {
                   usageTracker(hit.name, steps.length);
                   for (const sib of seriesSibs) {
@@ -6631,34 +7583,17 @@
                     if (sib && sib.mediaType === "video") metaTracker.usedCgs.add(sib.name);
                   }
                 }
-
-                if (hit.mediaType === "video") {
-                  const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
-                  if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
-                  steps.push({
-                    type: "movie",
-                    slot: 1,
-                    cgKey: hit.name,
-                    pictureSnapshot: {
-                      1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
-                    },
-                    source: "Plugin/Script Video"
-                  });
-                } else {
-                  const slotToUse = pluginSlotCounter++;
-                  pendingPictures[slotToUse] = {
-                    key: hit.name,
-                    origin: 0,
-                    x: 0,
-                    y: 0,
-                    scaleX: 100,
-                    scaleY: 100,
-                    opacity: 255,
-                    variants: [hit.name]
-                  };
-                  slotsUpdatedInCurrentStep.add(slotToUse);
-                  updateLastNonEmptyPictures();
-                }
+                const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
+                if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
+                steps.push({
+                  type: "movie",
+                  slot: 1,
+                  cgKey: hit.name,
+                  pictureSnapshot: {
+                    1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
+                  },
+                  source: "Plugin/Script Video"
+                });
               }
             }
           }
@@ -6674,11 +7609,41 @@
         i++;
       }
 
-      if (steps.length === 0 && ceDepth === 0) {
-        const activeEntries = Object.entries(pendingPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
+      if (ceDepth === 0 && !inConditionalBranch && unmetFallbackBranches.length > 0) {
+        if (!steps.some(s => s.type === "dialogue")) {
+          if (unmetFallbackBranches.length === 1) {
+            steps.push(...unmetFallbackBranches[0].steps);
+          } else {
+            steps.push({
+              type: "branch",
+              branchTitle: `조건별 스토리 분기 (${unmetFallbackBranches.length}종)`,
+              pictureSnapshot: buildCleanStepSnapshot(),
+              options: unmetFallbackBranches.map((fb, idx) => ({
+                label: fb.label || `조건 분기 #${idx + 1}`,
+                preview: (fb.steps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                steps: fb.steps
+              }))
+            });
+          }
+        } else if (unmetFallbackBranches.length <= 10) {
+          steps.push({
+            type: "branch",
+            branchTitle: `다른 조건·진행도 분기 대사 (${unmetFallbackBranches.length}종)`,
+            pictureSnapshot: buildCleanStepSnapshot(),
+            options: unmetFallbackBranches.map((fb, idx) => ({
+              label: fb.label || `조건 분기 #${idx + 1}`,
+              preview: (fb.steps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+              steps: fb.steps
+            }))
+          });
+        }
+      }
+
+      if (steps.length === 0 && ceDepth === 0 && !inConditionalBranch) {
+        const activeEntries = Object.entries(pendingPictures).filter(([k, v]) => Number(k) < 200 && v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const fallbackEntries = activeEntries.length > 0
           ? activeEntries
-          : Object.entries(lastNonEmptyPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
+          : Object.entries(lastNonEmptyPictures).filter(([k, v]) => Number(k) < 200 && v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const snapToUse = activeEntries.length > 0 ? pendingPictures : lastNonEmptyPictures;
 
         if (fallbackEntries.length > 0) {
@@ -6706,6 +7671,9 @@
 
     function isGameCgOrStandingPath(lowerPath) {
       if (!/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lowerPath)) return false;
+      if (lowerPath.includes("system/lewd_status/") || lowerPath.includes("system/status/") || lowerPath.includes("system/erostatus/")) {
+        return true;
+      }
       if (
         lowerPath.includes("tilesets/") ||
         lowerPath.includes("animations/") ||
@@ -6741,9 +7709,12 @@
     function extractCollisionFreeAssetKey(relPath, cgAssets) {
       const cleanRel = relPath.replace(/\\/g, "/");
       const baseName = cleanRel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov)$/i, "");
+      const sysMatch = cleanRel.match(/system\/(lewd_status\/.+)\.(?:png|jpg|jpeg|webp|rpgmvp|png_)$/i);
+      if (sysMatch) return sysMatch[1];
       const picMatch = cleanRel.match(/(?:pictures|cg|stand|tachie|fgimage)\/(.+)\.(?:png|jpg|jpeg|webp|rpgmvp|png_)$/i);
       const subRel = picMatch ? picMatch[1] : baseName;
-      if (subRel.includes("/") && (cgAssets[baseName] || /^(?:\d+|base|body|arm|face|eye|mouth|cloth|bg)$/i.test(baseName))) {
+      // Always preserve subfolder paths inside `img/pictures/` (e.g. `MOD/Scenes/Sauna/1/1`, `200EventCG/03Guards/MobGangbang/MobGangbang_01`)!
+      if (subRel.includes("/")) {
         return subRel;
       }
       return baseName;
@@ -7038,6 +8009,18 @@
         skillsArr.forEach(sk => { if (sk && sk.id) skillsMap[sk.id] = sk; });
       }
 
+      // Build `textResourcesMap` from any external localization/resource JSONs (e.g. `data/resources/ja-JP/*.json` in Prison Hero)
+      const textResourcesMap = {};
+      for (const [jfName, jfData] of Object.entries(jsonFiles)) {
+        if (!jfData || typeof jfData !== "object" || Array.isArray(jfData)) continue;
+        if (/^(?:system|mapinfos|map\d+)\.json$/i.test(jfName)) continue;
+        for (const [rk, rv] of Object.entries(jfData)) {
+          if (typeof rv === "string" && rk !== "version" && rk !== "language" && rk !== "game") {
+            textResourcesMap[rk] = rv;
+          }
+        }
+      }
+
       const variableNames = {};
       const initialVariables = {};
       if (Array.isArray(sys.variables)) {
@@ -7046,6 +8029,9 @@
             const cleanV = String(vName).trim();
             variableNames[idx] = cleanV;
             if (/倫理|윤리/i.test(cleanV)) initialVariables[idx] = 100;
+            if (/^(?:服装変数|복장\s*변수)$/i.test(cleanV)) initialVariables[idx] = 1;
+            if (/^(?:エロステ段階|에로스테\s*단계)$/i.test(cleanV)) initialVariables[idx] = 1;
+            if (/^(?:勇者レベル|용사\s*레벨)$/i.test(cleanV)) initialVariables[idx] = 50;
           }
         });
       }
@@ -7065,6 +8051,11 @@
       const extractedPluginStatusMeta = {};
       const menuCharacterLayers = {};
       const extraWindowConfigs = [];
+      const advCharactersConfig = {};
+      let sceneLewdStatusConfig = null;
+      let hasUnholyOriStatus = false;
+      let templateMapId = 0;
+
       if (pluginsJsText) {
         try {
           const jsonStart = pluginsJsText.indexOf("[");
@@ -7091,19 +8082,78 @@
                     }
                   }
                 }
+              } else if (pl.name === "TemplateEvent" && pl.parameters.TemplateMapId) {
+                templateMapId = parseInt(pl.parameters.TemplateMapId || "0", 10) || 0;
+              } else if (pl.name === "SceneCustomMenu" && pl.parameters.Scenes) {
+                if (String(pl.parameters.Scenes).includes("Scene_oristatus")) {
+                  hasUnholyOriStatus = true;
+                }
+              } else if (pl.name === "SceneLewdStatus") {
+                sceneLewdStatusConfig = {
+                  lewdStageVar: parseInt(pl.parameters.lewdStage || "122", 10) || 122,
+                  lewdLevel1Var: parseInt(pl.parameters.lewdLevel1 || "124", 10) || 124,
+                  lewdLevel2Var: parseInt(pl.parameters.lewdLevel2 || "123", 10) || 123
+                };
+              } else if (pl.name === "AdvExtention" && pl.parameters.characters) {
+                const rawChars = JSON.parse(pl.parameters.characters || "[]");
+                const jpAliasMap = {
+                  "시르셰 검 소환": "シルシェ剣召喚",
+                  "시르셰 전투삽입": "シルシェ戦闘挿入",
+                  "시르셰 전투 항복": "シルシェ戦闘降伏",
+                  "시르셰 전투데미지": "シルシェ戦闘ダメージ",
+                  "시르셰 도게자": "シルシェ土下座"
+                };
+                for (const rc of rawChars) {
+                  const ch = JSON.parse(rc);
+                  const acId = parseInt(ch.actor || "0", 10) || 0;
+                  const chName = String(ch.name || "").trim();
+                  const parts = {};
+                  for (const pk of ["back1","back2","body","cloth","eyeblow","eye","mouth","hair","option1","option2","option3","option4","option5","option6","option7","option8"]) {
+                    try { parts[pk] = JSON.parse(ch[pk] || "[]"); } catch (e) { parts[pk] = []; }
+                  }
+                  const presets = {};
+                  try {
+                    const rawPr = JSON.parse(ch.presets || "[]");
+                    for (const rpr of rawPr) {
+                      const po = JSON.parse(rpr);
+                      if (po && po.name) {
+                        presets[po.name] = JSON.parse(po.parts || "[]").map(x => JSON.parse(x));
+                      }
+                    }
+                  } catch (e) {}
+                  const entryObj = { actorId: acId, name: chName, parts, presets };
+                  if (acId > 0) advCharactersConfig[`actor:${acId}`] = entryObj;
+                  if (chName) {
+                    advCharactersConfig[`name:${chName}`] = entryObj;
+                    if (jpAliasMap[chName]) advCharactersConfig[`name:${jpAliasMap[chName]}`] = entryObj;
+                  }
+                }
               } else if (pl.name === "CharacterPictureManager" && pl.parameters.PictureList) {
+                if (pl.parameters.SceneList && String(pl.parameters.SceneList).includes('"ShowPictureSwitch":"57"')) {
+                  initialSwitches[57] = true;
+                }
                 const rawPicList = JSON.parse(pl.parameters.PictureList);
                 for (const rawItem of rawPicList) {
                   const item = JSON.parse(rawItem);
+                  const layerName = String(item.Name || "");
+                  // Skip UI frames, debuff-only layers, and weapon/shield/bag/wanted-poster layers in default standing preview
+                  if (/背景UI|スキン2|スキン3|カバン|頭防具|武器|盾|指名手配/i.test(layerName)) continue;
                   const acId = parseInt(item.ActorId || "1", 10) || 1;
                   const px = parseInt(item.X || "0", 10) || 0;
                   const py = parseInt(item.Y || "0", 10) || 0;
-                  const files = JSON.parse(item.FileList || "[]").map(f => JSON.parse(f));
+                  const files = JSON.parse(item.FileList || "[]").map(f => JSON.parse(f)).filter(f => f && f.FileName && !isDummyBlackOrSystemPicture(f.FileName));
                   if (files.length > 0) {
-                    const preferred = files.find(f => /cloth|default|zenshin|stage1|normal/i.test(f.FileName || "")) || files[0];
+                    let preferred = files.find(f => /chara_face1$|chara_battle_armor_0001$|chara_battle_armor_leotard0$|MOD\/Hair\/A1$|chara_heroine_battle[12]$|cloth|default|zenshin|stage1|normal/i.test(f.FileName || "")) || files[0];
                     if (preferred && preferred.FileName) {
                       if (!menuCharacterLayers[acId]) menuCharacterLayers[acId] = [];
-                      menuCharacterLayers[acId].push({ fileName: preferred.FileName, x: px, y: py });
+                      const allVariants = Array.from(new Set(files.map(f => f.FileName)));
+                      menuCharacterLayers[acId].push({
+                        fileName: preferred.FileName,
+                        x: px,
+                        y: py,
+                        isFace: /フェイシャル|face/i.test(layerName),
+                        variants: allVariants
+                      });
                     }
                   }
                 }
@@ -7353,6 +8403,23 @@
       const totalMapCount = mapDescriptors.length;
       const isLargeMobileGame = totalMapCount > 80;
 
+      // Pre-load TemplateMap (`Map040.json` in Unholy Maiden) if `TemplateEvent.js` is active
+      const templateEventsMap = {};
+      if (templateMapId > 0) {
+        const teName = `map${String(templateMapId).padStart(3, "0")}.json`;
+        const teDesc = mapDescriptors.find(d => d && d.name && d.name.toLowerCase() === teName);
+        if (teDesc) {
+          try {
+            const teData = teDesc.parsedData || JSON.parse(teDesc.file ? await teDesc.file.text() : await teDesc.entry.async("string"));
+            if (teData && Array.isArray(teData.events)) {
+              for (const tev of teData.events) {
+                if (tev && tev.id) templateEventsMap[tev.id] = tev;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
       // Stream & parse `MapXXX.json` in memory-safe batches of 15 maps, freeing each raw JSON AST immediately!
       for (let bStart = 0; bStart < totalMapCount; bStart += 15) {
         const batch = mapDescriptors.slice(bStart, bStart + 15);
@@ -7402,7 +8469,17 @@
             let entryPageAutorun = false;
             let isParallel = false;
 
-            const pages = (ev.pages || []).map((p, idx) => {
+            // TemplateEvent (`<TE:id>`) inheritance when event has no commands of its own
+            let effectivePages = ev.pages || [];
+            const teMatch = String(ev.note || "").match(/<TE:(\d+)>/i);
+            if (teMatch && templateEventsMap[Number(teMatch[1])]) {
+              const hasOwnCmds = effectivePages.some(p => (p.list || []).some(c => c && c.code !== 0 && c.code !== 108));
+              if (!hasOwnCmds) {
+                effectivePages = templateEventsMap[Number(teMatch[1])].pages || effectivePages;
+              }
+            }
+
+            const pages = effectivePages.map((p, idx) => {
               if (p.trigger === 4) isParallel = true;
               const c = p.conditions || {};
               if (c.variableValid && c.variableId) {
@@ -7416,7 +8493,14 @@
                 metaTracker,
                 0,
                 {},
-                { vars: { ...initialVariables }, switches: { ...initialSwitches }, lockedVarBranches: {} },
+                {
+                  vars: { ...initialVariables },
+                  switches: { ...initialSwitches },
+                  lockedVarBranches: {},
+                  textResources: textResourcesMap,
+                  advConfig: advCharactersConfig,
+                  cpmLayers: menuCharacterLayers[1] || null
+                },
                 false,
                 ceEffectCache
               );
@@ -7440,7 +8524,7 @@
                 if (c.variableValid && c.variableId && !isNonStoryTempOrPoseVarName(variableNames[c.variableId])) {
                   entryPageVarId = Number(c.variableId);
                   entryPageVarVal = Number(c.variableValue || 0);
-                } else if (metaTracker.firstVarCond && !isNonStoryTempOrPoseVarName(variableNames[metaTracker.firstVarCond.varId])) {
+                } else if (metaTracker.firstVarCond && /進行|章|メイン|ストーリー|진행|챕터|메인|스토리|progress|chapter|story/i.test(variableNames[metaTracker.firstVarCond.varId] || "")) {
                   entryPageVarId = metaTracker.firstVarCond.varId;
                   entryPageVarVal = metaTracker.firstVarCond.val;
                 }
@@ -7593,6 +8677,27 @@
         }
       }
       nativeStatusPages.sort((a, b) => a.ceId - b.ceId);
+      if (hasUnholyOriStatus || /Eroste UI/i.test(commonEventsMap[282]?.name || "")) {
+        nativeStatusPages.unshift({
+          type: "unholy_oristatus",
+          ceId: 282,
+          title: "인게임 오리지널 스테이터스 (신체 이력·성경험·개발 랭크)",
+          showPicCount: 10
+        });
+      }
+      if (sceneLewdStatusConfig) {
+        [1, 2, 3, 4].forEach(stg => {
+          nativeStatusPages.push({
+            type: "scene_lewd_status",
+            ceId: 900 + stg,
+            stageOverride: stg,
+            lewdStageVar: sceneLewdStatusConfig.lewdStageVar,
+            lewdLevel1Var: sceneLewdStatusConfig.lewdLevel1Var,
+            lewdLevel2Var: sceneLewdStatusConfig.lewdLevel2Var,
+            title: `감옥용사 에로스테 화면 (Stage ${stg}단계)`
+          });
+        });
+      }
 
       const standaloneCeEvents = [];
       for (const ce of Object.values(commonEventsMap)) {
@@ -7614,7 +8719,14 @@
           metaTracker,
           0,
           {},
-          { vars: { ...initialVariables }, switches: { ...initialSwitches }, lockedVarBranches: {} },
+          {
+            vars: { ...initialVariables },
+            switches: { ...initialSwitches },
+            lockedVarBranches: {},
+            textResources: textResourcesMap,
+            advConfig: advCharactersConfig,
+            cpmLayers: menuCharacterLayers[1] || null
+          },
           false,
           ceEffectCache
         );
@@ -7807,6 +8919,25 @@
         }
       }
 
+      function computeMapProgressionTier(mObj) {
+        if (!mObj) return 500;
+        if (mObj.id === startMapId) return 1;
+        const mName = String(mObj.name || "");
+        if (/回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(mName)) return 850;
+        if (/テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(mName)) return 950;
+        if (/OP|오프닝|オープニング|프롤로그|プロローグ|튜토리얼|チュートリアル|キャラクターメイク|캐릭터\s*생성/i.test(mName)) return 5;
+        if (/ED|엔딩|エンディング|에필로그|エピローグ/i.test(mName)) return 780;
+        // Town / Base camp hubs come early
+        if (/拠点|キャンプ|酒場|教会|宿|길드|거점|캠프|술집|주점|성당|교회|여관|상점가|상층구|중층구|하층구/i.test(mName)) return 25;
+        // Explicit Floor / Layer numbers (`1層`/`1층`/`B1F` -> `2層`/`2층` -> `3層`/`3층` -> `4層`/`4층`)
+        if (/一層|1層|1층|지하\s*1층|1F|B1F/i.test(mName)) return 60;
+        if (/二層|2層|2층|지하\s*2층|2F|B2F|헤구이|ヘグイ/i.test(mName)) return 110;
+        if (/三層|3層|3층|지하\s*3층|3F|B3F/i.test(mName)) return 160;
+        if (/四層|4層|4층|지하\s*4층|4F|B4F/i.test(mName)) return 210;
+        if (/五層|5層|5층|심층|최심부|보스|마왕|深層|最深部|ボス/i.test(mName)) return 260;
+        return 140;
+      }
+
       const mapVisitRank = new Map();
       const mapQueue = [startMapId];
       mapVisitRank.set(startMapId, 1);
@@ -7814,26 +8945,63 @@
         const curMId = mapQueue.shift();
         const curM = rawMapRecords.get(curMId);
         if (!curM) continue;
+        const nextCandidates = [];
         for (const ev of curM.events) {
           for (const nextMId of (ev.transfersToMaps || [])) {
             if (rawMapRecords.has(nextMId) && !mapVisitRank.has(nextMId)) {
-              mapVisitRank.set(nextMId, mapVisitRank.size + 1);
-              mapQueue.push(nextMId);
+              nextCandidates.push(nextMId);
             }
+          }
+        }
+        nextCandidates.sort((a, b) => computeMapProgressionTier(rawMapRecords.get(a)) - computeMapProgressionTier(rawMapRecords.get(b)) || (a - b));
+        for (const nextMId of nextCandidates) {
+          if (!mapVisitRank.has(nextMId)) {
+            mapVisitRank.set(nextMId, mapVisitRank.size + 1);
+            mapQueue.push(nextMId);
           }
         }
       }
 
+      // Assign deterministic progression rank to maps not directly reached via static Code 201 transfer
+      const unvisitedMaps = Array.from(rawMapRecords.values())
+        .filter(m => m.id < 9000 && !mapVisitRank.has(m.id))
+        .sort((a, b) => {
+          const tA = computeMapProgressionTier(a);
+          const tB = computeMapProgressionTier(b);
+          if (tA !== tB) return tA - tB;
+          return (a.editorOrder || a.id) - (b.editorOrder || b.id);
+        });
+      for (const um of unvisitedMaps) {
+        mapVisitRank.set(um.id, mapVisitRank.size + 1);
+      }
+
       function computeBaseHeuristicScore(ev) {
-        const mRank = mapVisitRank.get(ev.mapId) || (200 + (rawMapRecords.get(ev.mapId)?.editorOrder || ev.mapId));
-        let score = mRank * 1000 + ev.id;
-        if (ev.isAmbientOneLinerNpc) score += 350000;
-        if (ev.mapId === startMapId && ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 500000;
-        else if (ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 50000;
+        const mObj = rawMapRecords.get(ev.mapId);
+        const mTier = computeMapProgressionTier(mObj);
+        const mRank = mapVisitRank.get(ev.mapId) || (200 + (mObj?.editorOrder || ev.mapId));
+        let score = mTier * 1500 + mRank * 600 + ev.id;
+
+        if (isSystemMapInitEventName(ev.name)) {
+          score += 900000;
+        } else if (ev.isAmbientOneLinerNpc) {
+          score += 400000;
+        } else if (ev.totalDialogue <= 2 && ev.totalCg === 0 && !ev.entryPageAutorun && (ev.turnsOnSwitches?.length || 0) === 0) {
+          score += 220000;
+        } else if (ev.totalDialogue >= 15 || ev.totalCg > 0 || (ev.pages?.length || 0) >= 3) {
+          // Prioritize rich multi-stage NPC / Boss / Story events over minor map objects
+          score -= 15000;
+        }
+
+        if (ev.mapId === startMapId && ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 600000;
+        else if (ev.entryPageAutorun && ev.entryPageSwitchReq === 0 && !isSystemMapInitEventName(ev.name)) score -= 45000;
+        else if (/(?:^|:\s*)(?:OP|오프닝|オープニング|キャラクターメイク|캐릭터\s*생성|復活処理|부활\s*처리)/i.test(ev.name || "")) score -= 35000;
+
         if (mainProgressVarId > 0 && ev.entryPageVarId === mainProgressVarId && ev.entryPageVarVal > 0) {
-          score = ev.entryPageVarVal * 10000 + mRank * 100 + ev.id;
+          score = ev.entryPageVarVal * 12000 + mRank * 100 + ev.id;
+        } else if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0) {
+          score += Math.min(ev.entryPageVarVal * 1800, 90000);
         } else if (ev.entryPageSwitchReq > 0) {
-          score += ev.entryPageSwitchReq * 50;
+          score += Math.min(ev.entryPageSwitchReq * 20, 18000);
         }
         return score;
       }
@@ -7900,6 +9068,10 @@
       const sortedMaps = Array.from(rawMapRecords.values()).sort((a, b) => {
         if (a.id === startMapId) return -1;
         if (b.id === startMapId) return 1;
+        if ((a.id >= 9000) !== (b.id >= 9000)) return a.id >= 9000 ? 1 : -1;
+        const tA = computeMapProgressionTier(a);
+        const tB = computeMapProgressionTier(b);
+        if (Math.abs(tA - tB) >= 40) return tA - tB;
         const rA = mapVisitRank.get(a.id) || (500 + (a.editorOrder || a.id));
         const rB = mapVisitRank.get(b.id) || (500 + (b.editorOrder || b.id));
         return rA - rB;
@@ -7954,6 +9126,8 @@
         nativeStatusPages,
         menuCharacterLayers,
         extraWindowConfigs,
+        textResourcesMap,
+        advCharactersConfig,
         faceAssets,
         cgAssets,
         enemyAssets,
