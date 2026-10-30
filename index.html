@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>RPG Story Player &amp; Extractor Pro v11</title>
+  <title>RPG Story Player &amp; Extractor Pro v12</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -88,7 +88,7 @@
   <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
     <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-1 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v11</span>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v12</span>
         <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[115px] sm:max-w-[220px] truncate"></select>
         <button id="btnOpenDeepSearchModal" type="button" class="px-2 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-[11px] text-indigo-200 hover:text-white border border-indigo-500/40 font-semibold flex-shrink-0" title="게임 전체 대사·장면·CG 통합 검색">
           🔍 대사검색
@@ -596,13 +596,13 @@
         <!-- =============================================================== -->
         <!-- VIEW 6: In-Game Visual Ero-Status & LOVE Board (image_68d640!)  -->
         <!-- =============================================================== -->
-        <div id="viewStatusContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-3">
-          <!-- Heroine Selector Tabs (Deduplicated & Filtered — Zero NPC/Monster Clutter!) -->
-          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/90 border border-amber-500/40 rounded-xl px-3 py-2">
+        <div id="viewStatusContainer" class="hidden flex-1 block p-3 sm:p-4 overflow-y-auto space-y-3">
+          <!-- Heroine Selector Tabs (Deduplicated & Auto-Selected Heroine!) -->
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/90 border border-amber-500/40 rounded-xl px-3 py-2 flex-shrink-0">
             <div class="flex flex-wrap items-center gap-1.5" id="statusActorTabs"></div>
             <div class="flex items-center gap-1.5">
-              <select id="statusBgGraphicSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-amber-200 max-w-[210px] truncate">
-                <option value="">🎨 인게임 상태창 그래픽 자동매칭</option>
+              <select id="statusBgGraphicSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-amber-200 max-w-[230px] truncate">
+                <option value="">🎨 인게임 상태창 통합 보드 (자동합성)</option>
               </select>
               <button id="btnAddCustomStatField" type="button" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 border border-amber-500/40 text-xs font-bold">
                 + 스탯 추가
@@ -610,42 +610,41 @@
             </div>
           </div>
 
-          <!-- VISUAL IN-GAME STATUS BOARD (Reconstructs the aesthetic layout of image_68d640.jpg!) -->
-          <div id="visualStatusBoardContainer" class="rounded-2xl border-2 border-amber-700/60 shadow-2xl overflow-hidden relative" style="background: linear-gradient(135deg, #fdfbf7 0%, #f5ebd6 100%); color: #2d1e12;">
+          <!-- VISUAL IN-GAME STATUS BOARD (NEVER collapses! Reconstructs the full integrated layout of image_68d640.jpg!) -->
+          <div id="visualStatusBoardContainer" class="flex-shrink-0 rounded-2xl border-2 border-amber-700/70 shadow-2xl relative min-h-[480px]" style="background: linear-gradient(135deg, #fdfbf7 0%, #f5ebd6 100%); color: #2d1e12;">
             <div id="visualStatusInnerContent" class="p-3 sm:p-5"></div>
           </div>
 
-          <!-- TOP PRIORITY: Story & Event Unlock Condition Variables -->
-          <div class="bg-indigo-950/35 border border-indigo-500/40 rounded-2xl p-3.5 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h5 class="text-xs sm:text-sm font-bold text-indigo-200">🎯 스토리·이벤트 해금 핵심 조건 변수 (원클릭 프리셋 · 실시간 재컴파일)</h5>
-                <p class="text-[11px] text-slate-300">수치를 바꾸면 상단 인게임 상태창 보드와 스토리 뷰어의 조건 분기·복장이 <strong>즉시 함께 업데이트</strong>됩니다!</p>
+          <!-- Optional Collapsible Drawer for Raw Variable / Switch Editing (Hidden by default so the Visual Status Screen is clean!) -->
+          <details class="bg-slate-950/85 border border-slate-800 rounded-xl p-3">
+            <summary class="cursor-pointer text-xs font-bold text-slate-300 hover:text-white select-none flex items-center justify-between">
+              <span>🛠️ 고급 제어판: 원본 변수 · 스위치 · 스테이터스 이벤트 목록 펼치기 (클릭)</span>
+              <span class="text-[11px] text-indigo-300">상단 보드에서 수치를 직접 클릭해도 수정됩니다 ▾</span>
+            </summary>
+            <div class="mt-3 space-y-3 border-t border-slate-800 pt-3">
+              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-2">
+                <h5 class="text-xs font-bold text-amber-300">🖼 감지된 인게임 스테이터스 전용 커먼이벤트 &amp; 원본 레이어 그래픽</h5>
+                <div id="customStatusScenesList" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
+              </div>
+              <div class="bg-indigo-950/35 border border-indigo-500/40 rounded-xl p-2.5 space-y-2">
+                <h5 class="text-xs font-bold text-indigo-200">🎯 스토리·이벤트 해금 조건 변수</h5>
+                <div id="conditionVariablesTopGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex flex-wrap items-center gap-1">
+                    <button type="button" data-var-cat="key" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white">🔥 핵심·스테이터스 변수</button>
+                    <button type="button" data-var-cat="ero" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">💗 노출·음란·개발도·횟수</button>
+                    <button type="button" data-var-cat="progress" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">📈 진행도·호감도·명성</button>
+                    <button type="button" data-var-cat="all" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">📋 전체 변수 (무제한)</button>
+                    <button type="button" data-var-cat="switches" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🔘 핵심 스위치 (ON/OFF)</button>
+                  </div>
+                  <input id="varSearchInput" type="text" placeholder="변수/스위치 이름·번호 검색..." class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 w-48" />
+                </div>
+                <div id="statusVariablesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[42dvh] overflow-y-auto pr-1"></div>
               </div>
             </div>
-            <div id="conditionVariablesTopGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
-          </div>
-
-          <!-- Discovered Custom Status / Ero-Status CommonEvents & Menu Graphics -->
-          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2">
-            <h5 class="text-xs font-bold text-amber-300">🖼 감지된 인게임 스테이터스 전용 이벤트 &amp; 원본 배경 그래픽 바로 열기</h5>
-            <div id="customStatusScenesList" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
-          </div>
-
-          <!-- Unlimited Categorized Variables & Switches Editor -->
-          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-1">
-                <button type="button" data-var-cat="key" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white">🔥 핵심·스테이터스 변수</button>
-                <button type="button" data-var-cat="ero" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">💗 노출·음란·개발도·횟수</button>
-                <button type="button" data-var-cat="progress" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">📈 진행도·호감도·명성</button>
-                <button type="button" data-var-cat="all" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">📋 전체 변수 (무제한)</button>
-                <button type="button" data-var-cat="switches" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🔘 핵심 스위치 (ON/OFF)</button>
-              </div>
-              <input id="varSearchInput" type="text" placeholder="변수/스위치 이름·번호 검색..." class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 w-48" />
-            </div>
-            <div id="statusVariablesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[48dvh] overflow-y-auto pr-1"></div>
-          </div>
+          </details>
         </div>
 
         <!-- =============================================================== -->
@@ -684,17 +683,20 @@
     // 1. UNIVERSAL TRANSLATION ENGINE & ROMAJI HEROINE NAME MAPPER
     // =========================================================================
     const HEROINE_NAME_ALIASES = [
-      { keys: ["아리카", "アリカ", "arika"], romaji: ["arika", "アリカ"] },
-      { keys: ["리에타", "리에트", "リエッタ", "リエット", "rietta", "riette"], romaji: ["rietta", "riette", "リエッタ"] },
-      { keys: ["티나", "ティナ", "tina"], romaji: ["tina", "ティナ"] },
-      { keys: ["세실", "セシル", "cecil", "cecile"], romaji: ["cecil", "セシル"] },
-      { keys: ["에르케", "엘케", "エールケ", "エルケ", "elke"], romaji: ["elke", "エールケ"] },
-      { keys: ["베아트리스", "ベアトリス", "beatrice"], romaji: ["beatrice", "bea", "ベアトリス"] },
-      { keys: ["카를라", "칼라", "カルラ", "carla", "karla"], romaji: ["carla", "karla", "カルラ"] },
-      { keys: ["레이리", "レイリ", "reiri"], romaji: ["reiri", "レイリ"] },
-      { keys: ["스즈리카", "スズリカ", "suzurika"], romaji: ["suzurika", "スズリカ"] },
-      { keys: ["아오이", "葵", "aoi"], romaji: ["aoi", "葵"] },
-      { keys: ["멜", "メル", "mel", "meru"], romaji: ["mel", "meru", "メル"] }
+      { keys: ["아리카", "アリカ", "arika"], romaji: ["arika", "erostaab", "ab0", "ab1", "アリカ"], jp: "アリカ" },
+      { keys: ["리에타", "리에트", "リエッタ", "リエット", "rietta", "riette"], romaji: ["rietta", "riette", "erostarb", "rb0", "rb1", "リエッタ"], jp: "リエッタ" },
+      { keys: ["테레나", "テレーナ", "terena", "telena"], romaji: ["terena", "telena", "erostatb", "tb0", "tb1", "テレーナ"], jp: "テレーナ" },
+      { keys: ["아트라", "アトラ", "atla", "atra"], romaji: ["atla", "atra", "アトラ"], jp: "アトラ" },
+      { keys: ["힐다", "ヒルダ", "hilda"], romaji: ["hilda", "ヒルダ"], jp: "ヒルダ" },
+      { keys: ["티나", "ティナ", "tina"], romaji: ["tina", "ティナ"], jp: "ティナ" },
+      { keys: ["세실", "セシル", "cecil", "cecile"], romaji: ["cecil", "セシル"], jp: "セシル" },
+      { keys: ["에르케", "엘케", "エールケ", "エルケ", "elke"], romaji: ["elke", "エールケ"], jp: "エールケ" },
+      { keys: ["베아트리스", "ベアトリス", "beatrice"], romaji: ["beatrice", "bea", "ベアトリス"], jp: "ベアトリス" },
+      { keys: ["카를라", "칼라", "カルラ", "carla", "karla"], romaji: ["carla", "karla", "カルラ"], jp: "カルラ" },
+      { keys: ["레이리", "レイリ", "reiri"], romaji: ["reiri", "レイリ"], jp: "レイリ" },
+      { keys: ["스즈리카", "スズリカ", "suzurika"], romaji: ["suzurika", "スズリカ"], jp: "スズリカ" },
+      { keys: ["아오이", "葵", "aoi"], romaji: ["aoi", "葵"], jp: "葵" },
+      { keys: ["멜", "メル", "mel", "meru"], romaji: ["mel", "meru", "メル"], jp: "メル" }
     ];
 
     const MULTILINGUAL_KO_DICT = [
@@ -1457,27 +1459,57 @@
       return String(raw || "")
         .normalize("NFC")
         .toLowerCase()
+        .replace(/\\/g, "/")
         .replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov|ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i, "")
         .split("/")
         .pop()
         .trim();
     }
 
+    function normalizeAssetRelativeKey(raw) {
+      return String(raw || "")
+        .normalize("NFC")
+        .toLowerCase()
+        .replace(/\\/g, "/")
+        .replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov|ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i, "")
+        .replace(/^\/+/, "")
+        .trim();
+    }
+
+    function getNormalizedSeriesKey(raw) {
+      const base = normalizeAssetLookupKey(raw);
+      // Normalizes spaces (including full-width Japanese space \u3000) and trailing/middle digits (e.g. 居酒屋　雨2 -> 居酒屋雨#)
+      return base
+        .replace(/[\s\u3000_\-]+/g, "")
+        .replace(/[0-9０-９]+/g, "#");
+    }
+
     function buildFastAssetLookup(dict) {
       if (!dict) return;
       const exactMap = new Map();
+      const zeroStrippedMap = new Map();
+      const seriesMap = new Map();
       const prefixList = [];
       const resolvedCache = new Map();
       for (const [k, v] of Object.entries(dict)) {
-        if (k === "__fastIndex") continue;
-        const cleanK = normalizeAssetLookupKey(k);
-        if (cleanK) {
-          exactMap.set(cleanK, v);
-          prefixList.push([cleanK, v]);
+        if (k === "__fastIndex" || !v) continue;
+        const relK = normalizeAssetRelativeKey(k);
+        const baseK = normalizeAssetLookupKey(k);
+        if (relK) exactMap.set(relK, v);
+        if (baseK) {
+          if (!exactMap.has(baseK)) exactMap.set(baseK, v);
+          const zKey = baseK.replace(/0+(\d+)/g, "$1");
+          if (!zeroStrippedMap.has(zKey)) zeroStrippedMap.set(zKey, v);
+          const sKey = getNormalizedSeriesKey(baseK);
+          if (sKey) {
+            if (!seriesMap.has(sKey)) seriesMap.set(sKey, []);
+            seriesMap.get(sKey).push(v);
+          }
+          prefixList.push([baseK, v]);
         }
       }
       Object.defineProperty(dict, "__fastIndex", {
-        value: { exactMap, prefixList, resolvedCache },
+        value: { exactMap, zeroStrippedMap, seriesMap, prefixList, resolvedCache },
         enumerable: false,
         configurable: true,
         writable: true
@@ -1861,7 +1893,7 @@
     function isDummyBlackOrSystemPicture(picName) {
       const s = String(picName || "").split("/").pop().toLowerCase();
       if (!s) return true;
-      return /^(?:bg_black|bg_white|black|white|fade|blank|empty|dummy|none|clear|暗転|黒|白|透明|window|gauge|hud|cursor|number|icon)/i.test(s);
+      return /^(?:bg_black|bg_white|black|white|fade|blank|empty|dummy|none|clear|暗転|黒|白|透明|window|mapui|msgwin|meswin|talkwin|textbox|fukidashi|ui_frame|mes_frame|msg_frame|win_bg|mes_bg|gauge|hud|cursor|number|icon)/i.test(s);
     }
 
     function isGlassesOrOptionalOverlayName(name) {
@@ -1883,6 +1915,9 @@
       return m ? m[1] : s;
     }
 
+    // FIXED IN v12 (`image_5d8081.jpg` Dragon Conquista Reiri Missing Arms / Bust Fix!):
+    // Separates Bust (`가슴`), Under (`속옷`), Cloth (`복장`), FrontHair (`앞머리`), BackHair (`뒷머리`), Face (`얼굴`), Eyes (`눈`), Arm (`팔/자세`)
+    // into distinct categories so `Reiri_Bust` (#18) and `Reiri_Cloth` (#19) or `FrontHair` and `BackHair` NEVER swallow each other!
     function getPartCategoryAndPrefix(picName) {
       const s = String(picName || "").split("/").pop();
       const m = s.match(/^([A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff]+)_([A-Za-z]+)/);
@@ -1890,14 +1925,19 @@
         const charName = m[1];
         const rawPart = m[2];
         const lowerPart = rawPart.toLowerCase();
-        let cat = "기타 파츠";
+        let cat = `파츠(${rawPart})`;
         if (/^(?:base|zenshin|body|stand|tachie)/i.test(lowerPart)) cat = "몸통(Base)";
-        else if (/^(?:bust|opai|cloth|under|armor|dress|sifuku|seifuku|cos|costume|outer|inner|top|bottom|skirt|bra|panty)/i.test(lowerPart)) cat = "복장/가슴(Bust·Cloth)";
-        else if (/^(?:arm|hand|pose|ude)/i.test(lowerPart)) cat = "팔/자세(Arm)";
-        else if (/^(?:eyes|eye|me|face|hyoujou|kao)/i.test(lowerPart)) cat = "눈(Eyes)";
+        else if (/^(?:bust|opai|oppai|mune|chest|tits)/i.test(lowerPart)) cat = "가슴(Bust)";
+        else if (/^(?:under|inner|bra|panty|shitagi)/i.test(lowerPart)) cat = "속옷(Under)";
+        else if (/^(?:cloth|armor|dress|sifuku|seifuku|cos|costume|outer|top|bottom|skirt|fuku)/i.test(lowerPart)) cat = "복장(Cloth)";
+        else if (/^(?:arm|hand|pose|ude|leftarm|rightarm|arml|armr)/i.test(lowerPart)) cat = "팔/자세(Arm)";
+        else if (/^(?:eyes|eye|me)/i.test(lowerPart)) cat = "눈(Eyes)";
+        else if (/^(?:face|hyoujou|kao|head)/i.test(lowerPart)) cat = "얼굴(Face)";
         else if (/^(?:mouth|kuchi)/i.test(lowerPart)) cat = "입(Mouth)";
         else if (/^(?:cheek|hoho|blush|akamen)/i.test(lowerPart)) cat = "볼홍조(Cheek)";
-        else if (/^(?:fronthair|backhair|hair|kami)/i.test(lowerPart)) cat = "머리카락(Hair)";
+        else if (/^(?:fronthair|maegami)/i.test(lowerPart)) cat = "앞머리(FrontHair)";
+        else if (/^(?:backhair|ushirogami)/i.test(lowerPart)) cat = "뒷머리(BackHair)";
+        else if (/^(?:hair|kami)/i.test(lowerPart)) cat = "머리카락(Hair)";
         else if (/^(?:mayu|brow)/i.test(lowerPart)) cat = "눈썹(Brow)";
         else if (/^(?:grass|glass|glasses|megane|effect|seieki|semen|bote)/i.test(lowerPart)) cat = "안경/이펙트(Acc)";
         return { charName: charName.toLowerCase(), partPrefix: `${charName}_${rawPart}`, category: cat };
@@ -1943,22 +1983,30 @@
       if (dict[rawName] && (ignoreDeleted || !state.deletedCgKeys.has(rawName))) return dict[rawName];
 
       if (!dict.__fastIndex) buildFastAssetLookup(dict);
+      const relTarget = normalizeAssetRelativeKey(rawName);
       const cleanTarget = normalizeAssetLookupKey(rawName);
       if (!cleanTarget) return null;
+
+      const exactRel = dict.__fastIndex.exactMap.get(relTarget);
+      if (exactRel && (ignoreDeleted || !state.deletedCgKeys.has(exactRel.name))) return exactRel;
 
       const exact = dict.__fastIndex.exactMap.get(cleanTarget);
       if (exact && (ignoreDeleted || !state.deletedCgKeys.has(exact.name))) return exact;
 
+      const zTarget = cleanTarget.replace(/0+(\d+)/g, "$1");
+      const zMatch = dict.__fastIndex.zeroStrippedMap?.get(zTarget);
+      if (zMatch && (ignoreDeleted || !state.deletedCgKeys.has(zMatch.name))) return zMatch;
+
       const cacheMap = dict.__fastIndex.resolvedCache;
-      if (cacheMap && cacheMap.has(cleanTarget)) {
-        const cached = cacheMap.get(cleanTarget);
+      if (cacheMap && cacheMap.has(relTarget)) {
+        const cached = cacheMap.get(relTarget);
         if (!cached) return null;
         if (ignoreDeleted || !state.deletedCgKeys.has(cached.name)) return cached;
       }
 
-      const prefixTarget = cleanTarget.replace(/\\v\[\d+\]|\$\{[^}]+\}|_\d+$/gi, "");
+      const prefixTarget = cleanTarget.replace(/\\v\[\d+\]|\$\{[^}]+\}|_?\d+$/gi, "");
       let found = null;
-      if (prefixTarget.length >= 3) {
+      if (prefixTarget.length >= 2) {
         const exactPfx = dict.__fastIndex.exactMap.get(prefixTarget);
         if (exactPfx && (ignoreDeleted || !state.deletedCgKeys.has(exactPfx.name))) {
           found = exactPfx;
@@ -1972,8 +2020,34 @@
           }
         }
       }
-      if (cacheMap && cacheMap.size < 20000) cacheMap.set(cleanTarget, found);
+      if (cacheMap && cacheMap.size < 20000) cacheMap.set(relTarget, found);
       return found;
+    }
+
+    function resolveDynamicVarAssetCandidates(rawPattern, dict) {
+      if (!rawPattern || !dict) return [];
+      if (!dict.__fastIndex) buildFastAssetLookup(dict);
+      if (!/\\[vV]\[\d+\]|\$\{[^}]+\}/.test(rawPattern)) {
+        const single = resolveAssetInDict(rawPattern, dict, true);
+        return single ? [single.name] : [];
+      }
+      const basePat = normalizeAssetLookupKey(rawPattern);
+      const regexStr = "^" + basePat
+        .replace(/\\[vV]\[\d+\]|\$\{[^}]+\}/g, "@@VAR@@")
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/@@VAR@@/g, "[0-9a-zA-Z_-]+") + "$";
+      try {
+        const rx = new RegExp(regexStr, "i");
+        const matches = [];
+        for (const [cleanK, asset] of dict.__fastIndex.prefixList) {
+          if (rx.test(cleanK) && !isDummyBlackOrSystemPicture(asset.name)) {
+            matches.push(asset.name);
+          }
+        }
+        return matches;
+      } catch (e) {
+        return [];
+      }
     }
 
     function resolveCgAssetSmart(rawName) {
@@ -2132,15 +2206,82 @@
       });
     }
 
+    // Upgraded in v12 (`image_5d8081.jpg` Dragon Conquista Reiri Missing Arms Fix!):
+    // 1) Never summons a phantom character that isn't on stage.
+    // 2) For every character whose `몸통(Base)` IS ALREADY on stage (e.g. `#17 Reiri_Base`), checks if she is missing any essential sub-parts
+    //    (`팔/자세(Arm)`, `가슴(Bust)`, `입(Mouth)`, `눈(Eyes)`) that exist in `cgAssets` for her character prefix, and attaches them at her `몸통(Base)` coordinates!
     function injectMissingCharacterBaseBodies(slotEntries) {
-      if (!state.autoCompleteBaseBody) return slotEntries;
-      if (slotEntries.length !== 1) return slotEntries;
+      if (!slotEntries || slotEntries.length === 0) return slotEntries;
+      const cgAssets = state.project?.cgAssets || {};
+      const allKeys = Object.keys(cgAssets).filter(k => k !== "__fastIndex" && !state.deletedCgKeys.has(k) && !isDummyBlackOrSystemPicture(k));
+      if (allKeys.length === 0) return slotEntries;
+
+      // Build map of characters whose `몸통(Base)` is currently on stage
+      const onStageChars = new Map();
+      for (const [slotNum, spec] of slotEntries) {
+        if (!spec || !spec.key) continue;
+        const effKey = state.slotVariantOverrides[slotNum] || spec.key;
+        const info = getPartCategoryAndPrefix(effKey);
+        if (info.category === "몸통(Base)") {
+          onStageChars.set(info.charName, { baseSlot: slotNum, baseSpec: spec, presentCategories: new Set(["몸통(Base)"]), presentPrefixes: new Set([info.partPrefix.toLowerCase()]) });
+        }
+      }
+
+      if (onStageChars.size > 0) {
+        for (const [slotNum, spec] of slotEntries) {
+          if (!spec || !spec.key) continue;
+          const effKey = state.slotVariantOverrides[slotNum] || spec.key;
+          const info = getPartCategoryAndPrefix(effKey);
+          const charEntry = onStageChars.get(info.charName);
+          if (charEntry) {
+            charEntry.presentCategories.add(info.category);
+            charEntry.presentPrefixes.add(info.partPrefix.toLowerCase());
+          }
+        }
+
+        const result = [...slotEntries];
+        let syntheticOffset = 0.1;
+        const essentialCategories = ["가슴(Bust)", "복장(Cloth)", "팔/자세(Arm)", "얼굴(Face)", "눈(Eyes)", "입(Mouth)", "앞머리(FrontHair)"];
+
+        for (const [charName, charData] of onStageChars.entries()) {
+          for (const reqCat of essentialCategories) {
+            if (charData.presentCategories.has(reqCat)) continue;
+            // Check if `cgAssets` has files for `(charName, reqCat)`
+            const matchingKeys = allKeys.filter(k => {
+              const kInfo = getPartCategoryAndPrefix(k);
+              return kInfo.charName === charName && kInfo.category === reqCat;
+            });
+            if (matchingKeys.length > 0) {
+              const bestKey = pickBestDefaultVariant(matchingKeys, matchingKeys[0]);
+              const bSpec = charData.baseSpec;
+              const synSlot = Number((charData.baseSlot + syntheticOffset).toFixed(2));
+              syntheticOffset += 0.1;
+              result.push([
+                synSlot,
+                {
+                  key: bestKey,
+                  x: bSpec.x || 0,
+                  y: bSpec.y || 0,
+                  origin: bSpec.origin || 0,
+                  scaleX: bSpec.scaleX ?? 100,
+                  scaleY: bSpec.scaleY ?? 100,
+                  opacity: bSpec.opacity ?? 255,
+                  variants: matchingKeys
+                }
+              ]);
+              charData.presentCategories.add(reqCat);
+            }
+          }
+        }
+        return result.sort((a, b) => a[0] - b[0]);
+      }
+
+      if (!state.autoCompleteBaseBody || slotEntries.length !== 1) return slotEntries;
       const [onlySlot, onlySpec] = slotEntries[0];
       const key = state.slotVariantOverrides[onlySlot] || onlySpec.key;
       if (!isDetachedSubPartFile(key)) return slotEntries;
 
       const info = getPartCategoryAndPrefix(key);
-      const allKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex");
       const baseCandidates = allKeys.filter(k => {
         const kl = k.toLowerCase();
         return kl.startsWith(info.charName + "_base") || kl.startsWith(info.charName + "_zenshin");
@@ -3078,14 +3219,13 @@
       });
     }
 
-    function selectEvent(eventId, targetPageIdx = 0, targetStepIdx = 0) {
+    function selectEvent(eventId, targetPageIdx = 0, targetStepIdx = 0, fallbackAsset = null) {
       state.selectedEventId = eventId;
       const map = getCurrentMap();
       if (map) {
         const filtered = getFilteredAndMergedEvents(map);
         const inFiltered = filtered.some(e => e.id === eventId || (Array.isArray(e.mergedIds) && e.mergedIds.includes(eventId)));
         if (!inFiltered && state.sceneFilter !== "all") {
-          // Reset scene filter to 'all' so the jumped-to event is visible!
           state.sceneFilter = "all";
           ["filterAllScenes", "filterCgScenes", "filterFavScenes"].forEach(id => {
             const btn = document.getElementById(id);
@@ -3099,8 +3239,7 @@
       }
       const ev = getCurrentEvent();
       if (!ev) return;
-      state.selectedPageIdx = targetPageIdx;
-      loadPageSteps(ev, targetPageIdx, targetStepIdx);
+      loadPageSteps(ev, targetPageIdx, targetStepIdx, fallbackAsset);
       renderEventsList();
       renderPageTabs();
       renderViewerLiveConditionBar(ev);
@@ -3108,19 +3247,38 @@
       renderFullScriptView();
     }
 
-    function loadPageSteps(ev, validPageIdx, targetStepIdx = 0) {
+    function loadPageSteps(ev, validPageIdx, targetStepIdx = 0, fallbackAsset = null) {
       state.activePictureSlots = {};
       state.slotVariantOverrides = {};
       state.hiddenLayers.clear();
       state.forceShowGlassesSlots.clear();
 
       const validPages = getValidPages(ev);
-      const page = validPages[validPageIdx] || validPages[0];
+      // Match either exact index in `validPages` OR matching raw `pageIndex === validPageIdx + 1`
+      let matchedTabIdx = validPageIdx;
+      const byRawIdx = validPages.findIndex(p => p.pageIndex === validPageIdx + 1);
+      if (byRawIdx !== -1) matchedTabIdx = byRawIdx;
+      else if (!validPages[matchedTabIdx]) matchedTabIdx = 0;
+
+      state.selectedPageIdx = matchedTabIdx;
+      const page = validPages[matchedTabIdx] || validPages[0];
       if (page) {
         ensurePageCompiled(ev, page);
         state.activeSteps = JSON.parse(JSON.stringify(page.steps || []));
       } else {
         state.activeSteps = [];
+      }
+
+      if (state.activeSteps.length === 0 && fallbackAsset) {
+        state.activeSteps = [{
+          type: fallbackAsset.mediaType === "video" ? "movie" : "cg",
+          slot: 1,
+          cgKey: fallbackAsset.name,
+          pictureSnapshot: {
+            1: { key: fallbackAsset.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [fallbackAsset.name] }
+          },
+          source: "갤러리 장면 직접 표시"
+        }];
       }
       state.currentStepIndex = Math.max(0, Math.min(targetStepIdx, Math.max(0, state.activeSteps.length - 1)));
     }
@@ -3537,14 +3695,34 @@
     // =========================================================================
     // 8. GALLERY, MULTI-LAYER BATTLE SIMULATOR & IN-GAME STATUS BOARD (v10)
     // =========================================================================
+    // Upgraded in v12 (`image_5d8026.png` & `image_5d7fe0.png` fix!):
+    // Filters out dead links (`EV #1061` not in `maps` or events with 0 valid steps), and prioritizes real dialogue events!
     function getEffectiveUsedListForAsset(asset) {
       if (!asset) return [];
-      const rawList = (Array.isArray(asset.directUsedInList) && asset.directUsedInList.length > 0)
-        ? asset.directUsedInList
-        : (Array.isArray(asset.usedInList) && asset.usedInList.length > 0 ? asset.usedInList : (asset.usedIn ? [asset.usedIn] : []));
+      const maps = state.project?.maps || [];
+      const combined = [
+        ...(Array.isArray(asset.directUsedInList) ? asset.directUsedInList : []),
+        ...(Array.isArray(asset.usedInList) ? asset.usedInList : []),
+        ...(asset.usedIn ? [asset.usedIn] : [])
+      ];
 
-      // Sort so real map events (`mapId < 9000`) always come before CommonEvents (`mapId === 9000`)!
-      return [...rawList].sort((a, b) => {
+      const seen = new Set();
+      const verified = [];
+      for (const loc of combined) {
+        if (!loc) continue;
+        const key = `${loc.mapId}_${loc.eventId}_${loc.pageIdx || 0}`;
+        if (seen.has(key)) continue;
+        const mObj = maps.find(m => m.id === loc.mapId);
+        if (!mObj) continue;
+        const evObj = (mObj.events || []).find(e => e && e.id === loc.eventId);
+        if (!evObj) continue;
+        if ((evObj.totalDialogue || 0) === 0 && (evObj.totalCg || 0) === 0) continue;
+        seen.add(key);
+        verified.push({ ...loc, _hasDialogue: (evObj.totalDialogue || 0) > 0 ? 1 : 0 });
+      }
+
+      return verified.sort((a, b) => {
+        if (b._hasDialogue !== a._hasDialogue) return b._hasDialogue - a._hasDialogue;
         const aIsCe = a.mapId >= 9000 ? 1 : 0;
         const bIsCe = b.mapId >= 9000 ? 1 : 0;
         return aIsCe - bIsCe;
@@ -3556,7 +3734,12 @@
       const list = getEffectiveUsedListForAsset(asset);
 
       if (list.length === 0) {
-        showToast("이 미디어와 연결된 대사 이벤트가 없습니다.");
+        // Even if not linked to a dialogue event, open directly on the Viewer stage so user can view it immediately!
+        document.getElementById("cgLightboxModal").classList.add("hidden");
+        state.activePictureSlots = { 1: { key: asset.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [asset.name] } };
+        switchMainTab("vn");
+        renderActiveCgStage();
+        showToast(`'${translateJpName(asset.name)}' 미디어를 스토리 뷰어 화면에 표시했습니다.`);
         return;
       }
 
@@ -3565,9 +3748,9 @@
         document.getElementById("cgLightboxModal").classList.add("hidden");
         state.selectedMapId = loc.mapId;
         renderMapsList();
-        selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0);
+        selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0, asset);
         switchMainTab("vn");
-        showToast(`등장 장면(#${loc.stepIdx ? loc.stepIdx + 1 : 1}번째 대사)으로 정확히 이동했습니다!`);
+        showToast(`등장 장면(#${loc.stepIdx ? loc.stepIdx + 1 : 1}번째 장면)으로 정확히 이동했습니다!`);
         return;
       }
 
@@ -3586,7 +3769,7 @@
             <div class="min-w-0 flex-1">
               <div class="text-[11px] text-indigo-300 font-semibold">${escapeHtml(mapTitle)}</div>
               <div class="text-xs font-bold text-white truncate">${escapeHtml(evTitle)}</div>
-              <div class="text-[10px] text-emerald-300 font-mono mt-0.5">📍 단계 ${(loc.pageIdx || 0) + 1} · ${stepNum}번째 대사로 정확히 이동</div>
+              <div class="text-[10px] text-emerald-300 font-mono mt-0.5">📍 단계 ${(loc.pageIdx || 0) + 1} · ${stepNum}번째 대사/장면으로 이동</div>
             </div>
             <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold flex-shrink-0">이동 →</span>
           </button>
@@ -3601,9 +3784,9 @@
           if (!loc) return;
           state.selectedMapId = loc.mapId;
           renderMapsList();
-          selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0);
+          selectEvent(loc.eventId, loc.pageIdx || 0, loc.stepIdx || 0, asset);
           switchMainTab("vn");
-          showToast(`선택한 등장 장면(${(loc.stepIdx || 0) + 1}번째 대사)으로 이동했습니다!`);
+          showToast(`선택한 등장 장면(${(loc.stepIdx || 0) + 1}번째 장면)으로 이동했습니다!`);
         });
       });
 
@@ -3903,6 +4086,83 @@
     // =========================================================================
     // IN-GAME VISUAL STATUS & LOVE BOARD RENDERER (`image_68d640.jpg` Style!)
     // =========================================================================
+    // Per-Heroine Variable Block & Name Matcher (`image_5d6dde.png` -> `image_68d640.jpg` Fix!):
+    // Automatically isolates variables belonging to `activeProf` (e.g., Arika's #11~#30 vs Rietta's #31~#50 vs Terena's #51~#70)!
+    function getHeroineSpecificVariables(activeProf, allProfiles, varNames) {
+      const allEntries = Object.entries(varNames || {}).map(([id, n]) => [Number(id), String(n || "").trim()]);
+      if (!activeProf || allEntries.length === 0) return allEntries;
+
+      const getTokensForProf = (p) => {
+        const clean = String(p.name || "").replace(/\([^)]*\)/g, "").trim();
+        const tokens = [clean.toLowerCase()];
+        for (const al of HEROINE_NAME_ALIASES) {
+          if (al.keys.some(k => clean.toLowerCase().includes(k.toLowerCase()))) {
+            tokens.push(...al.keys.map(x => x.toLowerCase()));
+            if (al.jp) tokens.push(al.jp.toLowerCase());
+          }
+        }
+        return Array.from(new Set(tokens)).filter(t => t.length >= 2);
+      };
+
+      const myTokens = getTokensForProf(activeProf);
+      const otherTokens = [];
+      for (const p of (allProfiles || [])) {
+        if (p.id === activeProf.id || p.name === activeProf.name) continue;
+        otherTokens.push(...getTokensForProf(p));
+      }
+
+      // Detect if the game uses repeating contiguous variable blocks per heroine (e.g. #13 Arika, #33 Rietta, #53 Terena -> stride 20!)
+      const profAnchors = [];
+      for (const p of (allProfiles || [])) {
+        const pTokens = getTokensForProf(p);
+        const firstMatch = allEntries.find(([, vName]) => {
+          const vl = vName.toLowerCase();
+          return pTokens.some(tk => vl.startsWith(tk) || vl.includes(tk));
+        });
+        if (firstMatch) {
+          profAnchors.push({ profName: p.name, firstVarId: firstMatch[0] });
+        }
+      }
+      profAnchors.sort((a, b) => a.firstVarId - b.firstVarId);
+
+      let myBlockRange = null;
+      const myAnchorIdx = profAnchors.findIndex(a => a.profName === activeProf.name);
+      if (myAnchorIdx !== -1 && profAnchors.length >= 2) {
+        const stride = myAnchorIdx + 1 < profAnchors.length
+          ? (profAnchors[myAnchorIdx + 1].firstVarId - profAnchors[myAnchorIdx].firstVarId)
+          : (profAnchors[myAnchorIdx].firstVarId - profAnchors[myAnchorIdx - 1].firstVarId);
+        if (stride >= 8 && stride <= 50) {
+          const blockStart = Math.max(1, profAnchors[myAnchorIdx].firstVarId - 2);
+          const blockEnd = blockStart + stride - 1;
+          myBlockRange = [blockStart, blockEnd];
+        }
+      }
+
+      const matched = allEntries.filter(([vId, vName]) => {
+        const vl = vName.toLowerCase();
+        // Explicitly matches active heroine's name
+        if (myTokens.some(tk => vl.includes(tk))) return true;
+        // Explicitly matches ANOTHER heroine's name -> exclude!
+        if (otherTokens.some(tk => vl.includes(tk))) return false;
+        // Inside active heroine's contiguous variable block!
+        if (myBlockRange && vId >= myBlockRange[0] && vId <= myBlockRange[1]) return true;
+        // If no heroine blocks exist, include general ero/affection variables
+        if (profAnchors.length <= 1) return true;
+        return false;
+      });
+
+      return matched.length > 0 ? matched : allEntries;
+    }
+
+    function stripHeroinePrefixFromVarLabel(varName, heroineName) {
+      let s = translateJpName(varName);
+      const cleanH = translateJpName(heroineName).replace(/\([^)]*\)/g, "").trim();
+      if (cleanH && s.startsWith(cleanH)) {
+        s = s.slice(cleanH.length).trim();
+      }
+      return s || translateJpName(varName);
+    }
+
     async function renderStatusViewerTab() {
       const profiles = state.project.actorProfiles || [];
       const tabsBox = document.getElementById("statusActorTabs");
@@ -3910,8 +4170,8 @@
       const boardBox = document.getElementById("visualStatusInnerContent");
 
       tabsBox.innerHTML = profiles.map((prof, idx) => `
-        <button type="button" data-status-actor-idx="${idx}" class="px-3 py-1 rounded-xl text-xs font-bold transition ${
-          idx === state.selectedStatusActorIdx ? "bg-amber-500 text-black shadow" : "bg-slate-800 text-slate-300 hover:text-white"
+        <button type="button" data-status-actor-idx="${idx}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+          idx === state.selectedStatusActorIdx ? "bg-amber-500 text-black shadow-md scale-105" : "bg-slate-800 text-slate-300 hover:text-white"
         }">
           👤 ${escapeHtml(translateJpName(prof.name))}
         </button>
@@ -3924,28 +4184,32 @@
         });
       });
 
-      // Populate dedicated status graphics dropdown if the game has status/ero/menu pictures
       const statusGraphicKeys = Object.keys(state.project.cgAssets || {}).filter(k => {
         if (k === "__fastIndex" || state.deletedCgKeys.has(k) || isDummyBlackOrSystemPicture(k)) return false;
         return /status|ero|prof|menu|ステ|プロフ/i.test(k);
       });
       if (bgSel) {
-        bgSel.innerHTML = `<option value="">🎨 인게임 비주얼 상태창 보드 (기본)</option>` +
+        bgSel.innerHTML = `<option value="">🎨 인게임 상태창 통합 보드 (자동합성)</option>` +
           statusGraphicKeys.map(k => `<option value="${escapeHtml(k)}" ${state.selectedStatusBgKey === k ? "selected" : ""}>🖼 원본 상태 그래픽: ${escapeHtml(translateJpName(k))}</option>`).join("");
       }
 
       const activeProf = profiles[state.selectedStatusActorIdx] || profiles[0];
       if (activeProf && boardBox) {
         const varNames = state.project.variableNames || {};
-        const allVarEntries = Object.entries(varNames);
+        const heroineVarEntries = getHeroineSpecificVariables(activeProf, profiles, varNames);
 
-        // Categorize variables into Affection (♥LOVE♥) vs Ethics/Ero Core vs Development/Counts (`image_68d640.jpg` layout!)
-        const loveVars = allVarEntries.filter(([, n]) => /好感|LOVE|호감|애정|신뢰|연모/i.test(n)).slice(0, 6);
-        const coreHeaderVars = allVarEntries.filter(([, n]) => /倫理|淫乱|露出|発情|윤리|음란|노출|발정|이성/i.test(n)).slice(0, 4);
-        const eroBodyVars = allVarEntries.filter(([id, n]) => {
+        const loveVars = heroineVarEntries.filter(([, n]) => /好感|LOVE|호감|애정|신뢰|연모/i.test(n)).slice(0, 6);
+        const coreHeaderVars = heroineVarEntries.filter(([, n]) => /倫理|淫乱|露出|発情|윤리|음란|노출|발정|이성/i.test(n)).slice(0, 4);
+        const eroBodyVars = heroineVarEntries.filter(([id, n]) => {
           if (coreHeaderVars.some(c => c[0] === id) || loveVars.some(l => l[0] === id)) return false;
           return isEroOrBodyVariableName(n) || isProgressOrAffectionVariableName(n);
-        }).slice(0, 16);
+        }).slice(0, 18);
+
+        // If coreHeaderVars is empty, provide default Ethics 100 / Lewdness 0 display so the board always looks complete like `image_68d640.jpg`!
+        const effectiveHeaderVars = coreHeaderVars.length > 0 ? coreHeaderVars : [
+          [-1, "윤리도 (倫理度)"],
+          [-2, "음란도 (淫乱度)"]
+        ];
 
         const metaEntries = Object.entries(activeProf.customMeta || {});
         const baseStatsEntries = Object.entries(activeProf.baseStats || {});
@@ -3955,8 +4219,8 @@
           const bgUrl = await ensureAssetBlobUrl(state.project.cgAssets[state.selectedStatusBgKey]);
           if (bgUrl) {
             customBgHtml = `
-              <div class="mb-3 rounded-xl overflow-hidden border-2 border-amber-800/40 bg-black/90 flex items-center justify-center max-h-[340px]">
-                <img src="${bgUrl}" alt="Status Graphic" class="max-h-[330px] object-contain" />
+              <div class="mb-3 rounded-xl overflow-hidden border-2 border-amber-800/40 bg-black/90 flex items-center justify-center max-h-[360px]">
+                <img src="${bgUrl}" alt="Status Graphic" class="max-h-[350px] object-contain" />
               </div>
             `;
           }
@@ -3966,93 +4230,97 @@
           ${customBgHtml}
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
 
-            <!-- LEFT COLUMN: ♥LOVE♥ / Affection & Likes/Dislikes Pink Box (Matches image_68d640.jpg Left Side!) -->
+            <!-- LEFT COLUMN: ♥LOVE♥ / Affection & Likes/Dislikes Pink Box (Exact image_68d640.jpg Left Side!) -->
             <div class="lg:col-span-3 flex flex-col justify-between gap-2.5">
-              <div class="rounded-2xl p-3 border-2 border-[#7a1c4b] shadow-md flex-1 space-y-2" style="background: linear-gradient(180deg, #f07fb8 0%, #e56ca8 100%); color: #ffffff;">
+              <div class="rounded-2xl p-3.5 border-2 border-[#7a1c4b] shadow-md flex-1 space-y-2.5" style="background: linear-gradient(180deg, #f07fb8 0%, #e56ca8 100%); color: #ffffff;">
                 <div class="text-center font-extrabold text-base tracking-wider drop-shadow" style="text-shadow: 0 2px 4px rgba(0,0,0,0.45);">
                   ♥ LOVE · 호감도 ♥
                 </div>
                 <div class="space-y-2">
                   ${loveVars.length > 0 ? loveVars.map(([vId, vName]) => {
-                    const val = state.project.variables[Number(vId)] ?? 0;
+                    const val = Number(state.project.variables[Number(vId)] ?? 0);
+                    const pct = Math.max(0, Math.min(100, val));
+                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
                     return `
-                      <button type="button" data-quick-edit-var="${vId}" class="w-full text-left bg-black/20 hover:bg-black/35 rounded-xl p-2 transition border border-white/25">
+                      <button type="button" data-quick-edit-var="${vId}" class="w-full text-left bg-black/25 hover:bg-black/40 rounded-xl p-2 transition border border-white/25 space-y-1">
                         <div class="flex items-center justify-between font-bold text-xs">
-                          <span class="truncate">${escapeHtml(translateJpName(vName))} ♥</span>
+                          <span class="truncate">♥ ${escapeHtml(shortLabel)}</span>
                           <span class="font-mono text-sm text-yellow-200">✎ ${escapeHtml(String(val))}</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-black/40 overflow-hidden p-0.5">
+                          <div class="h-full rounded-full transition-all" style="width:${pct}%; background: linear-gradient(90deg, #ffea79, #ff3b8d);"></div>
                         </div>
                       </button>
                     `;
                   }).join("") : `
                     <div class="bg-black/20 rounded-xl p-2.5 text-xs space-y-1 border border-white/20">
-                      <div class="font-bold">♥ 주요 인물 관계 · 평판</div>
-                      <p class="text-[11px] text-white/90 leading-snug">${escapeHtml(translateJpName(activeProf.profile || "하단 변수 목록이나 [+ 스탯 추가]로 원하는 관계도를 등록할 수 있습니다."))}</p>
+                      <div class="font-bold">♥ 주요 인물 관계 · 호감도</div>
+                      <p class="text-[11px] text-white/90 leading-snug">${escapeHtml(translateJpName(activeProf.profile || "상단 [+ 스탯 추가] 버튼으로 원하는 호감도나 특징을 자유롭게 추가할 수 있습니다."))}</p>
                     </div>
                   `}
                 </div>
               </div>
 
-              <!-- Likes / Dislikes / Profile Speech Bubbles -->
+              <!-- Likes / Dislikes / Profile Speech Box -->
               <div class="space-y-1.5 text-xs">
                 <div id="btnEditActorProfileText" class="cursor-pointer rounded-xl p-2.5 border-2 border-[#a83868] shadow-sm transition hover:brightness-95" style="background:#fbd0e5; color:#3d1024;" title="클릭하여 프로필/기호 수정">
-                  <span class="px-1.5 py-0.5 rounded bg-[#d94682] text-white text-[10px] font-bold mr-1">프로필·특징 ✎</span>
-                  <span class="font-semibold leading-snug">${escapeHtml(translateJpName(activeProf.profile || activeProf.likes || "클릭하여 캐릭터 소개나 좋아하는 것/싫어하는 것을 메모하세요."))}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#d94682] text-white text-[10px] font-bold mr-1">프로필·기호 ✎</span>
+                  <span class="font-semibold leading-snug">${escapeHtml(translateJpName(activeProf.profile || activeProf.likes || "클릭하여 이 캐릭터의 프로필·좋아하는 것/싫어하는 것을 메모하세요."))}</span>
                 </div>
               </div>
             </div>
 
-            <!-- CENTER COLUMN: Heroine Full Standing Multi-Layer Canvas / Portrait (Matches image_68d640.jpg Center!) -->
-            <div class="lg:col-span-4 flex flex-col items-center justify-center relative rounded-2xl border-2 border-amber-900/25 bg-gradient-to-b from-amber-50/60 to-amber-100/80 p-2 min-h-[300px]">
-              <canvas id="statusHeroineCanvas" width="520" height="620" class="max-h-[320px] w-full object-contain drop-shadow-xl"></canvas>
-              <div class="mt-1 flex items-center gap-1.5">
-                <span class="text-[11px] font-bold text-amber-900/80">${escapeHtml(translateJpName(activeProf.name))}</span>
-                <button type="button" id="btnChangeStatusPortrait" class="px-2 py-0.5 rounded bg-amber-900/15 hover:bg-amber-900/30 text-[10px] font-bold text-amber-950">일러스트 변경 ▾</button>
+            <!-- CENTER COLUMN: Heroine Full Standing / Ero-Status Graphic Canvas (Exact image_68d640.jpg Center!) -->
+            <div class="lg:col-span-4 flex flex-col items-center justify-center relative rounded-2xl border-2 border-amber-900/25 bg-gradient-to-b from-amber-50/70 to-amber-100/90 p-2 min-h-[340px]">
+              <canvas id="statusHeroineCanvas" width="540" height="640" class="max-h-[360px] w-full object-contain drop-shadow-xl"></canvas>
+              <div class="mt-1.5 flex flex-wrap items-center justify-center gap-1.5">
+                <span class="text-xs font-extrabold text-amber-950">${escapeHtml(translateJpName(activeProf.name))}</span>
+                <button type="button" id="btnCycleStatusPortrait" class="px-2 py-0.5 rounded bg-amber-900/20 hover:bg-amber-900/35 text-[10px] font-bold text-amber-950">🔄 다른 스탠딩 전환</button>
+                <button type="button" id="btnChangeStatusPortrait" class="px-2 py-0.5 rounded bg-amber-900/15 hover:bg-amber-900/30 text-[10px] font-bold text-amber-950">직접 지정 ✎</button>
               </div>
             </div>
 
-            <!-- RIGHT COLUMN: Decorative Title Header + Brown Stone Ero-Status Box (Matches image_68d640.jpg Right Side!) -->
+            <!-- RIGHT COLUMN: Decorative Title Header + Brown Stone Ero-Status Box (Exact image_68d640.jpg Right Side!) -->
             <div class="lg:col-span-5 flex flex-col justify-between gap-2.5">
-              <!-- Title, Name, Measurements & Age Header -->
-              <div class="rounded-xl border-2 border-amber-800/40 bg-amber-50/90 p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+              <div class="rounded-xl border-2 border-amber-800/40 bg-amber-50/95 p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
                 <div>
                   <button type="button" id="btnEditActorNickname" class="text-xs font-extrabold text-amber-800 hover:underline block">
-                    ✎ ${escapeHtml(translateJpName(activeProf.nickname || activeProf.className || "칭호/직업 입력"))}
+                    ✎ ${escapeHtml(translateJpName(activeProf.nickname || activeProf.className || "성기사 히로인"))}
                   </button>
                   <h4 class="text-xl sm:text-2xl font-black tracking-tight" style="color:#7c1919;">
                     ${escapeHtml(translateJpName(activeProf.name))}
                   </h4>
                 </div>
                 <div class="text-right rounded-lg px-2.5 py-1.5 text-xs font-bold border border-amber-900/30" style="background:#6e6049; color:#fff9eb;">
-                  <div>${escapeHtml(activeProf.measurements || activeProf.customMeta?.["신장"] || "신장 / 쓰리사이즈")}</div>
-                  <div class="text-[11px] text-amber-200">${escapeHtml(activeProf.customMeta?.["쓰리사이즈"] || (activeProf.age ? `Age: ${activeProf.age}` : "클릭하여 신체사이즈 수정"))}</div>
+                  <div>${escapeHtml(activeProf.measurements || activeProf.customMeta?.["신장"] || "T(신장) · 쓰리사이즈")}</div>
+                  <div class="text-[11px] text-amber-200">${escapeHtml(activeProf.customMeta?.["쓰리사이즈"] || (activeProf.age ? `Age: ${activeProf.age}` : "우측 상단 [+ 스탯 추가]로 등록"))}</div>
                 </div>
               </div>
 
               <!-- Brown Stone Ero-Status & Experience Grid (image_68d640.jpg style!) -->
               <div class="rounded-2xl p-3.5 border-4 border-[#9c8c74] shadow-inner flex-1 space-y-3" style="background: linear-gradient(180deg, #6b5a42 0%, #594a35 100%); color: #fffdf9;">
-                <!-- Top Highlight Stats (e.g. ♥윤리도 100 / ♥음란도 0) -->
-                ${coreHeaderVars.length > 0 ? `
-                  <div class="grid grid-cols-2 gap-2 border-b border-amber-100/25 pb-2.5">
-                    ${coreHeaderVars.map(([vId, vName]) => {
-                      const val = state.project.variables[Number(vId)] ?? 0;
-                      return `
-                        <button type="button" data-quick-edit-var="${vId}" class="text-left px-2.5 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 border border-amber-200/20 flex items-center justify-between transition">
-                          <span class="text-xs sm:text-sm font-extrabold text-amber-100 truncate">♥ ${escapeHtml(translateJpName(vName))}</span>
-                          <span class="text-sm sm:text-base font-black font-mono text-white">✎ ${escapeHtml(String(val))}</span>
-                        </button>
-                      `;
-                    }).join("")}
-                  </div>
-                ` : ""}
+                <div class="grid grid-cols-2 gap-2 border-b border-amber-100/25 pb-2.5">
+                  ${effectiveHeaderVars.map(([vId, vName]) => {
+                    const val = vId > 0 ? (state.project.variables[Number(vId)] ?? 0) : (vId === -1 ? (activeProf.customMeta?.["윤리도"] ?? 100) : (activeProf.customMeta?.["음란도"] ?? 0));
+                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
+                    return `
+                      <button type="button" ${vId > 0 ? `data-quick-edit-var="${vId}"` : `data-edit-meta-key="${vId === -1 ? "윤리도" : "음란도"}"`} class="text-left px-2.5 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 border border-amber-200/20 flex items-center justify-between transition">
+                        <span class="text-xs sm:text-sm font-extrabold text-amber-100 truncate">♥ ${escapeHtml(shortLabel)}</span>
+                        <span class="text-sm sm:text-base font-black font-mono text-white">✎ ${escapeHtml(String(val))}</span>
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
 
                 <!-- Body Development & Experience Counts Grid -->
                 <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
                   ${eroBodyVars.map(([vId, vName]) => {
                     const val = state.project.variables[Number(vId)] ?? 0;
-                    const unit = /開発|개발| 노출도|율/i.test(vName) ? "%" : (/回数|횟수|경험/i.test(vName) ? "회" : "");
+                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
+                    const unit = /開発|개발|노출도|율/i.test(vName) ? "%" : (/回数|횟수|경험/i.test(vName) ? "회" : "");
                     return `
                       <button type="button" data-quick-edit-var="${vId}" class="text-left py-1 px-2 rounded-lg hover:bg-black/30 flex items-center justify-between gap-1 border-b border-white/10 transition">
-                        <span class="text-amber-100/95 truncate text-[11px]" title="${escapeHtml(vName)}">${escapeHtml(translateJpName(vName))}</span>
+                        <span class="text-amber-100/95 truncate text-[11px]" title="${escapeHtml(vName)}">${escapeHtml(shortLabel)}</span>
                         <span class="font-mono font-bold text-yellow-300 flex-shrink-0">✎ ${escapeHtml(String(val))}${unit}</span>
                       </button>
                     `;
@@ -4080,10 +4348,12 @@
           </div>
         `;
 
-        // Render the Heroine's Standing Snapshot or Face onto `#statusHeroineCanvas`!
+        // Render the Heroine's Ero-Status Portrait (`eroStaAb01`, etc.) or Multi-Layer Standing onto `#statusHeroineCanvas`!
         const statusCanvas = document.getElementById("statusHeroineCanvas");
         if (statusCanvas) {
-          if (activeProf.standingSnapshot && Object.keys(activeProf.standingSnapshot).length > 0) {
+          if (activeProf.eroStatusCg && state.project.cgAssets[activeProf.eroStatusCg]) {
+            await drawSnapshotOnCanvas(statusCanvas, null, activeProf.eroStatusCg);
+          } else if (activeProf.standingSnapshot && Object.keys(activeProf.standingSnapshot).length > 0) {
             await drawSnapshotOnCanvas(statusCanvas, activeProf.standingSnapshot, activeProf.portraitCg);
           } else if (activeProf.portraitCg && state.project.cgAssets[activeProf.portraitCg]) {
             await drawSnapshotOnCanvas(statusCanvas, null, activeProf.portraitCg);
@@ -4103,10 +4373,24 @@
           }
         }
 
+        document.getElementById("btnCycleStatusPortrait")?.addEventListener("click", () => {
+          const candidates = (activeProf.candidateCgs && activeProf.candidateCgs.length > 0)
+            ? activeProf.candidateCgs
+            : Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !isDetachedSubPartFile(k) && !isDummyBlackOrSystemPicture(k));
+          if (!candidates.length) return;
+          const cur = activeProf.eroStatusCg || activeProf.portraitCg || candidates[0];
+          const nextIdx = (candidates.indexOf(cur) + 1) % candidates.length;
+          activeProf.eroStatusCg = candidates[nextIdx];
+          activeProf.portraitCg = candidates[nextIdx];
+          activeProf.standingSnapshot = null;
+          renderStatusViewerTab();
+        });
+
         document.getElementById("btnChangeStatusPortrait")?.addEventListener("click", () => {
           const allStandings = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !isDetachedSubPartFile(k) && !isDummyBlackOrSystemPicture(k));
-          openEditModal("변경할 스탠딩/초상화 이미지 파일명 입력", activeProf.portraitCg || allStandings[0] || "", (newVal) => {
+          openEditModal("변경할 스탠딩/초상화 이미지 파일명 입력", activeProf.eroStatusCg || activeProf.portraitCg || allStandings[0] || "", (newVal) => {
             if (newVal.trim()) {
+              activeProf.eroStatusCg = newVal.trim();
               activeProf.portraitCg = newVal.trim();
               activeProf.standingSnapshot = null;
               renderStatusViewerTab();
@@ -4156,21 +4440,21 @@
         boardBox.querySelectorAll("[data-edit-meta-key]").forEach(btn => {
           btn.addEventListener("click", () => {
             const k = btn.getAttribute("data-edit-meta-key");
-            openEditModal(`'${k}' 스테이터스 항목 수정`, activeProf.customMeta[k] || "", (newVal) => {
-              activeProf.customMeta[k] = newVal.trim();
+            activeProf.customMeta = activeProf.customMeta || {};
+            openEditModal(`'${translateJpName(k)}' 수치/상태 수정`, String(activeProf.customMeta[k] || ""), (newVal) => {
+              activeProf.customMeta[k] = newVal;
               renderStatusViewerTab();
             });
           });
         });
       }
 
-      renderConditionVariablesTopGrid();
-
+      const customBox = document.getElementById("customStatusScenesList");
       const statusScenes = [];
       for (const m of (state.project.maps || [])) {
         for (const ev of (m.events || [])) {
-          if (/ステータス|プロフィール|エロステ|状態|衣装|着替え|status|profile|menu|info|스테이터스|프로필|상태|명성|기록|회상|복장/i.test(ev.name)) {
-            statusScenes.push({ mapId: m.id, eventId: ev.id, title: getDisplayEventName(m.id, ev), type: "event" });
+          if (/ステータス|プロフィール|エロステ|상태|스테이터스|프로필|status|profile|ero/i.test(ev.name)) {
+            statusScenes.push({ mapId: m.id, evId: ev.id, title: getDisplayEventName(m.id, ev), type: "event" });
           }
         }
       }
@@ -4178,10 +4462,9 @@
         statusScenes.push({ cgKey: k, title: `원본 상태 그래픽: ${translateJpName(k)}`, type: "cg" });
       }
 
-      const customBox = document.getElementById("customStatusScenesList");
-      customBox.innerHTML = statusScenes.length ? statusScenes.slice(0, 24).map(sc => `
-        <button type="button" data-status-jump="${sc.type === "event" ? `ev:${sc.mapId},${sc.eventId}` : `cg:${escapeHtml(sc.cgKey)}`}" class="text-left p-2.5 rounded-xl bg-slate-900 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/40 transition flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-slate-200 truncate">${escapeHtml(sc.title)}</span>
+      customBox.innerHTML = statusScenes.length > 0 ? statusScenes.slice(0, 12).map((sc) => `
+        <button type="button" data-status-jump="${sc.type === "event" ? `ev:${sc.mapId}:${sc.evId}` : `cg:${sc.cgKey}`}" class="p-2.5 rounded-xl bg-slate-900 hover:bg-indigo-950/60 border border-slate-800 hover:border-amber-500/40 text-left flex items-center justify-between gap-2 transition">
+          <span class="text-xs font-bold text-amber-200 truncate">${escapeHtml(sc.title)}</span>
           <span class="text-[10px] text-indigo-300 flex-shrink-0">열기 →</span>
         </button>
       `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">상단 인게임 비주얼 스테이터스 보드에서 모든 호감도·개발도·횟수 변수를 직접 클릭해 수정할 수 있습니다.</div>`;
@@ -4190,10 +4473,10 @@
         btn.addEventListener("click", () => {
           const val = btn.getAttribute("data-status-jump");
           if (val.startsWith("ev:")) {
-            const [mId, eId] = val.slice(3).split(",").map(Number);
-            state.selectedMapId = mId;
+            const [, mId, eId] = val.split(":");
+            state.selectedMapId = Number(mId);
             renderMapsList();
-            selectEvent(eId);
+            selectEvent(Number(eId));
             switchMainTab("vn");
           } else {
             const key = val.slice(3);
@@ -4203,6 +4486,7 @@
         });
       });
 
+      renderConditionVariablesTopGrid();
       renderStatusVariablesList();
     }
 
@@ -4725,10 +5009,118 @@
     //   1) If `targetPending` ALREADY has a slot for the same character & part category (e.g. `레이리` already has `몸통(Base)` or `복장/가슴(Bust·Cloth)`),
     //      OR if `bSpec.key` is an standalone non-part character (`기본 이미지`), it ONLY appends to `.variants` and NEVER creates a phantom duplicate character!
     //   2) However, if `bSpec.key` IS a character sub-part (`팔/자세(Arm)`, `복장/가슴(Bust·Cloth)`, `눈(Eyes)`, `입(Mouth)`, `머리카락(Hair)`) for a character whose `몸통(Base)` is ALREADY in `targetPending`, AND that character is still MISSING that body part category (`!hasCategoryForChar`), it ACCEPTS the slot so her arms/bust/clothes are NEVER left missing!
-    function mergePictureSnapshotsV10(targetPending, branchPending, isWinningBranch) {
+    // =========================================================================
+    // ZERO-RAM SLICE-BASED STREAMING ZIP ARCHIVE FOR MOBILE SAFARI (v12)
+    // =========================================================================
+    // Instead of `JSZip.loadAsync(file)` allocating a 1GB ArrayBuffer in RAM (which crashes iOS Safari),
+    // `openZipArchiveSmart` reads ONLY the ZIP Central Directory at the end of the file via `file.slice()`
+    // and decompresses individual entries on demand via native `DecompressionStream("deflate-raw")`!
+    async function openZipArchiveSmart(file) {
+      if (typeof DecompressionStream !== "undefined" && file && typeof file.slice === "function" && file.size > 0) {
+        try {
+          const fileSize = file.size;
+          const tailLen = Math.min(fileSize, 65558);
+          const tailBuf = await file.slice(fileSize - tailLen, fileSize).arrayBuffer();
+          const tailView = new DataView(tailBuf);
+          let eocdPos = -1;
+          for (let pos = tailLen - 22; pos >= 0; pos--) {
+            if (tailView.getUint32(pos, true) === 0x06054b50) {
+              eocdPos = pos;
+              break;
+            }
+          }
+          if (eocdPos !== -1) {
+            const cdSize = tailView.getUint32(eocdPos + 12, true);
+            const cdOffset = tailView.getUint32(eocdPos + 16, true);
+            if (cdSize !== 0xffffffff && cdOffset !== 0xffffffff && cdOffset + cdSize <= fileSize) {
+              const cdBuf = await file.slice(cdOffset, cdOffset + cdSize).arrayBuffer();
+              const cdView = new DataView(cdBuf);
+              const cdBytes = new Uint8Array(cdBuf);
+              const utf8Dec = new TextDecoder("utf-8");
+              let sjisDec = null;
+              try { sjisDec = new TextDecoder("shift-jis"); } catch (e) {}
+
+              const files = {};
+              let p = 0;
+              while (p + 46 <= cdSize) {
+                if (cdView.getUint32(p, true) !== 0x02014b50) break;
+                const flags = cdView.getUint16(p + 8, true);
+                const compMethod = cdView.getUint16(p + 10, true);
+                const compSize = cdView.getUint32(p + 20, true);
+                const uncompSize = cdView.getUint32(p + 24, true);
+                const nameLen = cdView.getUint16(p + 28, true);
+                const extraLen = cdView.getUint16(p + 30, true);
+                const commentLen = cdView.getUint16(p + 32, true);
+                const localHeaderOffset = cdView.getUint32(p + 42, true);
+
+                const nameSlice = cdBytes.subarray(p + 46, p + 46 + nameLen);
+                const isUtf8 = (flags & 0x800) !== 0;
+                let entryName = utf8Dec.decode(nameSlice);
+                if (!isUtf8 && entryName.includes("\ufffd") && sjisDec) {
+                  entryName = sjisDec.decode(nameSlice);
+                }
+                entryName = entryName.replace(/\\/g, "/");
+                const isDir = entryName.endsWith("/");
+
+                files[entryName] = {
+                  name: entryName,
+                  dir: isDir,
+                  _compMethod: compMethod,
+                  _compSize: compSize,
+                  _uncompSize: uncompSize,
+                  _localOffset: localHeaderOffset,
+                  async: async function(outType) {
+                    const lhBuf = await file.slice(this._localOffset, this._localOffset + 30).arrayBuffer();
+                    const lhView = new DataView(lhBuf);
+                    if (lhView.getUint32(0, true) !== 0x04034b50) {
+                      throw new Error("Invalid local ZIP header");
+                    }
+                    const lNameLen = lhView.getUint16(26, true);
+                    const lExtraLen = lhView.getUint16(28, true);
+                    const dataStart = this._localOffset + 30 + lNameLen + lExtraLen;
+                    const dataBlob = file.slice(dataStart, dataStart + this._compSize);
+
+                    let rawAb;
+                    if (this._compMethod === 0) {
+                      rawAb = await dataBlob.arrayBuffer();
+                    } else if (this._compMethod === 8) {
+                      const ds = new DecompressionStream("deflate-raw");
+                      const decompressedStream = dataBlob.stream().pipeThrough(ds);
+                      rawAb = await new Response(decompressedStream).arrayBuffer();
+                    } else {
+                      throw new Error("Unsupported ZIP compression method: " + this._compMethod);
+                    }
+
+                    if (outType === "string") {
+                      return utf8Dec.decode(rawAb);
+                    }
+                    return new Uint8Array(rawAb);
+                  }
+                };
+
+                p += 46 + nameLen + extraLen + commentLen;
+              }
+              if (Object.keys(files).length > 0) {
+                return { files, isStreamingSliceZip: true };
+              }
+            }
+          }
+        } catch (streamZipErr) {
+          // Fallback to JSZip below if non-standard ZIP
+        }
+      }
+      return await window.JSZip.loadAsync(file);
+    }
+
+    // =========================================================================
+    // SMART MULTI-LAYER & PAPER-DOLL SNAPSHOT MERGER (v12)
+    // Solves BOTH `image_5d8081.jpg` (Dragon Conquista Reiri Missing Arms/Bust)
+    // AND `image_5d665c.jpg` (`벽 엉덩이 고블린` Missing Heroine/Wall Layers)!
+    // =========================================================================
+    function mergePictureSnapshotsV10(targetPending, branchPending, isWinningBranch, allowErase = true) {
       for (const [slot, bSpec] of Object.entries(branchPending)) {
         if (bSpec === null) {
-          if (isWinningBranch) targetPending[slot] = null;
+          if (isWinningBranch && allowErase) targetPending[slot] = null;
           continue;
         }
         if (!bSpec || !bSpec.key || isDummyBlackOrSystemPicture(bSpec.key)) continue;
@@ -4749,51 +5141,58 @@
             existing.origin = bSpec.origin;
             existing.scaleX = bSpec.scaleX;
             existing.scaleY = bSpec.scaleY;
-            existing.opacity = bSpec.opacity;
+            existing.opacity = (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : (existing.opacity || 255);
           } else {
             existing.key = pickBestDefaultVariant(existing.variants, existing.key);
+            if (!existing.opacity || existing.opacity <= 0) existing.opacity = bSpec.opacity || 255;
           }
           continue;
         }
 
-        // Slot does NOT exist in targetPending yet:
+        // `targetPending[slot]` does NOT exist yet!
         if (isWinningBranch) {
-          targetPending[slot] = { ...bSpec, variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key] };
+          targetPending[slot] = {
+            ...bSpec,
+            opacity: (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : 255,
+            variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key]
+          };
           continue;
         }
 
         // `isWinningBranch === false`:
-        const bInfo = getPartCategoryAndPrefix(bSpec.key);
-        if (bInfo.category === "기본 이미지" || bInfo.category === "몸통(Base)" || isGlassesOrOptionalOverlayName(bSpec.key)) {
-          // Never add a new standalone character or second base body from a false branch!
+        if (isGlassesOrOptionalOverlayName(bSpec.key)) {
           continue;
         }
 
-        // Check if this character (`bInfo.charName`) is ALREADY active on stage (has a slot in `targetPending`),
-        // and check if she already has a slot for `bInfo.category` (e.g., `팔/자세(Arm)` or `복장/가슴(Bust·Cloth)`):
-        let charExistsOnStage = false;
-        let existingCategorySlotSpec = null;
-        for (const [, exSpec] of Object.entries(targetPending)) {
-          if (!exSpec || !exSpec.key) continue;
-          const exInfo = getPartCategoryAndPrefix(exSpec.key);
-          if (exInfo.charName === bInfo.charName) {
-            charExistsOnStage = true;
-            if (exInfo.category === bInfo.category) {
-              existingCategorySlotSpec = exSpec;
+        const bInfo = getPartCategoryAndPrefix(bSpec.key);
+        // Only merge across different slot numbers if another slot ALREADY holds the EXACT SAME `partPrefix`
+        // (e.g., `Reiri_Arm` == `Reiri_Arm`), NEVER merge `Reiri_Bust` (#18) into `Reiri_Cloth` (#19)!
+        let existingSamePrefixSpec = null;
+        if (bInfo.category !== "기본 이미지") {
+          for (const [, exSpec] of Object.entries(targetPending)) {
+            if (!exSpec || !exSpec.key) continue;
+            const exInfo = getPartCategoryAndPrefix(exSpec.key);
+            if (exInfo.partPrefix.toLowerCase() === bInfo.partPrefix.toLowerCase()) {
+              existingSamePrefixSpec = exSpec;
               break;
             }
           }
         }
 
-        if (existingCategorySlotSpec) {
-          existingCategorySlotSpec.variants = existingCategorySlotSpec.variants || [existingCategorySlotSpec.key];
-          if (!existingCategorySlotSpec.variants.includes(bSpec.key)) existingCategorySlotSpec.variants.push(bSpec.key);
-          existingCategorySlotSpec.key = pickBestDefaultVariant(existingCategorySlotSpec.variants, existingCategorySlotSpec.key);
-        } else if (charExistsOnStage) {
-          // Character is on stage (e.g. Reiri's Body is on Slot #17), and she is missing her Arms (`팔/자세`) or Bust (`복장/가슴`)!
-          // Accept this part slot so her arms/bust are never missing!
+        if (existingSamePrefixSpec) {
+          existingSamePrefixSpec.variants = existingSamePrefixSpec.variants || [existingSamePrefixSpec.key];
+          if (!existingSamePrefixSpec.variants.includes(bSpec.key)) existingSamePrefixSpec.variants.push(bSpec.key);
+          if (Array.isArray(bSpec.variants)) {
+            for (const v of bSpec.variants) {
+              if (!existingSamePrefixSpec.variants.includes(v)) existingSamePrefixSpec.variants.push(v);
+            }
+          }
+          existingSamePrefixSpec.key = pickBestDefaultVariant(existingSamePrefixSpec.variants, existingSamePrefixSpec.key);
+        } else {
+          // Accept this slot so NO layer (whether `Reiri_Arm` on #18/#28 or the heroine/wall layers in `벽 엉덩이 고블린` EV078!) is ever dropped!
           targetPending[slot] = {
             ...bSpec,
+            opacity: (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : 255,
             key: pickBestDefaultVariant(bSpec.variants || [bSpec.key], bSpec.key),
             variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key]
           };
@@ -4818,12 +5217,22 @@
       if (!Array.isArray(list) || ceDepth > 4) return [];
       if (!simState) simState = { vars: {}, switches: {}, lockedVarBranches: {} };
       if (!activeCeStack) activeCeStack = new Set();
-      if (!opsBudget) opsBudget = { count: 0, max: 5000 };
+      if (!opsBudget) opsBudget = { count: 0, max: 6500 };
 
       const steps = [];
       let i = 0;
       let pendingAudioKey = null;
       let pendingTransferMapId = null;
+      let lastNonEmptyPictures = {};
+      let hadWaitSinceLastCgFlush = false;
+      let hadDialogueSinceLastPic = true;
+
+      const updateLastNonEmptyPictures = () => {
+        const validEntries = Object.entries(pendingPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+        if (validEntries.length > 0) {
+          lastNonEmptyPictures = clonePicMapFast(pendingPictures);
+        }
+      };
 
       while (i < list.length) {
         if (++opsBudget.count > opsBudget.max) break;
@@ -4831,6 +5240,12 @@
         if (!cmd) { i++; continue; }
         const code = cmd.code;
         const p = cmd.parameters || [];
+
+        if (code === 230) {
+          hadWaitSinceLastCgFlush = true;
+          i++;
+          continue;
+        }
 
         if (code === 121) {
           const startSw = Number(p[0]) || 0;
@@ -4848,13 +5263,18 @@
           continue;
         }
 
+        // Upgraded in v12: Supports `operandType === 0` (Constant), `operandType === 1` (Variable Copy!), and `operandType === 2` (Random min..max)!
         if (code === 122) {
           const startVar = Number(p[0]) || 0;
           const endVar = Number(p[1]) || startVar;
           const op = Number(p[2]) || 0;
           const operandType = Number(p[3]) || 0;
-          if (startVar > 0 && endVar - startVar <= 50 && operandType === 0) {
-            const val = Number(p[4]) || 0;
+          if (startVar > 0 && endVar - startVar <= 50 && (operandType === 0 || operandType === 1 || operandType === 2)) {
+            let val = 0;
+            if (operandType === 0) val = Number(p[4]) || 0;
+            else if (operandType === 1) val = Number(simState.vars[Number(p[4])] ?? 1);
+            else if (operandType === 2) val = Number(p[4]) || 1;
+
             for (let vId = startVar; vId <= endVar; vId++) {
               const cur = Number(simState.vars[vId] || 0);
               if (op === 0) simState.vars[vId] = val;
@@ -4895,8 +5315,23 @@
 
         if (code === 231) {
           const slotNum = Number(p[0]) || 1;
-          let picName = String(p[1] || "").trim();
-          picName = picName.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => String(simState.vars[Number(vId)] ?? 1));
+          const rawPicParam = String(p[1] || "").trim();
+          let picName = rawPicParam.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => {
+            const curV = simState.vars[Number(vId)];
+            return (curV !== undefined && curV !== null && Number(curV) > 0) ? String(curV) : "1";
+          });
+
+          let dynamicVariants = [];
+          if (/\\[vV]\[\d+\]|\$\{[^}]+\}/.test(rawPicParam) && cgAssetsDict) {
+            dynamicVariants = resolveDynamicVarAssetCandidates(rawPicParam, cgAssetsDict);
+            if (dynamicVariants.length > 0) {
+              const resolvedDirect = resolveAssetInDict(picName, cgAssetsDict, true);
+              picName = resolvedDirect ? resolvedDirect.name : pickBestDefaultVariant(dynamicVariants, dynamicVariants[0]);
+            }
+          } else if (cgAssetsDict) {
+            const resolvedDirect = resolveAssetInDict(picName, cgAssetsDict, true);
+            if (resolvedDirect) picName = resolvedDirect.name;
+          }
 
           const origin = Number(p[2]) || 0;
           const coordMode = Number(p[3]) || 0;
@@ -4904,18 +5339,51 @@
           const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
           const scaleX = Number(p[6] ?? 100);
           const scaleY = Number(p[7] ?? 100);
-          const opacity = Number(p[8] ?? 255);
+          const rawOpacity = Number(p[8] ?? 255);
+          const opacity = rawOpacity > 0 ? rawOpacity : 255;
 
           if (picName && !isDummyBlackOrSystemPicture(picName)) {
-            if (usageTracker) usageTracker(picName, steps.length);
-            if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(picName);
+            // If this slot already had a full-screen CG and is being replaced after a Wait (`Code 230`) without dialogue in between (like `Prison01` -> `Prison02`),
+            // emit a CG step for the previous state so sequential CG animations are each viewable!
+            if (
+              ceDepth === 0 &&
+              hadWaitSinceLastCgFlush &&
+              !hadDialogueSinceLastPic &&
+              pendingPictures[slotNum] &&
+              pendingPictures[slotNum].key &&
+              pendingPictures[slotNum].key !== picName &&
+              !isDetachedSubPartFile(picName)
+            ) {
+              steps.push({
+                type: "cg",
+                slot: slotNum,
+                cgKey: pendingPictures[slotNum].key,
+                pictureSnapshot: clonePicMapFast(pendingPictures),
+                source: "연속 CG 연출"
+              });
+              hadWaitSinceLastCgFlush = false;
+            }
+
+            if (usageTracker) {
+              usageTracker(picName, steps.length);
+              for (const dv of dynamicVariants) usageTracker(dv, steps.length);
+            }
+            if (metaTracker && metaTracker.usedCgs) {
+              metaTracker.usedCgs.add(picName);
+              for (const dv of dynamicVariants) metaTracker.usedCgs.add(dv);
+            }
             const prevVariants = (pendingPictures[slotNum] && pendingPictures[slotNum].variants) ? [...pendingPictures[slotNum].variants] : [];
             if (!prevVariants.includes(picName)) prevVariants.push(picName);
+            for (const dv of dynamicVariants) {
+              if (!prevVariants.includes(dv)) prevVariants.push(dv);
+            }
             pendingPictures[slotNum] = {
               key: picName, origin, x, y, scaleX, scaleY, opacity,
               isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
               variants: prevVariants
             };
+            hadDialogueSinceLastPic = false;
+            updateLastNonEmptyPictures();
           }
           i++;
           continue;
@@ -4929,7 +5397,9 @@
             pendingPictures[slotNum].y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
             pendingPictures[slotNum].scaleX = Number(p[6] ?? 100);
             pendingPictures[slotNum].scaleY = Number(p[7] ?? 100);
-            pendingPictures[slotNum].opacity = Number(p[8] ?? 255);
+            const newOp = Number(p[8] ?? 255);
+            if (newOp > 0) pendingPictures[slotNum].opacity = newOp;
+            updateLastNonEmptyPictures();
           }
           i++;
           continue;
@@ -4937,17 +5407,44 @@
 
         if (code === 235) {
           const slotNum = Number(p[0]) || 1;
+          updateLastNonEmptyPictures();
           pendingPictures[slotNum] = null;
           i++;
           continue;
         }
 
         if (code === 261) {
-          const movieName = String(p[0] || "").trim();
-          if (movieName) {
-            if (usageTracker) usageTracker(movieName, steps.length);
-            if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(movieName);
-            steps.push({ type: "movie", slot: 1, cgKey: movieName, source: "Code 261 (Play Movie)" });
+          const rawMovie = String(p[0] || "").trim();
+          if (rawMovie) {
+            let movieName = rawMovie.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => String(simState.vars[Number(vId)] || 1));
+            const resolvedMovie = cgAssetsDict ? resolveAssetInDict(movieName, cgAssetsDict, true) : null;
+            if (resolvedMovie) movieName = resolvedMovie.name;
+
+            // Also find all series sibling movies (e.g. `居酒屋　雨1`, `居酒屋　雨2`, `居酒屋　雨3` in `image_5d70e0.png`!)
+            const sKey = getNormalizedSeriesKey(movieName);
+            const seriesSiblings = (cgAssetsDict && cgAssetsDict.__fastIndex && cgAssetsDict.__fastIndex.seriesMap?.get(sKey)) || [];
+            const movieVariants = [movieName];
+            for (const sib of seriesSiblings) {
+              if (sib && sib.mediaType === "video" && !movieVariants.includes(sib.name)) {
+                movieVariants.push(sib.name);
+              }
+            }
+
+            if (usageTracker) {
+              for (const mv of movieVariants) usageTracker(mv, steps.length);
+            }
+            if (metaTracker && metaTracker.usedCgs) {
+              for (const mv of movieVariants) metaTracker.usedCgs.add(mv);
+            }
+            steps.push({
+              type: "movie",
+              slot: 1,
+              cgKey: movieName,
+              pictureSnapshot: {
+                1: { key: movieName, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: movieVariants }
+              },
+              source: "Code 261 (Play Movie)"
+            });
           }
           i++;
           continue;
@@ -4980,6 +5477,7 @@
             });
             pendingAudioKey = null;
             pendingTransferMapId = null;
+            hadDialogueSinceLastPic = true;
           }
           continue;
         }
@@ -5017,6 +5515,7 @@
           });
           pendingAudioKey = null;
           pendingTransferMapId = null;
+          hadDialogueSinceLastPic = true;
           continue;
         }
 
@@ -5035,15 +5534,15 @@
               vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
             }, true, ceEffectCache, activeCeStack, opsBudget);
             const st = analyzeStepsStats(subSteps);
-            if (st.dialogueCount > 0) {
+            if (st.dialogueCount > 0 || st.cgCount > 0) {
               options.push({
                 label: `선택: ${currentChoiceLabel}`,
                 preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
                 steps: subSteps
               });
-            } else {
-              mergePictureSnapshotsV10(pendingPictures, subPending, false);
             }
+            mergePictureSnapshotsV10(pendingPictures, subPending, false, false);
+            updateLastNonEmptyPictures();
           };
 
           while (i < list.length) {
@@ -5075,7 +5574,12 @@
 
           if (options.length === 1) steps.push(...options[0].steps);
           else if (options.length > 1) {
-            steps.push({ type: "branch", branchTitle: "플레이어 선택지 (Code 102)", options });
+            steps.push({
+              type: "branch",
+              branchTitle: "플레이어 선택지 (Code 102)",
+              pictureSnapshot: clonePicMapFast(pendingPictures),
+              options
+            });
           }
           continue;
         }
@@ -5102,6 +5606,8 @@
                 steps: subSteps
               });
             }
+            mergePictureSnapshotsV10(pendingPictures, subPending, false, false);
+            updateLastNonEmptyPictures();
           };
 
           while (i < list.length) {
@@ -5124,7 +5630,12 @@
 
           if (options.length === 1) steps.push(...options[0].steps);
           else if (options.length > 1) {
-            steps.push({ type: "branch", branchTitle: "⚔️ 전투 결과 분기", options });
+            steps.push({
+              type: "branch",
+              branchTitle: "⚔️ 전투 결과 분기",
+              pictureSnapshot: clonePicMapFast(pendingPictures),
+              options
+            });
           }
           continue;
         }
@@ -5159,14 +5670,17 @@
 
           let condMet = evaluateBranchInSimState(p, simState.vars, simState.switches);
 
-          if (p[0] === 1 && p[2] === 0 && p[4] === 0) {
+          // Never lock to `0` (`targetVal > 0`) so an initial `If (Var == 0)` check doesn't block `If (Var == 1)`!
+          if (p[0] === 1 && p[2] === 0 && (p[4] === 0 || p[4] === 1)) {
             const varId = Number(p[1]);
             const targetVal = Number(p[3] || 0);
-            if (simState.vars[varId] === undefined) {
+            if ((simState.vars[varId] === undefined || simState.vars[varId] === 0) && targetVal > 0) {
               if (simState.lockedVarBranches[varId] === undefined) {
                 simState.lockedVarBranches[varId] = targetVal;
               }
-              condMet = (simState.lockedVarBranches[varId] === targetVal);
+              condMet = p[4] === 1
+                ? (simState.lockedVarBranches[varId] >= targetVal)
+                : (simState.lockedVarBranches[varId] === targetVal);
             }
           }
 
@@ -5186,29 +5700,40 @@
           const thenSt = analyzeStepsStats(thenSteps);
           const elseSt = analyzeStepsStats(elseSteps);
 
+          // Never let an `Else: Erase Picture` (`elsePending[slot] === null` when `!condMet`) wipe out a slot that `thenPending` just showed!
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet);
+            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, condMet);
             if (elseCmds.length > 0) {
-              mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet);
+              mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
             }
+            updateLastNonEmptyPictures();
             continue;
           }
           if (elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet);
-            if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet);
+            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, condMet);
+            if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
+            updateLastNonEmptyPictures();
             steps.push(...thenSteps);
             continue;
           }
           if (thenSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet);
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet);
+            mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, !condMet);
+            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, false);
+            updateLastNonEmptyPictures();
             steps.push(...elseSteps);
             continue;
           }
 
+          // BOTH `then` and `else` have dialogue (`#5 ❖분기` in `image_5d665c.jpg`!):
+          // Merge both branches' picture snapshots into `pendingPictures` AND attach `pictureSnapshot` directly onto the `branch` step!
+          mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, false);
+          mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
+          updateLastNonEmptyPictures();
+
           steps.push({
             type: "branch",
             branchTitle: "스토리 조건 분기",
+            pictureSnapshot: clonePicMapFast(pendingPictures),
             options: [
               {
                 label: "조건 성립 루트",
@@ -5225,18 +5750,17 @@
           continue;
         }
 
-        // Helper for executing CommonEvent (Code 117 or Plugin CallCommon) with Cycle Prevention & Unconditional O(1) Effect Caching!
         const executeCommonEventCall = (ceId) => {
           if (!ceId || activeCeStack.has(ceId) || ceDepth >= 4) return;
           if (metaTracker && metaTracker.calledCommonEvents) metaTracker.calledCommonEvents.add(ceId);
           const ce = commonEventsMap[ceId];
           if (!ce || !Array.isArray(ce.list)) return;
 
-          // Check O(1) pure-setup cache first!
           if (ceEffectCache && ceEffectCache.has(ceId)) {
             const cached = ceEffectCache.get(ceId);
             if (cached.isPurePictureSetup) {
-              mergePictureSnapshotsV10(pendingPictures, cached.pictureOut, true);
+              mergePictureSnapshotsV10(pendingPictures, cached.pictureOut, true, false);
+              updateLastNonEmptyPictures();
               if (usageTracker && cached.usedCgs) {
                 for (const cgName of cached.usedCgs) usageTracker(cgName, steps.length);
               }
@@ -5254,7 +5778,6 @@
 
           activeCeStack.add(ceId);
 
-          // If not yet in ceEffectCache, evaluate once with an isolated picture map to see if it's a pure picture/system setup CE!
           if (ceEffectCache && !ceEffectCache.has(ceId)) {
             const isoPic = {};
             const isoMeta = {
@@ -5264,7 +5787,7 @@
               setsVars: new Map(),
               usedCgs: new Set()
             };
-            const isoBudget = { count: 0, max: 3500 };
+            const isoBudget = { count: 0, max: 4500 };
             const isoSteps = parseMvEventCommandsV10(
               ce.list,
               commonEventsMap,
@@ -5288,7 +5811,8 @@
                 turnsOnSwitches: isoMeta.turnsOnSwitches,
                 transfersToMaps: isoMeta.transfersToMaps
               });
-              mergePictureSnapshotsV10(pendingPictures, isoPic, true);
+              mergePictureSnapshotsV10(pendingPictures, isoPic, true, false);
+              updateLastNonEmptyPictures();
               if (usageTracker && isoMeta.usedCgs) {
                 for (const cgName of isoMeta.usedCgs) usageTracker(cgName, steps.length);
               }
@@ -5318,7 +5842,8 @@
             activeCeStack,
             opsBudget
           );
-          mergePictureSnapshotsV10(pendingPictures, ceOutPic, true);
+          mergePictureSnapshotsV10(pendingPictures, ceOutPic, true, false);
+          updateLastNonEmptyPictures();
           steps.push(...subSteps);
           activeCeStack.delete(ceId);
         };
@@ -5358,6 +5883,7 @@
           if (/erasePicture/i.test(scriptText)) {
             const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
             if (eraseMatch) {
+              updateLastNonEmptyPictures();
               pendingPictures[Number(eraseMatch[1]) || 1] = null;
             }
           }
@@ -5370,24 +5896,82 @@
                 if (usageTracker) usageTracker(pName, steps.length);
                 if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(pName);
                 pendingPictures[sNum] = { key: pName, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [pName] };
+                updateLastNonEmptyPictures();
               }
             }
           }
-          // Fast scan for video/CG asset tokens only when scriptText is concise (< 400 chars)
-          if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 400) {
-            const tokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_-]{3,}/g) || [];
-            for (const tk of tokens) {
-              const hit = cgAssetsDict.__fastIndex.exactMap.get(tk.normalize("NFC").toLowerCase());
+
+          // Upgraded in v12 (`image_5d70e0.png` & `image_5d8026.png` fix!):
+          // 1) Matches quoted strings OR space-containing movie/CG names (like `"居酒屋　雨2　主人公"`),
+          // 2) Also registers matched image CGs into `pendingPictures` so plugin-driven CG events (`Prison02`, etc.) actually display the image on stage!
+          if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 600) {
+            const candidateTokens = new Set();
+            // Extract quoted strings (which may contain spaces `\u3000` / ` `!)
+            const quotedRegex = /["'「]([^"'」\n]{2,80})["'」]/g;
+            let qm;
+            while ((qm = quotedRegex.exec(scriptText)) !== null) {
+              candidateTokens.add(qm[1].trim());
+            }
+            // Extract space-separated and full-line tokens
+            const wordTokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_\-\u3000 ]{3,}/g) || [];
+            for (const wt of wordTokens) {
+              candidateTokens.add(wt.trim());
+              for (const sub of wt.split(/[\s\u3000]+/)) {
+                if (sub.length >= 3) candidateTokens.add(sub);
+              }
+            }
+
+            let pluginSlotCounter = 50;
+            for (const tk of candidateTokens) {
+              const hit = resolveAssetInDict(tk, cgAssetsDict, true);
               if (hit && !isDummyBlackOrSystemPicture(hit.name)) {
-                if (usageTracker) usageTracker(hit.name, steps.length);
-                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(hit.name);
+                const sKey = getNormalizedSeriesKey(hit.name);
+                const seriesSibs = cgAssetsDict.__fastIndex.seriesMap?.get(sKey) || [hit];
+
+                if (usageTracker) {
+                  usageTracker(hit.name, steps.length);
+                  for (const sib of seriesSibs) {
+                    if (sib && sib.mediaType === "video") usageTracker(sib.name, steps.length);
+                  }
+                }
+                if (metaTracker && metaTracker.usedCgs) {
+                  metaTracker.usedCgs.add(hit.name);
+                  for (const sib of seriesSibs) {
+                    if (sib && sib.mediaType === "video") metaTracker.usedCgs.add(sib.name);
+                  }
+                }
+
                 if (hit.mediaType === "video") {
-                  steps.push({ type: "movie", slot: 1, cgKey: hit.name, source: "Plugin/Script Video" });
+                  const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
+                  if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
+                  steps.push({
+                    type: "movie",
+                    slot: 1,
+                    cgKey: hit.name,
+                    pictureSnapshot: {
+                      1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
+                    },
+                    source: "Plugin/Script Video"
+                  });
+                } else {
+                  const slotToUse = pluginSlotCounter++;
+                  pendingPictures[slotToUse] = {
+                    key: hit.name,
+                    origin: 0,
+                    x: 0,
+                    y: 0,
+                    scaleX: 100,
+                    scaleY: 100,
+                    opacity: 255,
+                    variants: [hit.name]
+                  };
+                  updateLastNonEmptyPictures();
                 }
               }
             }
           }
-          const ceMatch = scriptText.match(/(?:reserveCommonEvent|CallCommon|CCT)\s*(?:\(\s*|\s+)(\d+)/i);
+
+          const ceMatch = scriptText.match(/(?:reserveCommonEvent|CallCommon|P_CALL_CE|CALL_COMMON|CCT|commonEventId["'\s:]+)\s*(?:\(\s*|\s+|["']?)(\d+)/i);
           if (ceMatch) {
             executeCommonEventCall(Number(ceMatch[1]));
           }
@@ -5398,15 +5982,23 @@
         i++;
       }
 
-      if (steps.length === 0 && Object.keys(pendingPictures).length > 0 && ceDepth === 0) {
-        const validKeys = Object.entries(pendingPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
-        if (validKeys.length > 0) {
-          const topEntry = validKeys[validKeys.length - 1][1];
+      // Guaranteed Non-Empty Cutscene Step (`image_5d7fe0.png` `0 / 0` Fix!):
+      // Even if an event ended with `Code 235 (Erase Picture)` so `pendingPictures` became empty,
+      // `lastNonEmptyPictures` preserves the CGs shown during the event so `steps` is NEVER empty!
+      if (steps.length === 0 && ceDepth === 0) {
+        const activeEntries = Object.entries(pendingPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+        const fallbackEntries = activeEntries.length > 0
+          ? activeEntries
+          : Object.entries(lastNonEmptyPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+        const snapToUse = activeEntries.length > 0 ? pendingPictures : lastNonEmptyPictures;
+
+        if (fallbackEntries.length > 0) {
+          const topEntry = fallbackEntries[fallbackEntries.length - 1][1];
           steps.push({
             type: "cg",
             slot: 1,
             cgKey: topEntry.key,
-            pictureSnapshot: clonePicMapFast(pendingPictures),
+            pictureSnapshot: clonePicMapFast(snapToUse),
             source: "단독 CG 연출"
           });
         }
@@ -5455,6 +6047,19 @@
       );
     }
 
+    // Extracts a collision-free asset key: if inside a subfolder of `pictures/` (e.g. `img/pictures/100Atla/01.png`),
+    // returns `"100Atla/01"` if `"01"` already exists in `cgAssets`, or `"01"` if unique!
+    function extractCollisionFreeAssetKey(relPath, cgAssets) {
+      const cleanRel = relPath.replace(/\\/g, "/");
+      const baseName = cleanRel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_|webm|mp4|ogv|mov)$/i, "");
+      const picMatch = cleanRel.match(/(?:pictures|cg|stand|tachie|fgimage)\/(.+)\.(?:png|jpg|jpeg|webp|rpgmvp|png_)$/i);
+      const subRel = picMatch ? picMatch[1] : baseName;
+      if (subRel.includes("/") && (cgAssets[baseName] || /^(?:\d+|base|body|arm|face|eye|mouth|cloth|bg)$/i.test(baseName))) {
+        return subRel;
+      }
+      return baseName;
+    }
+
     async function handleLocalFilesLoad(fileList) {
       try {
         const files = Array.from(fileList || []);
@@ -5473,7 +6078,8 @@
         const audioAssets = {};
         let pluginsJsText = "";
 
-        const jsonFileObjs = [];
+        const coreJsonObjs = [];
+        const mapJsonObjs = [];
 
         for (const f of files) {
           const rel = (f.webkitRelativePath || f.name).replace(/\\/g, "/");
@@ -5482,7 +6088,12 @@
           if (lower.endsWith("js/plugins.js") || lower === "plugins.js") {
             try { pluginsJsText = await f.text(); } catch (e) {}
           } else if (isKnownRpgDataJsonFile(lower)) {
-            jsonFileObjs.push({ name: rel.split("/").pop().toLowerCase(), file: f });
+            const fname = rel.split("/").pop().toLowerCase();
+            if (/^map\d+\.json$/i.test(fname)) {
+              mapJsonObjs.push({ name: fname, file: f });
+            } else {
+              coreJsonObjs.push({ name: fname, file: f });
+            }
           } else if (lower.includes("faces/") && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
             const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
             faceAssets[rawName] = { name: rawName, lazyFile: f, blobUrl: null };
@@ -5490,7 +6101,7 @@
             const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
             enemyAssets[rawName] = { name: rawName, folder: "img/enemies", mediaType: "image", lazyFile: f, blobUrl: null };
           } else if (isGameCgOrStandingPath(lower)) {
-            const rawName = rel.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const rawName = extractCollisionFreeAssetKey(rel, cgAssets);
             const partInfo = getPartCategoryAndPrefix(rawName);
             cgAssets[rawName] = {
               name: rawName,
@@ -5498,6 +6109,7 @@
               mediaType: "image",
               label: rawName,
               groupPrefix: partInfo.partPrefix,
+              seriesKey: getNormalizedSeriesKey(rawName),
               partCategory: partInfo.category,
               isGlassesOrAcc: isGlassesOrOptionalOverlayName(rawName),
               lazyFile: f,
@@ -5509,7 +6121,9 @@
             const rawName = rel.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
             cgAssets[rawName] = {
               name: rawName, folder: "movies", mediaType: "video", label: `🎬 ${rawName}`,
-              groupPrefix: rawName, partCategory: "동영상", lazyFile: f, blobUrl: null,
+              groupPrefix: getNormalizedSeriesKey(rawName),
+              seriesKey: getNormalizedSeriesKey(rawName),
+              partCategory: "동영상", lazyFile: f, blobUrl: null,
               directUsedInList: [], usedInList: []
             };
           } else if ((lower.includes("audio/") || lower.includes("se/") || lower.includes("me/") || lower.includes("bgs/") || lower.includes("voice/")) && /\.(ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i.test(lower)) {
@@ -5522,23 +6136,18 @@
           }
         }
 
-        showToast(`📂 JSON 데이터 파일(${jsonFileObjs.length}개)을 읽고 있습니다...`);
-        await new Promise(r => setTimeout(r, 0));
-
-        for (let b = 0; b < jsonFileObjs.length; b += 30) {
-          await Promise.all(jsonFileObjs.slice(b, b + 30).map(async (item) => {
-            try {
-              jsonFiles[item.name] = JSON.parse(await item.file.text());
-            } catch (e) {}
-          }));
-        }
+        await Promise.all(coreJsonObjs.map(async (item) => {
+          try {
+            jsonFiles[item.name] = JSON.parse(await item.file.text());
+          } catch (e) {}
+        }));
 
         buildFastAssetLookup(cgAssets);
         buildFastAssetLookup(faceAssets);
         buildFastAssetLookup(audioAssets);
 
         await registerParsedGameProject(
-          jsonFiles, cgAssets, enemyAssets, faceAssets, audioAssets,
+          jsonFiles, mapJsonObjs, cgAssets, enemyAssets, faceAssets, audioAssets,
           files[0]?.webkitRelativePath?.split("/")[0] || "로컬 게임 프로젝트",
           pluginsJsText,
           Math.round(performance.now() - t0),
@@ -5550,12 +6159,12 @@
     }
 
     async function handleZipFileLoad(file) {
-      if (!file || !window.JSZip) return;
-      showToast(`📦 ZIP 패키지(${file.name}) 인덱스를 분석하고 있습니다...`);
+      if (!file) return;
+      showToast(`📦 ZIP 패키지(${file.name})를 저메모리 스트리밍 모드로 인덱싱 중입니다...`);
       await new Promise(r => setTimeout(r, 0));
       try {
         const t0 = performance.now();
-        const zip = await window.JSZip.loadAsync(file);
+        const zip = await openZipArchiveSmart(file);
         if (zip.files["story_package.json"]) {
           const pkgJson = JSON.parse(await zip.files["story_package.json"].async("string"));
           for (const [, asset] of Object.entries(pkgJson.cgAssets || {})) {
@@ -5586,40 +6195,51 @@
         const audioAssets = {};
         let pluginsJsText = "";
 
-        const jsonEntries = [];
+        const coreJsonEntries = [];
+        const mapJsonEntries = [];
 
         for (const path of Object.keys(zip.files)) {
           const entry = zip.files[path];
           if (entry.dir) continue;
-          const lower = path.replace(/\\/g, "/").toLowerCase();
+          const cleanPath = path.replace(/\\/g, "/");
+          const lower = cleanPath.toLowerCase();
           if (lower.endsWith("js/plugins.js") || lower === "plugins.js") {
             try { pluginsJsText = await entry.async("string"); } catch (e) {}
           } else if (isKnownRpgDataJsonFile(lower)) {
-            jsonEntries.push({ name: lower.split("/").pop(), entry });
+            const fname = lower.split("/").pop();
+            if (/^map\d+\.json$/i.test(fname)) {
+              mapJsonEntries.push({ name: fname, entry });
+            } else {
+              coreJsonEntries.push({ name: fname, entry });
+            }
           } else if (lower.includes("faces/") && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
-            const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const rawName = cleanPath.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
             faceAssets[rawName] = { name: rawName, zipEntry: entry, blobUrl: null };
           } else if ((lower.includes("enemies/") || lower.includes("sv_enemies/")) && /\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i.test(lower)) {
-            const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const rawName = cleanPath.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
             enemyAssets[rawName] = { name: rawName, folder: "img/enemies", mediaType: "image", zipEntry: entry, blobUrl: null };
           } else if (isGameCgOrStandingPath(lower)) {
-            const rawName = path.split("/").pop().replace(/\.(png|jpg|jpeg|webp|rpgmvp|png_)$/i, "");
+            const rawName = extractCollisionFreeAssetKey(cleanPath, cgAssets);
             const partInfo = getPartCategoryAndPrefix(rawName);
             cgAssets[rawName] = {
               name: rawName, folder: "img/pictures", mediaType: "image", label: rawName,
-              groupPrefix: partInfo.partPrefix, partCategory: partInfo.category,
+              groupPrefix: partInfo.partPrefix,
+              seriesKey: getNormalizedSeriesKey(rawName),
+              partCategory: partInfo.category,
               isGlassesOrAcc: isGlassesOrOptionalOverlayName(rawName),
               zipEntry: entry, blobUrl: null, directUsedInList: [], usedInList: []
             };
           } else if ((lower.includes("movies/") || lower.includes("video/")) && /\.(webm|mp4|ogv|mov)$/i.test(lower)) {
-            const rawName = path.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
+            const rawName = cleanPath.split("/").pop().replace(/\.(webm|mp4|ogv|mov)$/i, "");
             cgAssets[rawName] = {
               name: rawName, folder: "movies", mediaType: "video", label: `🎬 ${rawName}`,
-              groupPrefix: rawName, partCategory: "동영상",
+              groupPrefix: getNormalizedSeriesKey(rawName),
+              seriesKey: getNormalizedSeriesKey(rawName),
+              partCategory: "동영상",
               zipEntry: entry, blobUrl: null, directUsedInList: [], usedInList: []
             };
           } else if ((lower.includes("audio/") || lower.includes("se/") || lower.includes("me/") || lower.includes("bgs/") || lower.includes("voice/")) && /\.(ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i.test(lower)) {
-            const rawName = path.split("/").pop().replace(/\.(ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i, "");
+            const rawName = cleanPath.split("/").pop().replace(/\.(ogg|m4a|wav|mp3|rpgmvo|ogg_|rpgmvm|m4a_)$/i, "");
             if (!audioAssets[rawName]) {
               audioAssets[rawName] = { name: rawName, mediaType: "audio", zipEntry: entry, oggEntry: null, m4aEntry: null, blobUrl: null };
             }
@@ -5628,22 +6248,17 @@
           }
         }
 
-        showToast(`📦 ZIP 내 JSON 데이터(${jsonEntries.length}개)를 압축 해제하고 있습니다...`);
-        await new Promise(r => setTimeout(r, 0));
-
-        for (let b = 0; b < jsonEntries.length; b += 30) {
-          await Promise.all(jsonEntries.slice(b, b + 30).map(async (item) => {
-            try {
-              jsonFiles[item.name] = JSON.parse(await item.entry.async("string"));
-            } catch (e) {}
-          }));
-        }
+        await Promise.all(coreJsonEntries.map(async (item) => {
+          try {
+            jsonFiles[item.name] = JSON.parse(await item.entry.async("string"));
+          } catch (e) {}
+        }));
 
         buildFastAssetLookup(cgAssets);
         buildFastAssetLookup(faceAssets);
         buildFastAssetLookup(audioAssets);
         await registerParsedGameProject(
-          jsonFiles, cgAssets, enemyAssets, faceAssets, audioAssets,
+          jsonFiles, mapJsonEntries, cgAssets, enemyAssets, faceAssets, audioAssets,
           file.name.replace(/\.zip$/i, ""),
           pluginsJsText,
           Math.round(performance.now() - t0),
@@ -5661,7 +6276,7 @@
     function isNpcOrMonsterOrDummyActorName(name) {
       const s = String(name || "").trim();
       if (!s) return true;
-      return /테스트|더미|예비|마을\s*사람|부랑자|들개|뚱보|가난해|묘한|남자|여자아이|슬라임|고블린|병사|도적|몬스터|テスト|ダミー|予備|村人|男|犬|モンスター|兵士/i.test(s);
+      return /영혼|魂|soul|분신|테스트|더미|예비|마을\s*사람|부랑자|들개|뚱보|가난해|묘한|남자|여자아이|슬라임|고블린|병사|도적|몬스터|テスト|ダミー|予備|村人|男|犬|モンスター|兵士/i.test(s);
     }
 
     function findHeroineRomajiCandidates(actorName) {
@@ -5691,7 +6306,22 @@
       return tags.length > 0 ? `단계 ${pNum} (${tags.join("·")})` : `단계 ${pNum}`;
     }
 
-    async function registerParsedGameProject(jsonFiles, cgAssets, enemyAssets, faceAssets, audioAssets, fallbackTitle, pluginsJsText = "", loadMs = 0, rawZipFile = null) {
+    async function registerParsedGameProject(jsonFiles, mapDescriptors, cgAssets, enemyAssets, faceAssets, audioAssets, fallbackTitle, pluginsJsText = "", loadMs = 0, rawZipFile = null) {
+      // Backwards compatibility if mapDescriptors is not an array (e.g. if called with old signature)
+      if (!Array.isArray(mapDescriptors)) {
+        rawZipFile = loadMs;
+        loadMs = pluginsJsText;
+        pluginsJsText = fallbackTitle;
+        fallbackTitle = audioAssets;
+        audioAssets = faceAssets;
+        faceAssets = enemyAssets;
+        enemyAssets = cgAssets;
+        cgAssets = mapDescriptors;
+        mapDescriptors = Object.entries(jsonFiles)
+          .filter(([k, v]) => /^map\d+\.json$/i.test(k) && v)
+          .map(([k, v]) => ({ name: k, parsedData: v }));
+      }
+
       const sys = jsonFiles["system.json"] || {};
       const mapInfos = jsonFiles["mapinfos.json"] || {};
       const commonEventsArr = jsonFiles["commonevents.json"] || [];
@@ -5785,7 +6415,7 @@
           const rawName = String(ac.name || "").trim();
           if (!rawName) return;
 
-          if (ac.id > 1 && isNpcOrMonsterOrDummyActorName(rawName)) return;
+          if (isNpcOrMonsterOrDummyActorName(rawName)) return;
 
           const baseHeroineName = rawName.replace(/\s*[(（][^)）]*(?:전라|속옷|수영복|파손|알몸|사복|교복|裸|下着|水着|私服)[^)）]*[)）]/gi, "").trim();
           if (deduplicatedHeroines.has(baseHeroineName)) {
@@ -5832,9 +6462,18 @@
             return searchTokens.some(tk => tk.length >= 2 && kl.includes(tk));
           });
 
-          const bestCg = matchedCgCandidates.length > 0
+          // Specifically check for dedicated Ero-Status portraits like `eroStaAb01` (Arika), `eroStaRb01` (Rietta), `eroStaTb01` (Terena)!
+          const eroStatusCg = matchedCgCandidates.find(k => /erosta|status|prof|ステ|プロフ/i.test(k) && !/back/i.test(k)) || null;
+          const bestCg = eroStatusCg || (matchedCgCandidates.length > 0
             ? pickBestDefaultVariant(matchedCgCandidates, matchedCgCandidates[0])
-            : null;
+            : null);
+
+          // Count how many Ero/Affection variables in `System.json` explicitly reference this character
+          const allVarVals = Object.values(variableNames);
+          const eroVarMatchCount = allVarVals.filter(vn => {
+            const vnl = String(vn || "").toLowerCase();
+            return searchTokens.some(tk => tk.length >= 2 && vnl.includes(tk));
+          }).length;
 
           deduplicatedHeroines.set(baseHeroineName, {
             id: ac.id,
@@ -5846,13 +6485,21 @@
             faceIndex: ac.faceIndex || 0,
             baseStats,
             customMeta,
+            eroStatusCg,
             portraitCg: bestCg,
-            standingSnapshot: null
+            candidateCgs: matchedCgCandidates,
+            standingSnapshot: null,
+            _hasEroStatus: (eroStatusCg || eroVarMatchCount > 0) ? 1 : 0,
+            _eroPriority: (eroStatusCg ? 500 : 0) + eroVarMatchCount * 20 + (bestCg ? 10 : 0)
           });
         });
       }
 
-      const actorProfiles = Array.from(deduplicatedHeroines.values()).slice(0, 10);
+      // Sort heroines so characters with actual Ero-Status graphics/variables (`아리카`, `리에타`, `테레나`) come BEFORE male protagonists (`쿠르트`), while preserving `Actors.json` heroine order (`a.id - b.id`)!
+      const actorProfiles = Array.from(deduplicatedHeroines.values())
+        .sort((a, b) => (b._hasEroStatus - a._hasEroStatus) || (a.id - b.id))
+        .slice(0, 10);
+
       if (actorProfiles.length === 0) {
         actorProfiles.push({
           id: 1,
@@ -5867,20 +6514,28 @@
         });
       }
 
+      state.selectedStatusActorIdx = 0;
+
       if (actorsMap[1]) {
         state.protagonistName = actorsMap[1];
         document.getElementById("protagonistNameInput").value = actorsMap[1];
       }
 
       const prefixToAssetKeys = new Map();
+      const seriesToAssetKeys = new Map();
       for (const k of allCgKeys) {
         const a = cgAssets[k];
         const pfx = a.groupPrefix || getVariationPrefix(k);
         if (!prefixToAssetKeys.has(pfx)) prefixToAssetKeys.set(pfx, []);
         prefixToAssetKeys.get(pfx).push(k);
+
+        const sKey = a.seriesKey || getNormalizedSeriesKey(k);
+        if (sKey) {
+          if (!seriesToAssetKeys.has(sKey)) seriesToAssetKeys.set(sKey, []);
+          seriesToAssetKeys.get(sKey).push(k);
+        }
       }
 
-      // Fast O(1) Direct Scene Linker during parsing (Sibling propagation is done in a single O(N) post-pass!)
       function markAssetDirectUsedFast(rawKey, locObj) {
         if (!rawKey || isDummyBlackOrSystemPicture(rawKey)) return;
         const asset = resolveAssetInDict(rawKey, cgAssets, true);
@@ -5904,6 +6559,7 @@
 
       const startMapId = Number(sys.startMapId) || 1;
       const globalCalledCommonEvents = new Set();
+      const ceToCallingMapEvents = new Map();
       const rawMapRecords = new Map();
       const ceEffectCache = new Map();
       const conditionVarSummary = {};
@@ -5925,166 +6581,192 @@
         conditionVarSummary[varId].eventsCount++;
       }
 
-      const mapFileEntries = Object.entries(jsonFiles).filter(([fname, data]) => /^map\d+\.json$/i.test(fname) && data && Array.isArray(data.events));
+      const totalMapCount = mapDescriptors.length;
+      const isLargeMobileGame = totalMapCount > 80;
 
-      for (let mIdx = 0; mIdx < mapFileEntries.length; mIdx++) {
-        const [fname, data] = mapFileEntries[mIdx];
-        if (mIdx > 0 && mIdx % 25 === 0) {
-          showToast(`⚡ 맵 이벤트 및 스토리 인과관계 고속 분석 중... (${mIdx} / ${mapFileEntries.length} 맵)`);
+      // Stream & parse `MapXXX.json` in memory-safe batches of 15 maps, freeing each raw JSON AST immediately!
+      for (let bStart = 0; bStart < totalMapCount; bStart += 15) {
+        const batch = mapDescriptors.slice(bStart, bStart + 15);
+        if (bStart > 0) {
+          showToast(`⚡ 맵 이벤트 스트리밍 분석 중... (${bStart} / ${totalMapCount} 맵)`);
           await new Promise(r => setTimeout(r, 0));
         }
-        const m = fname.match(/^map(\d+)\.json$/i);
-        const mapId = Number(m[1]);
-        const mInfo = mapInfos[mapId] || {};
-        const mapTitle = mInfo.name || data.displayName || `Map ${String(mapId).padStart(3, "0")}`;
-        const editorMapOrder = Number(mInfo.order) || mapId;
-        const events = [];
 
-        for (const ev of data.events) {
-          if (!ev) continue;
-          const metaTracker = {
-            turnsOnSwitches: new Set(),
-            transfersToMaps: new Set(),
-            calledCommonEvents: new Set(),
-            firstVarCond: null,
-            varThresholds: new Map(),
-            setsVars: new Map(),
-            usedCgs: new Set(),
-            hasBattleProcessing: false,
-            hasDefeatBranch: false
-          };
-          let entryPageSwitchReq = null;
-          let entryPageVarId = 0;
-          let entryPageVarVal = 0;
-          let entryPageAutorun = false;
-          let isParallel = false;
+        const loadedBatch = await Promise.all(batch.map(async (desc) => {
+          if (desc.parsedData) return { name: desc.name, data: desc.parsedData };
+          try {
+            const rawStr = desc.file ? await desc.file.text() : await desc.entry.async("string");
+            return { name: desc.name, data: JSON.parse(rawStr) };
+          } catch (e) {
+            return null;
+          }
+        }));
 
-          const pages = (ev.pages || []).map((p, idx) => {
-            if (p.trigger === 4) isParallel = true;
-            const c = p.conditions || {};
-            if (c.variableValid && c.variableId) {
-              recordVarConditionUsage(Number(c.variableId), Number(c.variableValue || 0));
-            }
-            const steps = parseMvEventCommandsV10(
-              p.list || [],
-              commonEventsMap,
-              cgAssets,
-              (usedCgName, stepIdx) => markAssetDirectUsedFast(usedCgName, { mapId, eventId: ev.id, pageIdx: idx, stepIdx: stepIdx || 0 }),
-              metaTracker,
-              0,
-              {},
-              null,
-              false,
-              ceEffectCache
-            );
-            const st = computeStepsStatsRaw(steps);
+        for (const item of loadedBatch) {
+          if (!item || !item.data || !Array.isArray(item.data.events)) continue;
+          const fname = item.name;
+          const data = item.data;
+          const m = fname.match(/^map(\d+)\.json$/i);
+          if (!m) continue;
+          const mapId = Number(m[1]);
+          const mInfo = mapInfos[mapId] || {};
+          const mapTitle = mInfo.name || data.displayName || `Map ${String(mapId).padStart(3, "0")}`;
+          const editorMapOrder = Number(mInfo.order) || mapId;
+          const events = [];
 
-            for (const s of steps) {
-              if (s.pictureSnapshot && Object.keys(s.pictureSnapshot).length >= 1) {
-                for (const prof of actorProfiles) {
-                  if (prof.standingSnapshot) continue;
-                  const tokens = findHeroineRomajiCandidates(prof.name);
-                  const matchesHeroine = Object.values(s.pictureSnapshot).some(v => v && v.key && tokens.some(tk => tk.length >= 2 && v.key.toLowerCase().includes(tk)));
-                  if (matchesHeroine) {
-                    prof.standingSnapshot = clonePicMapFast(s.pictureSnapshot);
+          for (const ev of data.events) {
+            if (!ev) continue;
+            const metaTracker = {
+              turnsOnSwitches: new Set(),
+              transfersToMaps: new Set(),
+              calledCommonEvents: new Set(),
+              firstVarCond: null,
+              varThresholds: new Map(),
+              setsVars: new Map(),
+              usedCgs: new Set(),
+              hasBattleProcessing: false,
+              hasDefeatBranch: false
+            };
+            let entryPageSwitchReq = null;
+            let entryPageVarId = 0;
+            let entryPageVarVal = 0;
+            let entryPageAutorun = false;
+            let isParallel = false;
+
+            const pages = (ev.pages || []).map((p, idx) => {
+              if (p.trigger === 4) isParallel = true;
+              const c = p.conditions || {};
+              if (c.variableValid && c.variableId) {
+                recordVarConditionUsage(Number(c.variableId), Number(c.variableValue || 0));
+              }
+              const steps = parseMvEventCommandsV10(
+                p.list || [],
+                commonEventsMap,
+                cgAssets,
+                (usedCgName, stepIdx) => markAssetDirectUsedFast(usedCgName, { mapId, eventId: ev.id, pageIdx: idx, stepIdx: stepIdx || 0 }),
+                metaTracker,
+                0,
+                {},
+                null,
+                false,
+                ceEffectCache
+              );
+              const st = computeStepsStatsRaw(steps);
+
+              for (const s of steps) {
+                if (s.pictureSnapshot && Object.keys(s.pictureSnapshot).length >= 1) {
+                  for (const prof of actorProfiles) {
+                    if (prof.standingSnapshot) continue;
+                    const tokens = findHeroineRomajiCandidates(prof.name);
+                    const matchesHeroine = Object.values(s.pictureSnapshot).some(v => v && v.key && tokens.some(tk => tk.length >= 2 && v.key.toLowerCase().includes(tk)));
+                    if (matchesHeroine) {
+                      prof.standingSnapshot = clonePicMapFast(s.pictureSnapshot);
+                    }
                   }
                 }
               }
-            }
 
-            if ((st.dialogueCount > 0 || st.cgCount > 0) && entryPageSwitchReq === null) {
-              if (p.trigger === 3) entryPageAutorun = true;
-              if (c.variableValid && c.variableId && !isNonStoryTempOrPoseVarName(variableNames[c.variableId])) {
-                entryPageVarId = Number(c.variableId);
-                entryPageVarVal = Number(c.variableValue || 0);
-              } else if (metaTracker.firstVarCond && !isNonStoryTempOrPoseVarName(variableNames[metaTracker.firstVarCond.varId])) {
-                entryPageVarId = metaTracker.firstVarCond.varId;
-                entryPageVarVal = metaTracker.firstVarCond.val;
+              if ((st.dialogueCount > 0 || st.cgCount > 0) && entryPageSwitchReq === null) {
+                if (p.trigger === 3) entryPageAutorun = true;
+                if (c.variableValid && c.variableId && !isNonStoryTempOrPoseVarName(variableNames[c.variableId])) {
+                  entryPageVarId = Number(c.variableId);
+                  entryPageVarVal = Number(c.variableValue || 0);
+                } else if (metaTracker.firstVarCond && !isNonStoryTempOrPoseVarName(variableNames[metaTracker.firstVarCond.varId])) {
+                  entryPageVarId = metaTracker.firstVarCond.varId;
+                  entryPageVarVal = metaTracker.firstVarCond.val;
+                }
+                if (c.switch1Valid && c.switch1Id) entryPageSwitchReq = Number(c.switch1Id);
+                else if (c.switch2Valid && c.switch2Id) entryPageSwitchReq = Number(c.switch2Id);
+                else entryPageSwitchReq = 0;
               }
-              if (c.switch1Valid && c.switch1Id) entryPageSwitchReq = Number(c.switch1Id);
-              else if (c.switch2Valid && c.switch2Id) entryPageSwitchReq = Number(c.switch2Id);
-              else entryPageSwitchReq = 0;
-            }
-            return {
-              pageIndex: idx + 1,
-              conditionLabel: buildPageConditionSummaryLabel(idx, p, variableNames),
-              rawList: p.list || [],
-              steps,
-              _compiled: true,
-              _stats: st
-            };
-          });
-
-          for (const [vId, thSet] of metaTracker.varThresholds.entries()) {
-            for (const vVal of thSet) recordVarConditionUsage(vId, vVal);
-          }
-
-          metaTracker.calledCommonEvents.forEach(id => globalCalledCommonEvents.add(id));
-          const totalStats = pages.reduce((acc, p) => {
-            const st = p._stats || analyzeStepsStats(p.steps);
-            acc.d += st.dialogueCount;
-            acc.c += st.cgCount;
-            return acc;
-          }, { d: 0, c: 0 });
-
-          const evNumMatch = String(ev.name || "").match(/(?:ev|cg|h|scene|회상|이벤트)\s*0*(\d+)/i);
-          const cgSeqNum = evNumMatch ? Number(evNumMatch[1]) : (totalStats.c > 0 ? ev.id : 5000 + ev.id);
-
-          const setsVarValues = {};
-          for (const [vId, vMod] of metaTracker.setsVars.entries()) {
-            setsVarValues[vId] = vMod;
-          }
-
-          const isAmbientOneLinerNpc = (
-            totalStats.d > 0 &&
-            totalStats.d <= 2 &&
-            totalStats.c === 0 &&
-            !entryPageAutorun &&
-            (entryPageSwitchReq || 0) === 0 &&
-            entryPageVarId === 0 &&
-            metaTracker.turnsOnSwitches.size === 0 &&
-            metaTracker.transfersToMaps.size === 0 &&
-            metaTracker.setsVars.size === 0
-          );
-
-          const evRecord = {
-            id: ev.id,
-            mapId,
-            name: `EV${String(ev.id).padStart(3, "0")}: ${ev.name || `EV${String(ev.id).padStart(3, "0")}`}`,
-            isParallelOrHud: isParallel || totalStats.d === 0,
-            isAmbientOneLinerNpc,
-            entryPageSwitchReq: entryPageSwitchReq || 0,
-            entryPageVarId,
-            entryPageVarVal,
-            entryPageAutorun,
-            turnsOnSwitches: Array.from(metaTracker.turnsOnSwitches),
-            transfersToMaps: Array.from(metaTracker.transfersToMaps),
-            setsVarValues,
-            totalDialogue: totalStats.d,
-            totalCg: totalStats.c,
-            editorOrder: editorMapOrder * 1000 + ev.id,
-            cgOrder: (totalStats.c > 0 ? 0 : 100000) + cgSeqNum * 100 + ev.id,
-            manualOrder: editorMapOrder * 1000 + ev.id,
-            storyOrder: 999999,
-            storyReason: "",
-            pages
-          };
-          events.push(evRecord);
-
-          if ((metaTracker.hasBattleProcessing || metaTracker.hasDefeatBranch || /敗北|戦闘|ボス|패배|전투|보스|lose|defeat/i.test(ev.name || "")) && totalStats.d > 0) {
-            battleScenesList.push({
-              title: `${mapTitle} · EV${String(ev.id).padStart(3, "0")}: ${ev.name || ""}`,
-              mapId,
-              eventId: ev.id,
-              pageIdx: 0,
-              stepIdx: 0,
-              badge: metaTracker.hasDefeatBranch ? "💔 패배 분기 포함" : "⚔️ 전투 이벤트"
+              const keepRawList = (st.dialogueCount > 0 || st.cgCount > 0) && (!isLargeMobileGame || (p.list && p.list.length < 400));
+              return {
+                pageIndex: idx + 1,
+                conditionLabel: buildPageConditionSummaryLabel(idx, p, variableNames),
+                rawList: keepRawList ? (p.list || []) : [],
+                steps,
+                _compiled: true,
+                _stats: st
+              };
             });
-          }
-        }
 
-        if (events.length > 0) {
-          rawMapRecords.set(mapId, { id: mapId, editorOrder: editorMapOrder, name: `${String(mapId).padStart(3, "0")}: ${mapTitle}`, events });
+            for (const [vId, thSet] of metaTracker.varThresholds.entries()) {
+              for (const vVal of thSet) recordVarConditionUsage(vId, vVal);
+            }
+
+            metaTracker.calledCommonEvents.forEach(ceId => {
+              globalCalledCommonEvents.add(ceId);
+              if (!ceToCallingMapEvents.has(ceId)) ceToCallingMapEvents.set(ceId, []);
+              const callers = ceToCallingMapEvents.get(ceId);
+              if (callers.length < 10) callers.push({ mapId, eventId: ev.id, pageIdx: 0, stepIdx: 0 });
+            });
+
+            const totalStats = pages.reduce((acc, p) => {
+              const st = p._stats || analyzeStepsStats(p.steps);
+              acc.d += st.dialogueCount;
+              acc.c += st.cgCount;
+              return acc;
+            }, { d: 0, c: 0 });
+
+            const evNumMatch = String(ev.name || "").match(/(?:ev|cg|h|scene|회상|이벤트)\s*0*(\d+)/i);
+            const cgSeqNum = evNumMatch ? Number(evNumMatch[1]) : (totalStats.c > 0 ? ev.id : 5000 + ev.id);
+
+            const setsVarValues = {};
+            for (const [vId, vMod] of metaTracker.setsVars.entries()) {
+              setsVarValues[vId] = vMod;
+            }
+
+            const isAmbientOneLinerNpc = (
+              totalStats.d > 0 &&
+              totalStats.d <= 2 &&
+              totalStats.c === 0 &&
+              !entryPageAutorun &&
+              (entryPageSwitchReq || 0) === 0 &&
+              entryPageVarId === 0 &&
+              metaTracker.turnsOnSwitches.size === 0 &&
+              metaTracker.transfersToMaps.size === 0 &&
+              metaTracker.setsVars.size === 0
+            );
+
+            const evRecord = {
+              id: ev.id,
+              mapId,
+              name: `EV${String(ev.id).padStart(3, "0")}: ${ev.name || `EV${String(ev.id).padStart(3, "0")}`}`,
+              isParallelOrHud: isParallel && totalStats.d === 0 && totalStats.c === 0,
+              isAmbientOneLinerNpc,
+              entryPageSwitchReq: entryPageSwitchReq || 0,
+              entryPageVarId,
+              entryPageVarVal,
+              entryPageAutorun,
+              turnsOnSwitches: Array.from(metaTracker.turnsOnSwitches),
+              transfersToMaps: Array.from(metaTracker.transfersToMaps),
+              setsVarValues,
+              totalDialogue: totalStats.d,
+              totalCg: totalStats.c,
+              editorOrder: editorMapOrder * 1000 + ev.id,
+              cgOrder: (totalStats.c > 0 ? 0 : 100000) + cgSeqNum * 100 + ev.id,
+              manualOrder: editorMapOrder * 1000 + ev.id,
+              storyOrder: 999999,
+              storyReason: "",
+              pages
+            };
+            events.push(evRecord);
+
+            if ((metaTracker.hasBattleProcessing || metaTracker.hasDefeatBranch || /敗北|戦闘|ボス|패배|전투|보스|lose|defeat/i.test(ev.name || "")) && totalStats.d > 0) {
+              battleScenesList.push({
+                title: `${mapTitle} · EV${String(ev.id).padStart(3, "0")}: ${ev.name || ""}`,
+                mapId,
+                eventId: ev.id,
+                pageIdx: 0,
+                stepIdx: 0,
+                badge: metaTracker.hasDefeatBranch ? "💔 패배 분기 포함" : "⚔️ 전투 이벤트"
+              });
+            }
+          }
+
+          if (events.length > 0) {
+            rawMapRecords.set(mapId, { id: mapId, editorOrder: editorMapOrder, name: `${String(mapId).padStart(3, "0")}: ${mapTitle}`, events });
+          }
         }
       }
 
@@ -6092,14 +6774,19 @@
       for (const ce of Object.values(commonEventsMap)) {
         if (!ce) continue;
         const isTestOrDummyCe = /テスト|ダミー|予備|デバッグ|test|debug|dummy/i.test(ce.name || "");
-        const isStatusOrRecollectionOrBattleCe = /ステータス|プロフィール|エロステ|回想|衣装|敗北|戦闘|拘束|status|profile|ero|memory|cg|defeat|battle/i.test(ce.name || "");
-        if (globalCalledCommonEvents.has(ce.id) && !isStatusOrRecollectionOrBattleCe) continue;
         const metaTracker = { turnsOnSwitches: new Set(), transfersToMaps: new Set(), calledCommonEvents: new Set(), firstVarCond: null, varThresholds: new Map(), setsVars: new Map(), usedCgs: new Set() };
         const steps = parseMvEventCommandsV10(
           ce.list || [],
           commonEventsMap,
           cgAssets,
-          isTestOrDummyCe ? null : (usedCgName, stepIdx) => markAssetDirectUsedFast(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0, stepIdx: stepIdx || 0 }),
+          isTestOrDummyCe ? null : (usedCgName, stepIdx) => {
+            // If this CE was called by Map Events, link the CG to those calling Map Events FIRST!
+            const callers = ceToCallingMapEvents.get(ce.id) || [];
+            for (const callerLoc of callers) {
+              markAssetDirectUsedFast(usedCgName, callerLoc);
+            }
+            markAssetDirectUsedFast(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0, stepIdx: stepIdx || 0 });
+          },
           metaTracker,
           0,
           {},
@@ -6108,12 +6795,13 @@
           ceEffectCache
         );
         const st = computeStepsStatsRaw(steps);
-        if (st.dialogueCount > 0 || st.cgCount > 0) {
+        const isStatusOrRecollectionOrBattleCe = /ステータス|プロフィール|エロステ|回想|衣装|敗北|戦闘|拘束|status|profile|ero|memory|cg|defeat|battle/i.test(ce.name || "");
+        if ((st.dialogueCount > 0 || st.cgCount > 0) && (!globalCalledCommonEvents.has(ce.id) || isStatusOrRecollectionOrBattleCe || st.cgCount > 0)) {
           standaloneCeEvents.push({
             id: ce.id,
             mapId: 9000,
             name: `CE${String(ce.id).padStart(3, "0")}: ${ce.name || "공통 이벤트"}`,
-            isParallelOrHud: st.dialogueCount === 0,
+            isParallelOrHud: st.dialogueCount === 0 && st.cgCount === 0,
             entryPageSwitchReq: ce.switchId || 0,
             entryPageVarId: 0,
             entryPageVarVal: 0,
@@ -6126,7 +6814,7 @@
             cgOrder: (st.cgCount > 0 ? 500 : 900000) + ce.id,
             manualOrder: 900000 + ce.id,
             storyOrder: 800000 + ce.id,
-            storyReason: "공통 스토리/스테이터스/스킬 연동 이벤트",
+            storyReason: "공통 스토리/스테이터스/CG 연동 이벤트",
             pages: [{ pageIndex: 1, conditionLabel: "단계 1", rawList: ce.list || [], steps, _compiled: true, _stats: st }]
           });
 
@@ -6187,12 +6875,17 @@
         }
       }
 
-      // Single O(N) Post-Pass: Propagate `usedInList` to sibling variations that had no direct reference
+      // Single O(N) Post-Pass: Propagate `usedInList` across both `prefixToAssetKeys` AND `seriesToAssetKeys` (for `居酒屋　雨2, 3`, `Prison02`, etc.!)
       for (const k of allCgKeys) {
         const asset = cgAssets[k];
         if (!asset || !asset.directUsedInList || asset.directUsedInList.length === 0) continue;
         const pfx = asset.groupPrefix || getVariationPrefix(asset.name);
-        for (const sibKey of (prefixToAssetKeys.get(pfx) || [])) {
+        const sKey = asset.seriesKey || getNormalizedSeriesKey(asset.name);
+        const sibPool = new Set([
+          ...(prefixToAssetKeys.get(pfx) || []),
+          ...(seriesToAssetKeys.get(sKey) || [])
+        ]);
+        for (const sibKey of sibPool) {
           const sib = cgAssets[sibKey];
           if (!sib || sib === asset) continue;
           if (!sib.usedIn) sib.usedIn = asset.directUsedInList[0];
@@ -6243,12 +6936,7 @@
       }
 
       // =====================================================================
-      // v11 ENHANCED CAUSAL DAG TOPOLOGICAL STORY ORDER ENGINE!
-      // Connects:
-      // 1) Switch Unlock Chains (`u` turns ON Switch S -> `v` requires Switch S)
-      // 2) Variable Progression Chains (`u` sets/increments Var V -> `v` requires next Var V threshold)
-      // 3) Map Transfer Chains (`u` transfers to Map M -> Autorun/Opening events on Map M)
-      // 4) Prioritizes Core Story & CG Events ahead of 1-line Ambient Town NPCs
+      // v12 CAUSAL DAG TOPOLOGICAL STORY ORDER ENGINE
       // =====================================================================
       const switchUnlockedBy = new Map();
       const switchToConsumerEvents = new Map();
@@ -6258,7 +6946,7 @@
       for (const m of rawMapRecords.values()) {
         if (m.id >= 9000) continue;
         for (const ev of m.events) {
-          if (ev.totalDialogue === 0) {
+          if (ev.totalDialogue === 0 && ev.totalCg === 0) {
             ev.storyOrder = 950000 + m.id * 100 + ev.id;
             ev.storyReason = "대사 없음 (단독 연출)";
             continue;
@@ -6333,7 +7021,6 @@
         orderedPlaythrough.push(ev);
 
         const children = [];
-        // 1. Direct Switch Unlock Edges
         for (const swId of (ev.turnsOnSwitches || [])) {
           for (const childEv of (switchToConsumerEvents.get(swId) || [])) {
             if (!visitedEvKeys.has(`${childEv.mapId}_${childEv.id}`)) {
@@ -6341,7 +7028,6 @@
             }
           }
         }
-        // 2. Direct Variable Progression Edges (`ev` sets Var V = X or increments Var V from entryPageVarVal)
         if (ev.setsVarValues) {
           for (const [vIdStr, vMod] of Object.entries(ev.setsVarValues)) {
             const vId = Number(vIdStr);
@@ -6355,7 +7041,6 @@
             }
           }
         }
-        // 3. Direct Map Transfer Edges to Autorun / Opening Events on Destination Map
         for (const destMapId of (ev.transfersToMaps || [])) {
           const destMap = rawMapRecords.get(destMapId);
           if (destMap) {
@@ -6395,7 +7080,7 @@
       for (const m of sortedMaps) {
         m.events.sort((a, b) => a.storyOrder - b.storyOrder);
         for (const ev of m.events) {
-          if (ev.totalDialogue === 0 || m.id >= 9000) continue;
+          if ((ev.totalDialogue === 0 && ev.totalCg === 0) || m.id >= 9000) continue;
           const parts = [];
           if (ev.entryPageVarId > 0) {
             const vLabel = variableNames[ev.entryPageVarId] || `변수 #${ev.entryPageVarId}`;
@@ -6451,7 +7136,18 @@
 
       state.library.unshift(newGame);
       switchActiveGame(newGame.id);
-      autoSaveProjectToIndexedDb(newGame, rawZipFile);
+      if (!isLargeMobileGame) {
+        autoSaveProjectToIndexedDb(newGame, rawZipFile);
+      } else if (rawZipFile) {
+        // On huge 300+ map games on mobile, save only the raw ZIP file handle without cloning 300 maps via JSON.stringify!
+        setTimeout(async () => {
+          try {
+            const db = await openGameDbV10();
+            const tx = db.transaction(["zipFiles"], "readwrite");
+            tx.objectStore("zipFiles").put({ id: newGame.id, zipBlob: rawZipFile });
+          } catch (e) {}
+        }, 300);
+      }
       showToast(`⚡ '${newGame.title}' 로드 완료! (${loadMs ? (loadMs / 1000).toFixed(1) + "초 · " : ""}맵 ${sortedMaps.length}개 · 미디어 ${allCgKeys.length}개)`);
     }
 
