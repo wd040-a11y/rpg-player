@@ -4,8 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>RPG Story Player &amp; Extractor Pro v12</title>
+  <meta name="theme-color" content="#0b0f17" />
+  <link rel="manifest" href="manifest.json" />
+  <title>RPG Story Player &amp; Extractor Pro v16</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -80,6 +83,98 @@
       user-select: none;
       -webkit-user-select: none;
     }
+
+    /* v16 Mobile Fullscreen & Landscape Split-View Modes */
+    body.immersive-fullscreen-mode > header,
+    body.immersive-fullscreen-mode > nav#mobileBottomNav {
+      display: none !important;
+    }
+    body.immersive-fullscreen-mode > main {
+      padding: 2px !important;
+      max-width: 100vw !important;
+    }
+    body.immersive-fullscreen-mode #viewerTopHeaderBar {
+      display: none !important;
+    }
+    body.immersive-fullscreen-mode #fullscreenFloatingHud {
+      display: flex !important;
+    }
+
+    /* Landscape Split-View Cinema Mode (auto on mobile landscape or manual toggle) */
+    @media (max-height: 580px) and (orientation: landscape) {
+      body:not(.force-portrait-stack) > header {
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+      }
+      body:not(.force-portrait-stack) > nav#mobileBottomNav {
+        display: none !important;
+      }
+      body:not(.force-portrait-stack) > main {
+        padding-bottom: 2px !important;
+      }
+      body:not(.force-portrait-stack) #viewerTopHeaderBar {
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
+      }
+      body:not(.force-portrait-stack) #vnStageAndDialogueWrapper {
+        flex-direction: row !important;
+        align-items: stretch !important;
+      }
+      body:not(.force-portrait-stack) #cgStageContainer {
+        flex: 1 1 60% !important;
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+      body:not(.force-portrait-stack) #vnRightDialogueColumn {
+        width: 40% !important;
+        max-width: 420px !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-end !important;
+      }
+      body:not(.force-portrait-stack) #dialogueBoxPro {
+        height: 100% !important;
+        flex: 1 1 auto !important;
+      }
+      body:not(.force-portrait-stack) #fullscreenFloatingHud {
+        display: flex !important;
+      }
+    }
+
+    body.force-landscape-split #vnStageAndDialogueWrapper {
+      flex-direction: row !important;
+      align-items: stretch !important;
+    }
+    body.force-landscape-split #cgStageContainer {
+      flex: 1 1 60% !important;
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+    body.force-landscape-split #vnRightDialogueColumn {
+      width: 40% !important;
+      max-width: 460px !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-end !important;
+    }
+    body.force-landscape-split #dialogueBoxPro {
+      height: 100% !important;
+      flex: 1 1 auto !important;
+    }
+
+    /* Hidden / Transparent Dialogue Overlay Mode for Unobstructed CG Viewing */
+    body.dialogue-minimized-mode #vnRightDialogueColumn {
+      display: none !important;
+    }
+    body.dialogue-minimized-mode #floatingMinimizedDialogueBar {
+      display: flex !important;
+    }
+    body.dialogue-translucent-mode #dialogueBoxPro {
+      background: rgba(9, 13, 22, 0.55) !important;
+      backdrop-filter: blur(3px);
+    }
   </style>
 </head>
 <body class="h-[100dvh] flex flex-col bg-[#0b0f17] text-slate-100 overflow-hidden">
@@ -88,13 +183,16 @@
   <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
     <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-1 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v12</span>
-        <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[115px] sm:max-w-[220px] truncate"></select>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v16</span>
+        <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[105px] sm:max-w-[220px] truncate"></select>
+        <button id="btnToggleFullscreenHeader" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-[11px] text-emerald-200 hover:text-white border border-emerald-500/40 font-bold flex-shrink-0" title="전체화면 / 몰입 모드 전환 (모바일 주소창·탭바 가림 해결)">
+          ⛶ 전체화면
+        </button>
         <button id="btnOpenDeepSearchModal" type="button" class="px-2 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-[11px] text-indigo-200 hover:text-white border border-indigo-500/40 font-semibold flex-shrink-0" title="게임 전체 대사·장면·CG 통합 검색">
-          🔍 대사검색
+          🔍 검색
         </button>
         <button id="btnOpenSettingsModal" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 border border-slate-700 flex-shrink-0">
-          ⚙️ 설정
+          ⚙️
         </button>
       </div>
 
@@ -144,6 +242,32 @@
         <span id="deepSearchCountBadge" class="px-2.5 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 text-xs font-bold flex-shrink-0">0건</span>
       </div>
       <div id="deepSearchResultsList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+    </div>
+  </div>
+
+  <!-- MODAL A2: Quick Scene & Map Drawer for Fullscreen / Mobile Landscape Mode -->
+  <div id="quickSceneDrawerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-3 sm:p-4 space-y-2.5 shadow-2xl h-[88dvh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white">🗺 빠른 장소(맵) · 이벤트 전환 드로어</h4>
+          <span class="text-[10px] text-emerald-300 hidden sm:inline">전체화면/가로모드 유지 상태로 즉시 이동</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button type="button" data-quick-drawer-tab="Vn" class="px-2 py-1 rounded bg-indigo-600 text-[11px] font-bold text-white">💬 뷰어</button>
+          <button type="button" data-quick-drawer-tab="Gallery" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200">🖼 갤러리</button>
+          <button type="button" data-quick-drawer-tab="Status" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200">📊 상태창</button>
+          <button type="button" data-quick-drawer-tab="Battle" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200">⚔️ 전투</button>
+          <button id="btnCloseQuickSceneDrawer" type="button" class="px-2.5 py-1 rounded bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white">닫기 ✕</button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <input id="quickDrawerSearchInput" type="text" placeholder="장소명 또는 이벤트명 빠른 필터..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+      <div class="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2 min-h-0 overflow-hidden">
+        <div id="quickDrawerMapsList" class="sm:col-span-5 bg-slate-950/80 border border-slate-800 rounded-xl p-1.5 overflow-y-auto space-y-1 min-h-[120px]"></div>
+        <div id="quickDrawerEventsList" class="sm:col-span-7 bg-slate-950/80 border border-slate-800 rounded-xl p-1.5 overflow-y-auto space-y-1.5 min-h-[140px]"></div>
+      </div>
     </div>
   </div>
 
@@ -343,22 +467,43 @@
       <section id="panelMainViewer" class="flex-1 flex lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl flex-col overflow-hidden min-h-0 h-full">
 
         <!-- =============================================================== -->
-        <!-- VIEW 1: Story Viewer (VN Mode)                                  -->
+        <!-- VIEW 1: Story Viewer (VN Mode — Mobile & Fullscreen Overhauled) -->
         <!-- =============================================================== -->
         <div id="viewVnContainer" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div class="flex-shrink-0 px-2.5 py-1.5 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5">
-            <div class="flex items-center gap-1 min-w-0">
+          <!-- Compact Primary Event Header Bar -->
+          <div id="viewerTopHeaderBar" class="flex-shrink-0 px-2 py-1 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1">
+            <div class="flex items-center gap-1 min-w-0 flex-1">
+              <button id="btnOpenQuickDrawerTop" type="button" class="lg:hidden px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 text-[11px] font-bold border border-indigo-500/40 flex-shrink-0" title="빠른 장소·이벤트 전환">
+                ☰ 씬
+              </button>
               <span id="activeOrderBadge" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex-shrink-0">#1</span>
-              <h3 id="activeEventTitle" class="text-xs sm:text-sm font-bold text-white truncate max-w-[160px] sm:max-w-[310px]">이벤트를 선택하세요</h3>
-              <button id="btnToggleFavEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-400" title="즐겨찾기">☆</button>
-              <button id="btnRenameActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300" title="이름 수정">✎</button>
-              <button id="btnHideActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 text-[10px] text-rose-300 border border-rose-500/30" title="이벤트 삭제">✕</button>
+              <h3 id="activeEventTitle" class="text-xs sm:text-sm font-bold text-white truncate max-w-[145px] sm:max-w-[310px]">이벤트를 선택하세요</h3>
+              <button id="btnToggleFavEvent" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-400 flex-shrink-0" title="즐겨찾기">☆</button>
+              <button id="btnRenameActiveEvent" type="button" class="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300" title="이름 수정">✎</button>
+              <button id="btnHideActiveEvent" type="button" class="px-1.5 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 text-[10px] text-rose-300 border border-rose-500/30 flex-shrink-0" title="이벤트 삭제">✕</button>
             </div>
 
-            <!-- Page (단계) Tabs with Individual Page Delete (✕) + Stage Controls -->
-            <div class="flex flex-wrap items-center gap-1 flex-shrink-0">
+            <div class="flex items-center gap-1 flex-shrink-0">
               <div id="pageTabsContainer" class="flex flex-wrap items-center gap-1"></div>
-              <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 text-[11px]">
+              <button id="btnOpenPartsModal" type="button" class="px-2 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-500/50 text-[11px] font-bold transition shadow">
+                🎨 의상·파츠 (0)
+              </button>
+              <button id="btnToggleMobileViewerTools" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold" title="확대/축소·복장·레이어 도구 펼치기/접기">
+                🛠️ 도구 ▾
+              </button>
+              <button id="btnToggleLandscapeSplit" type="button" class="px-2 py-1 rounded-lg bg-sky-600/25 hover:bg-sky-600 text-sky-200 hover:text-white border border-sky-500/40 text-[11px] font-semibold" title="가로 좌우 분할 시네마 레이아웃 전환">
+                🔄 가로분할
+              </button>
+              <button id="btnJumpNextStoryEvent" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/40 transition">
+                다음씬 →
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Secondary Viewer Tools Drawer (Collapsed on mobile portrait by default to maximize CG stage area!) -->
+          <div id="viewerCollapsibleToolsRow" class="hidden sm:flex flex-shrink-0 px-2.5 py-1 bg-slate-900/95 border-b border-slate-800/80 flex-wrap items-center justify-between gap-1.5 text-[11px]">
+            <div class="flex flex-wrap items-center gap-1">
+              <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5 text-[11px]">
                 <button id="btnFitContain" type="button" class="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold">📐 맞춤</button>
                 <button id="btnFitCover" type="button" class="px-2 py-0.5 rounded text-slate-300 hover:text-white">🖥 채움</button>
                 <button id="btnZoomOut" type="button" class="px-2 py-0.5 text-slate-300 hover:text-white font-bold">−</button>
@@ -368,33 +513,62 @@
               <button id="btnSaveCgSnapshot" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px]">
                 📷 저장
               </button>
-              <button id="btnOpenPartsModal" type="button" class="px-2.5 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-500/50 text-[11px] font-bold transition shadow">
-                🎨 의상·파츠 (0)
-              </button>
-              <button id="btnJumpNextStoryEvent" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/40 transition">
-                다음 →
-              </button>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <span class="text-slate-400 font-semibold text-[10px]">복장:</span>
+              <button id="btnQuickOutfitDefault" type="button" class="px-2 py-0.5 rounded-md bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/30 font-bold">👗 기본</button>
+              <button id="btnQuickOutfitUnder" type="button" class="px-2 py-0.5 rounded-md bg-amber-600/25 hover:bg-amber-600 text-amber-200 hover:text-white border border-amber-500/30 font-bold">👙 속옷·파손</button>
+              <button id="btnQuickOutfitNaked" type="button" class="px-2 py-0.5 rounded-md bg-rose-600/25 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/30 font-bold">✨ 전라</button>
             </div>
           </div>
 
-          <!-- Touch-Friendly Inline Layer & Outfit Bar -->
-          <div id="inlineLayerQuickBar" class="hidden flex-shrink-0 px-2.5 py-1.5 bg-slate-900/95 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
-            <div class="flex items-center gap-1 flex-shrink-0">
-              <span class="text-slate-400 font-semibold text-[10px]">복장:</span>
-              <button id="btnQuickOutfitDefault" type="button" class="px-2 py-1 rounded-md bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/30 font-bold">👗 기본</button>
-              <button id="btnQuickOutfitUnder" type="button" class="px-2 py-1 rounded-md bg-amber-600/25 hover:bg-amber-600 text-amber-200 hover:text-white border border-amber-500/30 font-bold">👙 속옷·파손</button>
-              <button id="btnQuickOutfitNaked" type="button" class="px-2 py-1 rounded-md bg-rose-600/25 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/30 font-bold">✨ 전라</button>
-            </div>
-            <div id="inlineLayerChipsList" class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full"></div>
+          <!-- Touch-Friendly Inline Layer Quick Bar (With Thumbnails) -->
+          <div id="inlineLayerQuickBar" class="hidden flex-shrink-0 px-2 py-1 bg-slate-900/95 border-b border-slate-800/80 flex items-center justify-between gap-1.5 text-[11px]">
+            <span class="text-[10px] text-slate-400 flex-shrink-0 font-semibold">레이어:</span>
+            <div id="inlineLayerChipsList" class="flex items-center gap-1.5 overflow-x-auto py-0.5 flex-1"></div>
           </div>
 
           <!-- Live Event Condition Quick-Toggler Bar -->
           <div id="viewerLiveConditionBar" class="hidden flex-shrink-0 px-2.5 py-1 bg-indigo-950/40 border-b border-indigo-500/30 flex items-center gap-1.5 overflow-x-auto text-[11px]"></div>
 
-          <div class="flex-1 flex flex-col p-1.5 sm:p-2.5 gap-1.5 min-h-0 overflow-hidden">
-            <div id="cgStageContainer" class="cg-stage-pure flex-1 min-h-[165px] relative">
-              <canvas id="cgCanvas" width="1632" height="1248" class="w-full h-full object-contain cursor-grab active:cursor-grabbing" title="마우스 휠: 확대/축소 · 드래그: 화면 이동 · 더블클릭: 전체화면 확대"></canvas>
+          <!-- Main Stage + Dialogue Wrapper (Auto-switches to Side-by-Side Row in Mobile Landscape / Split Mode!) -->
+          <div id="vnStageAndDialogueWrapper" class="flex-1 flex flex-col p-1.5 sm:p-2 gap-1.5 min-h-0 overflow-hidden">
+            <div id="cgStageContainer" class="cg-stage-pure flex-1 min-h-[180px] relative">
+              <canvas id="cgCanvas" width="1632" height="1248" class="w-full h-full object-contain cursor-grab active:cursor-grabbing" title="좌/우 가장자리 터치: 이전/다음 대사 · 마우스 휠/핀치: 확대/축소 · 더블클릭: 라이트박스 확대"></canvas>
               <video id="moviePlayer" controls playsinline class="hidden w-full h-full object-contain rounded-lg"></video>
+
+              <!-- Floating Micro-HUD for Fullscreen & Landscape Mode (Allows full control even when headers/bars are hidden!) -->
+              <div id="fullscreenFloatingHud" class="hidden absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-1 pointer-events-none">
+                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/85 backdrop-blur-md border border-slate-700/80 rounded-xl px-2 py-1 shadow-lg">
+                  <button id="btnFsQuickDrawer" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[11px] font-bold text-white">☰ 장소·씬</button>
+                  <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[11px] font-bold text-amber-200">🎨 파츠</button>
+                  <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 font-semibold">🔄 분할/상하</button>
+                </div>
+                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/85 backdrop-blur-md border border-slate-700/80 rounded-xl px-2 py-1 shadow-lg">
+                  <button id="btnFsToggleDialogueVis" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-200 font-semibold">👁 대사창</button>
+                  <button id="btnFsExitFullscreen" type="button" class="px-2 py-0.5 rounded bg-rose-700/80 hover:bg-rose-600 text-[11px] font-bold text-white">⛶ 화면복귀</button>
+                </div>
+              </div>
+
+              <!-- Quick Corner Floating Buttons (Always accessible on mobile portrait too) -->
+              <div class="absolute bottom-2 right-2 z-10 flex items-center gap-1 opacity-85 hover:opacity-100">
+                <button id="btnStageToggleDialogueVis" type="button" class="px-2 py-1 rounded-lg bg-slate-950/85 border border-slate-700 text-[10px] font-semibold text-slate-200 shadow" title="대사창 숨기기/반투명 전환">
+                  👁 대사창
+                </button>
+                <button id="btnStageToggleFullscreen" type="button" class="px-2 py-1 rounded-lg bg-slate-950/85 border border-emerald-500/40 text-[10px] font-bold text-emerald-300 shadow" title="전체화면 몰입 모드">
+                  ⛶ 전체화면
+                </button>
+              </div>
+
+              <!-- Floating Minimized Dialogue Bar (Shown when user hides the main dialogue box to view full CG!) -->
+              <div id="floatingMinimizedDialogueBar" class="hidden absolute bottom-2 left-2 right-24 z-20 bg-slate-950/85 backdrop-blur-md border border-indigo-500/50 rounded-xl px-2.5 py-1.5 items-center justify-between gap-2 shadow-xl">
+                <div id="minimizedDialoguePreview" class="text-xs text-slate-100 truncate flex-1 font-medium">대사창 숨김 상태</div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button id="btnMinPrevStep" type="button" class="px-2 py-1 rounded bg-slate-800 text-xs text-slate-200 font-bold">←</button>
+                  <button id="btnMinNextStep" type="button" class="px-2.5 py-1 rounded bg-indigo-600 text-xs text-white font-bold">다음 →</button>
+                  <button id="btnRestoreDialogueBox" type="button" class="px-2 py-1 rounded bg-emerald-600/40 text-[11px] text-emerald-200 font-bold">펼치기</button>
+                </div>
+              </div>
 
               <!-- Relink / Reload Overlay -->
               <div id="relinkMediaOverlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center gap-2.5 z-20">
@@ -415,57 +589,63 @@
               </div>
             </div>
 
-            <!-- Keyframe CG Jump Bar -->
-            <div id="sceneKeyframeBar" class="hidden flex-shrink-0 bg-slate-950/90 border border-slate-800 rounded-lg px-2 py-1 flex items-center gap-1.5 overflow-x-auto text-[10px]"></div>
+            <!-- Right / Bottom Dialogue Column (In Landscape Split mode, sits cleanly to the right of the CG stage!) -->
+            <div id="vnRightDialogueColumn" class="flex flex-col gap-1.5 flex-shrink-0">
+              <!-- Keyframe CG Jump Bar -->
+              <div id="sceneKeyframeBar" class="hidden flex-shrink-0 bg-slate-950/90 border border-slate-800 rounded-lg px-2 py-1 flex items-center gap-1.5 overflow-x-auto text-[10px]"></div>
 
-            <div id="branchChoicePanel" class="hidden bg-indigo-950/80 border border-indigo-500/50 rounded-xl p-2 space-y-1.5 flex-shrink-0 max-h-[140px] overflow-y-auto">
-              <div class="text-xs font-bold text-indigo-200" id="branchPromptTitle">선택지 / 분기</div>
-              <div id="branchButtonsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
-            </div>
-
-            <div id="sceneEndBanner" class="hidden bg-emerald-950/75 border border-emerald-500/50 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 flex-shrink-0">
-              <span class="text-xs font-bold text-emerald-200">✓ 이 이벤트의 마지막 대사입니다.</span>
-              <button id="btnNextEventFromEnd" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow">
-                다음 추천 이벤트로 이동 →
-              </button>
-            </div>
-
-            <div id="dialogueBoxPro" class="dialogue-box-grid h-[168px] sm:h-[200px] flex-shrink-0 cursor-pointer">
-              <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-1">
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <span id="speakerBadge" class="px-2 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 font-bold text-xs truncate">
-                    내레이션
-                  </span>
-                  <span id="storyClueText" class="hidden sm:inline text-[10px] text-slate-400 truncate max-w-[280px]"></span>
-                  <button id="btnPlayStepVoice" type="button" class="hidden px-2 py-0.5 rounded bg-sky-500/25 hover:bg-sky-500 text-sky-200 hover:text-white border border-sky-500/40 text-[10px] font-bold">
-                    🔊 보이스 재생
-                  </button>
-                  <button id="btnTransferJump" type="button" class="hidden px-2 py-0.5 rounded bg-amber-500/25 hover:bg-amber-500 text-amber-200 hover:text-black border border-amber-500/40 text-[10px] font-bold">
-                    🚪 장소 이동 →
-                  </button>
-                </div>
-                <span id="stepCounterText" class="text-xs font-mono text-slate-300 flex-shrink-0">1 / 1</span>
+              <div id="branchChoicePanel" class="hidden bg-indigo-950/80 border border-indigo-500/50 rounded-xl p-2 space-y-1.5 flex-shrink-0 max-h-[145px] overflow-y-auto">
+                <div class="text-xs font-bold text-indigo-200" id="branchPromptTitle">선택지 / 분기</div>
+                <div id="branchButtonsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
               </div>
 
-              <div class="flex items-start gap-2.5 min-h-0 overflow-hidden">
-                <div id="faceBox" class="hidden w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-slate-800/90 border border-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden shadow">
-                  <canvas id="faceCanvas" width="144" height="144" class="w-full h-full object-cover"></canvas>
-                </div>
-                <div id="dialogueText" class="dialogue-scroll-body flex-1 text-slate-100 select-text"></div>
-              </div>
-
-              <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80" id="dialogueBottomControls">
-                <div class="flex items-center gap-1">
-                  <button id="btnFirstStep" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300">처음</button>
-                  <button id="btnPrevStep" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200">← 이전</button>
-                  <button id="btnNextStep" type="button" class="px-3.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[11px] font-bold text-white shadow">다음 (터치/Space) →</button>
-                  <button id="btnToggleAutoPlay" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-emerald-300 border border-emerald-500/30">
-                    ▶ 오토
-                  </button>
-                </div>
-                <button id="btnSwitchToScript" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-300 border border-indigo-500/30">
-                  전체 대본
+              <div id="sceneEndBanner" class="hidden bg-emerald-950/75 border border-emerald-500/50 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 flex-shrink-0">
+                <span class="text-xs font-bold text-emerald-200">✓ 이 이벤트의 마지막 대사입니다.</span>
+                <button id="btnNextEventFromEnd" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow">
+                  다음 추천 이벤트로 이동 →
                 </button>
+              </div>
+
+              <div id="dialogueBoxPro" class="dialogue-box-grid h-[164px] sm:h-[195px] flex-shrink-0 cursor-pointer">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span id="speakerBadge" class="px-2 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-400/40 text-indigo-200 font-bold text-xs truncate">
+                      내레이션
+                    </span>
+                    <span id="storyClueText" class="hidden sm:inline text-[10px] text-slate-400 truncate max-w-[260px]"></span>
+                    <button id="btnPlayStepVoice" type="button" class="hidden px-2 py-0.5 rounded bg-sky-500/25 hover:bg-sky-500 text-sky-200 hover:text-white border border-sky-500/40 text-[10px] font-bold">
+                      🔊 보이스
+                    </button>
+                    <button id="btnTransferJump" type="button" class="hidden px-2 py-0.5 rounded bg-amber-500/25 hover:bg-amber-500 text-amber-200 hover:text-black border border-amber-500/40 text-[10px] font-bold">
+                      🚪 이동 →
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <button id="btnDialogueTranslucent" type="button" class="px-1.5 py-0.2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300" title="대사창 반투명 전환">반투명</button>
+                    <span id="stepCounterText" class="text-xs font-mono text-slate-300">1 / 1</span>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 min-h-0 overflow-hidden">
+                  <div id="faceBox" class="hidden w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-slate-800/90 border border-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden shadow">
+                    <canvas id="faceCanvas" width="144" height="144" class="w-full h-full object-cover"></canvas>
+                  </div>
+                  <div id="dialogueText" class="dialogue-scroll-body flex-1 text-slate-100 select-text"></div>
+                </div>
+
+                <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80" id="dialogueBottomControls">
+                  <div class="flex items-center gap-1 flex-1">
+                    <button id="btnFirstStep" type="button" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300">처음</button>
+                    <button id="btnPrevStep" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200">← 이전</button>
+                    <button id="btnNextStep" type="button" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow" title="클릭: 다음 대사 · 길게 누르기: 고속 스킵">다음 (터치/길게:스킵) →</button>
+                    <button id="btnToggleAutoPlay" type="button" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-emerald-300 border border-emerald-500/30">
+                      ▶ 오토
+                    </button>
+                  </div>
+                  <button id="btnSwitchToScript" type="button" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-300 border border-indigo-500/30 flex-shrink-0">
+                    대본
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -514,6 +694,7 @@
                 <button id="galCatAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white">🗂 전체 표시 (기본)</button>
                 <button id="galCatEventCg" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🔥 이벤트·본편 CG</button>
                 <button id="galCatStanding" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🧍 기본 스탠딩</button>
+                <button id="galCatSystem" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">👑 상태·스킬·전투·타이틀</button>
                 <button id="galCatMovies" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🎬 동영상</button>
               </div>
               <div class="flex items-center gap-1.5">
@@ -640,10 +821,15 @@
               <h4 class="text-sm font-bold text-indigo-300">📂 게임 라이브러리 &amp; 무손실 영구 저장소(IndexedDB)</h4>
               <p class="text-xs text-slate-400">ZIP 파일로 불러온 게임은 원본 ZIP 핸들이 기기에 통째로 보존되어 모바일 새로고침 후에도 0.1초 만에 자동 복구됩니다.</p>
             </div>
-            <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
-              + 새 게임 추가
-              <input id="libFolderInput" type="file" webkitdirectory directory multiple class="hidden" />
-            </label>
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+                + 새 게임 폴더 추가
+                <input id="libFolderInput" type="file" webkitdirectory directory multiple class="hidden" />
+              </label>
+              <button id="btnClearAllSavedGamesDb" type="button" class="px-3 py-1.5 rounded-lg bg-rose-900/70 hover:bg-rose-700 text-xs font-bold text-rose-200 border border-rose-500/40 transition">
+                🧹 저장된 게임·캐시 전체 초기화
+              </button>
+            </div>
           </div>
           <div id="libraryCardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
@@ -653,7 +839,7 @@
   </main>
 
   <!-- Mobile Bottom Navigation Bar -->
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/98 border-t border-slate-800 grid grid-cols-6 py-1 px-0.5 text-[10px]">
+  <nav id="mobileBottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/98 border-t border-slate-800 grid grid-cols-6 py-1 px-0.5 text-[10px]">
     <button id="mobNavMaps" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🗺 장소/씬</span></button>
     <button id="mobNavVn" type="button" class="flex flex-col items-center py-1 text-indigo-400 font-bold"><span>💬 뷰어</span></button>
     <button id="mobNavGallery" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🖼 갤러리</span></button>
@@ -1546,15 +1732,16 @@
     function getNormalizedSeriesKey(raw) {
       const rel = normalizeAssetRelativeKey(raw);
       if (!rel) return "";
+      const normLeaf = (leaf) => leaf
+        .replace(/[\s\u3000_\-]+/g, "")
+        .replace(/(\d)[a-z]{1,2}\d*$/i, "$1")
+        .replace(/[0-9０-９]+/g, "#");
       if (rel.includes("/")) {
         const idx = rel.lastIndexOf("/");
         const dirPart = rel.slice(0, idx + 1).replace(/[\s\u3000]+/g, "");
-        const leafPart = rel.slice(idx + 1).replace(/[\s\u3000_\-]+/g, "").replace(/[0-9０-９]+/g, "#");
-        return dirPart + leafPart;
+        return dirPart + normLeaf(rel.slice(idx + 1));
       }
-      return rel
-        .replace(/[\s\u3000_\-]+/g, "")
-        .replace(/[0-9０-９]+/g, "#");
+      return normLeaf(rel);
     }
 
     function buildFastAssetLookup(dict) {
@@ -1711,20 +1898,115 @@
       }, 300);
     }
 
+    function getDeletedGameIdsSet() {
+      try {
+        const raw = localStorage.getItem("rpg_player_deleted_games_v16");
+        return new Set(raw ? JSON.parse(raw) : []);
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function markGameIdDeletedPermanent(gameId, gameTitle = "") {
+      try {
+        const set = getDeletedGameIdsSet();
+        if (gameId) set.add(String(gameId));
+        if (gameTitle) set.add("title:" + String(gameTitle).trim());
+        localStorage.setItem("rpg_player_deleted_games_v16", JSON.stringify(Array.from(set)));
+      } catch (e) {}
+    }
+
+    function unmarkGameTitleDeleted(gameTitle = "") {
+      try {
+        const set = getDeletedGameIdsSet();
+        if (gameTitle) set.delete("title:" + String(gameTitle).trim());
+        localStorage.setItem("rpg_player_deleted_games_v16", JSON.stringify(Array.from(set)));
+      } catch (e) {}
+    }
+
+    async function deleteGameFromIndexedDb(gameId) {
+      if (!gameId) return;
+      try {
+        const db = await openGameDbV10();
+        const tx = db.transaction(["projects", "zipFiles"], "readwrite");
+        tx.objectStore("projects").delete(gameId);
+        tx.objectStore("zipFiles").delete(gameId);
+        await new Promise((res) => { tx.oncomplete = res; tx.onerror = res; });
+      } catch (e) {}
+    }
+
+    async function clearAllGamesFromIndexedDb() {
+      try {
+        const db = await openGameDbV10();
+        const tx = db.transaction(["projects", "zipFiles"], "readwrite");
+        tx.objectStore("projects").clear();
+        tx.objectStore("zipFiles").clear();
+        await new Promise((res) => { tx.oncomplete = res; tx.onerror = res; });
+      } catch (e) {}
+    }
+
+    async function deduplicateAndInsertGame(newGame, rawZipFile = null, shouldAutoSave = true) {
+      const cleanTitle = String(newGame.title || "").trim();
+      unmarkGameTitleDeleted(cleanTitle);
+
+      // Remove any older duplicate entries with the same game title from `state.library` and `IndexedDB`!
+      const duplicateIds = state.library
+        .filter(g => g && g.id !== newGame.id && String(g.title || "").trim() === cleanTitle)
+        .map(g => g.id);
+
+      if (duplicateIds.length > 0) {
+        state.library = state.library.filter(g => !duplicateIds.includes(g.id));
+        for (const oldId of duplicateIds) {
+          deleteGameFromIndexedDb(oldId);
+        }
+      }
+
+      // Also automatically remove built-in demo games once a real user game is loaded if user prefers a clean list
+      state.library = state.library.filter(g => g.id !== newGame.id);
+      state.library.unshift(newGame);
+      switchActiveGame(newGame.id);
+      if (shouldAutoSave) {
+        autoSaveProjectToIndexedDb(newGame, rawZipFile);
+      }
+    }
+
     async function autoRestoreFromIndexedDb() {
       try {
+        const deletedSet = getDeletedGameIdsSet();
+        // Filter out any deleted demo games from initial library immediately
+        const filteredInit = state.library.filter(g => !deletedSet.has(g.id) && !deletedSet.has("title:" + String(g.title || "").trim()));
+        if (filteredInit.length > 0) state.library = filteredInit;
+
         const db = await openGameDbV10();
         const tx = db.transaction(["projects", "zipFiles"], "readonly");
         const projReq = tx.objectStore("projects").getAll();
         const projects = await new Promise((res, rej) => { projReq.onsuccess = () => res(projReq.result); projReq.onerror = rej; });
-        if (!Array.isArray(projects) || projects.length === 0) return;
+        if (!Array.isArray(projects) || projects.length === 0) {
+          renderLibraryHeaderSelect();
+          renderLibraryTab();
+          return;
+        }
 
         const zipReq = tx.objectStore("zipFiles").getAll();
         const zipRecords = await new Promise((res, rej) => { zipReq.onsuccess = () => res(zipReq.result); zipReq.onerror = rej; });
         const mediaMap = new Map();
         if (Array.isArray(zipRecords)) zipRecords.forEach(r => mediaMap.set(r.id, r));
 
-        for (const p of projects) {
+        const seenTitles = new Set();
+        const toPurgeIds = [];
+
+        // Iterate newest first so duplicate titles keep only the latest copy and purge older copies from IndexedDB!
+        const sortedProjs = [...projects].sort((a, b) => String(b.id || "").localeCompare(String(a.id || "")));
+
+        for (const p of sortedProjs) {
+          if (!p || !p.id) continue;
+          const cleanTitle = String(p.title || "").trim();
+          if (deletedSet.has(p.id) || deletedSet.has("title:" + cleanTitle) || (cleanTitle && seenTitles.has(cleanTitle))) {
+            toPurgeIds.push(p.id);
+            continue;
+          }
+          if (cleanTitle) seenTitles.add(cleanTitle);
+
           const savedMedia = mediaMap.get(p.id);
           if (savedMedia) {
             if (savedMedia.zipBlob) {
@@ -1764,7 +2046,15 @@
           buildFastAssetLookup(p.audioAssets);
           if (!state.library.some(x => x.id === p.id)) state.library.unshift(p);
         }
-        switchActiveGame(state.library[0].id);
+
+        // Purge deleted or duplicate records from IndexedDB permanently
+        for (const oldId of toPurgeIds) {
+          deleteGameFromIndexedDb(oldId);
+        }
+
+        if (state.library.length > 0) {
+          switchActiveGame(state.library[0].id);
+        }
       } catch (e) {}
     }
 
@@ -2027,9 +2317,9 @@
       const full = String(picName || "").replace(/\\/g, "/").toLowerCase();
       const s = full.split("/").pop();
       if (!s) return true;
-      if (/^(?:system_ui|mapui|battle_ui|system_event_window|onomatope|backeffect00blank)/i.test(s)) return true;
+      if (/^(?:system_ui|mapui|battle_ui|system_event_window|onomatope|backeffect00blank|0_暗幕|0_黒帯|暗幕|黒帯)/i.test(s)) return true;
       if (/(?:_hud\d*|^hud_|^ui_frame|^mes_frame|^msg_frame)/i.test(s)) return true;
-      return /^(?:bg_black|bg_white|black|white|darkness|fade|blank|empty|dummy|none|clear|暗転|黒|白|透明|window|msgwin|meswin|talkwin|textbox|fukidashi|win_bg|mes_bg|gauge|hud|cursor|number|icon|coin|cup)$/i.test(s);
+      return /^(?:bg_black|bg_white|black|white|darkness|fade|blank|empty|dummy|none|clear|暗転|暗幕|黒帯|黒|白|透明|window|msgwin|meswin|talkwin|textbox|fukidashi|win_bg|mes_bg|gauge|hud|cursor|number|icon|coin|cup)$/i.test(s);
     }
 
     function isGlassesOrOptionalOverlayName(name) {
@@ -2537,17 +2827,14 @@
       const chipsBox = document.getElementById("inlineLayerChipsList");
       if (!bar || !chipsBox) return;
 
-      const visualEntries = (slotEntries || []).filter(([, sp]) => sp && !sp.isTextPicture && sp.key);
-      if (visualEntries.length <= 1) {
+      if (!slotEntries || slotEntries.length <= 1) {
         bar.classList.add("hidden");
         return;
       }
       bar.classList.remove("hidden");
 
-      chipsBox.innerHTML = visualEntries.map(([slotNum, spec]) => {
+      chipsBox.innerHTML = slotEntries.map(([slotNum, spec]) => {
         const effKey = state.slotVariantOverrides[slotNum] || pickBestDefaultVariant(spec.variants, spec.key);
-        const asset = resolveCgAssetSmart(effKey);
-        const thumbUrl = asset?.blobUrl || "";
         const info = getPartCategoryAndPrefix(effKey);
         const isHidden = state.hiddenLayers.has(slotNum) || (
           state.hideGlassesDefault &&
@@ -2556,43 +2843,21 @@
         );
         const shortLabel = `#${slotNum > 0 ? slotNum : "보완"} ${info.category.split("(")[0]}`;
         return `
-          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(translateJpName(effKey))} (터치하여 켜기/끄기)"
-            class="px-2 py-1 rounded-md border text-[11px] font-semibold flex-shrink-0 inline-flex items-center gap-1.5 transition ${
+          <button type="button" data-quick-toggle-slot="${slotNum}" title="${escapeHtml(effKey)} (터치하여 켜기/끄기)"
+            class="px-2.5 py-1 rounded-md border text-[11px] font-semibold flex-shrink-0 transition ${
               isHidden
-                ? "bg-slate-950 border-slate-800 text-slate-500 line-through opacity-60"
+                ? "bg-slate-950 border-slate-800 text-slate-500 line-through"
                 : "bg-indigo-950/75 border-indigo-500/40 text-indigo-200 hover:bg-indigo-800/60"
             }">
-            <span class="w-5 h-5 rounded bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
-              ${thumbUrl
-                ? `<img src="${thumbUrl}" data-quick-thumb-key="${escapeHtml(effKey)}" class="w-full h-full object-contain" alt="" />`
-                : `<img data-quick-thumb-key="${escapeHtml(effKey)}" class="w-full h-full object-contain hidden" alt="" />`
-              }
-            </span>
-            <span>👁 ${escapeHtml(shortLabel)}</span>
+            👁 ${escapeHtml(shortLabel)}
           </button>
         `;
       }).join("");
 
-      // Hydrate any missing chip thumbnails asynchronously
-      visualEntries.forEach(async ([, spec], idx) => {
-        const slotNum = visualEntries[idx][0];
-        const effKey = state.slotVariantOverrides[slotNum] || pickBestDefaultVariant(spec.variants, spec.key);
-        const asset = resolveCgAssetSmart(effKey);
-        if (asset && !asset.blobUrl) {
-          const url = await ensureAssetBlobUrl(asset);
-          if (url) {
-            chipsBox.querySelectorAll(`[data-quick-thumb-key="${CSS.escape(effKey)}"]`).forEach(img => {
-              img.src = url;
-              img.classList.remove("hidden");
-            });
-          }
-        }
-      });
-
       chipsBox.querySelectorAll("[data-quick-toggle-slot]").forEach(btn => {
         btn.addEventListener("click", () => {
           const sNum = Number(btn.getAttribute("data-quick-toggle-slot"));
-          const spec = visualEntries.find(x => x[0] === sNum)?.[1];
+          const spec = slotEntries.find(x => x[0] === sNum)?.[1];
           const effKey = state.slotVariantOverrides[sNum] || (spec ? spec.key : "");
           const isGlass = spec?.isOptionalAcc || isGlassesOrOptionalOverlayName(effKey);
 
@@ -2830,14 +3095,14 @@
       }
     }
 
-    async function renderPartsCustomizerModal() {
+    function renderPartsCustomizerModal() {
       const container = document.getElementById("partsModalContent");
       let slotEntries = Object.entries(state.activePictureSlots || {})
         .map(([slot, spec]) => {
           const obj = typeof spec === "string" ? { key: spec, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } : spec;
           return [Number(slot), obj];
         })
-        .filter(([, obj]) => obj && !obj.isTextPicture && obj.key && !isDummyBlackOrSystemPicture(obj.key))
+        .filter(([, obj]) => obj && obj.key && !isDummyBlackOrSystemPicture(obj.key))
         .sort((a, b) => a[0] - b[0]);
 
       slotEntries = injectMissingCharacterBaseBodies(slotEntries);
@@ -2848,15 +3113,10 @@
       }
 
       const allAssetKeys = Object.keys(state.project.cgAssets || {}).filter(k => k !== "__fastIndex" && !state.deletedCgKeys.has(k));
-      const thumbKeysToHydrate = new Set();
 
       container.innerHTML = slotEntries.map(([slotNum, spec]) => {
         const defaultBestKey = pickBestDefaultVariant(spec.variants, spec.key);
         const currentKey = state.slotVariantOverrides[slotNum] || defaultBestKey;
-        const curAsset = resolveCgAssetSmart(currentKey);
-        const curThumbUrl = curAsset?.blobUrl || "";
-        thumbKeysToHydrate.add(currentKey);
-
         const partInfo = getPartCategoryAndPrefix(currentKey);
         const isGlassOrAcc = spec.isOptionalAcc || isGlassesOrOptionalOverlayName(currentKey);
         const isHidden = state.hiddenLayers.has(slotNum) || (isGlassOrAcc && state.hideGlassesDefault && !state.forceShowGlassesSlots.has(slotNum));
@@ -2869,73 +3129,62 @@
           }
         }
         const candidates = Array.from(candidateSet).sort((a, b) => scoreDefaultCandidatePriority(b) - scoreDefaultCandidatePriority(a));
-        const thumbCandidates = candidates.slice(0, 24);
-        for (const tk of thumbCandidates) thumbKeysToHydrate.add(tk);
 
         return `
-          <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2.5">
+          <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-14 h-14 rounded-lg bg-slate-900 border border-indigo-500/40 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-inner">
-                  ${curThumbUrl
-                    ? `<img src="${curThumbUrl}" data-part-modal-thumb="${escapeHtml(currentKey)}" class="w-full h-full object-contain" alt="" />`
-                    : `<img data-part-modal-thumb="${escapeHtml(currentKey)}" class="w-full h-full object-contain hidden" alt="" />`
-                  }
-                </div>
-                <div class="min-w-0 space-y-1">
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
-                      ${slotNum < 0 ? "자동보완 베이스" : `슬롯 #${slotNum}`}
-                    </span>
-                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">${escapeHtml(partInfo.category)}</span>
-                  </div>
-                  <div class="text-xs font-bold text-white truncate" title="${escapeHtml(currentKey)}">${escapeHtml(translateJpName(currentKey))}</div>
-                </div>
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
+                  ${slotNum < 0 ? "자동보완 베이스" : `슬롯 #${slotNum}`}
+                </span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">${escapeHtml(partInfo.category)}</span>
+                <span class="text-xs font-bold text-white truncate">${escapeHtml(translateJpName(currentKey))}</span>
               </div>
-              <button type="button" data-toggle-layer="${slotNum}" data-is-glass="${isGlassOrAcc ? "1" : "0"}" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0 ${
+              <button type="button" data-toggle-layer="${slotNum}" data-is-glass="${isGlassOrAcc ? "1" : "0"}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${
                 isHidden ? "bg-rose-900/60 text-rose-200 border border-rose-500/40" : "bg-emerald-600/30 text-emerald-200 border border-emerald-500/40"
               }">
                 ${isHidden ? "👁‍🗨 숨김 상태 (클릭 시 표시)" : "👁 표시 중"}
               </button>
             </div>
-            ${candidates.length > 1 ? `
-              <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-[11px] text-slate-400 flex-shrink-0">바리에이션(${candidates.length}종):</span>
-                  <select data-slot-select="${slotNum}" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    ${candidates.map(cKey => `
-                      <option value="${escapeHtml(cKey)}" ${cKey === currentKey ? "selected" : ""}>
-                        ${escapeHtml(translateJpName(cKey))}
-                      </option>
-                    `).join("")}
-                  </select>
-                </div>
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
-                  ${thumbCandidates.map(cKey => {
-                    const cAsset = resolveCgAssetSmart(cKey);
-                    const cUrl = cAsset?.blobUrl || "";
-                    const isSelected = cKey === currentKey;
-                    const shortName = translateJpName(cKey.split("/").pop() || cKey).slice(-12);
-                    return `
-                      <button type="button" data-slot-thumb-pick="${slotNum}" data-variant-key="${escapeHtml(cKey)}" title="${escapeHtml(translateJpName(cKey))}"
-                        class="flex-shrink-0 w-16 p-1 rounded-lg border text-center transition flex flex-col items-center gap-1 ${
-                          isSelected
-                            ? "bg-indigo-950/90 border-emerald-400 ring-1 ring-emerald-400/60"
-                            : "bg-slate-900/80 border-slate-800 hover:border-indigo-500/50"
-                        }">
-                        <div class="w-12 h-12 rounded bg-slate-950 flex items-center justify-center overflow-hidden">
-                          ${cUrl
-                            ? `<img src="${cUrl}" data-part-modal-thumb="${escapeHtml(cKey)}" class="w-full h-full object-contain" alt="" />`
-                            : `<img data-part-modal-thumb="${escapeHtml(cKey)}" class="w-full h-full object-contain hidden" alt="" />`
-                          }
-                        </div>
-                        <span class="text-[9px] text-slate-300 truncate w-full">${escapeHtml(shortName)}</span>
-                      </button>
-                    `;
-                  }).join("")}
-                </div>
+            <div class="flex items-center gap-3 pt-1">
+              <div class="w-14 h-14 rounded-lg bg-slate-900 border border-slate-700/80 flex items-center justify-center overflow-hidden flex-shrink-0">
+                ${(() => {
+                  const curAsset = resolveCgAssetSmart(currentKey);
+                  const curUrl = getAssetPreviewUrl(curAsset);
+                  return curUrl
+                    ? `<img src="${escapeHtml(curUrl)}" class="max-w-full max-h-full object-contain" alt="part" />`
+                    : `<span class="text-[10px] text-slate-500 font-mono">IMG</span>`;
+                })()}
               </div>
-            ` : `<div class="text-[11px] text-slate-500">동일 부위 바리에이션 없음 (단일 파츠)</div>`}
+              <div class="flex-1 min-w-0 space-y-1.5">
+                ${candidates.length > 1 ? `
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-400 flex-shrink-0">바리에이션(${candidates.length}종):</span>
+                    <select data-slot-select="${slotNum}" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                      ${candidates.map(cKey => `
+                        <option value="${escapeHtml(cKey)}" ${cKey === currentKey ? "selected" : ""}>
+                          ${escapeHtml(translateJpName(cKey))}
+                        </option>
+                      `).join("")}
+                    </select>
+                  </div>
+                  <div class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
+                    ${candidates.slice(0, 24).map(cKey => {
+                      const cAsset = resolveCgAssetSmart(cKey);
+                      const cUrl = getAssetPreviewUrl(cAsset);
+                      const isSel = cKey === currentKey;
+                      return `
+                        <button type="button" data-slot-thumb-num="${slotNum}" data-slot-thumb-key="${escapeHtml(cKey)}" title="${escapeHtml(translateJpName(cKey))}" class="group relative w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 border ${
+                          isSel ? "border-amber-400 ring-2 ring-amber-400/50 bg-indigo-950/70" : "border-slate-700/80 bg-slate-900/90 hover:border-slate-500"
+                        }">
+                          ${cUrl ? `<img src="${escapeHtml(cUrl)}" class="w-full h-full object-contain" loading="lazy" />` : `<span class="text-[9px] text-slate-400">${escapeHtml(cKey.slice(-4))}</span>`}
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                ` : `<div class="text-[11px] text-slate-500">동일 부위 바리에이션 없음 (단일 파츠)</div>`}
+              </div>
+            </div>
           </div>
         `;
       }).join("");
@@ -2960,42 +3209,24 @@
       });
 
       container.querySelectorAll("[data-slot-select]").forEach(sel => {
-        sel.addEventListener("change", (e) => {
+        sel.addEventListener("change", () => {
           const slotNum = Number(sel.getAttribute("data-slot-select"));
-          state.slotVariantOverrides[slotNum] = e.target.value;
-          state.hiddenLayers.delete(slotNum);
-          state.forceShowGlassesSlots.add(slotNum);
+          state.slotVariantOverrides[slotNum] = sel.value;
           renderActiveCgStage();
           renderPartsCustomizerModal();
         });
       });
-
-      container.querySelectorAll("[data-slot-thumb-pick]").forEach(btn => {
+      container.querySelectorAll("[data-slot-thumb-num]").forEach(btn => {
         btn.addEventListener("click", () => {
-          const slotNum = Number(btn.getAttribute("data-slot-thumb-pick"));
-          const vKey = btn.getAttribute("data-variant-key");
-          if (!vKey) return;
-          state.slotVariantOverrides[slotNum] = vKey;
-          state.hiddenLayers.delete(slotNum);
-          state.forceShowGlassesSlots.add(slotNum);
-          renderActiveCgStage();
-          renderPartsCustomizerModal();
+          const slotNum = Number(btn.getAttribute("data-slot-thumb-num"));
+          const key = btn.getAttribute("data-slot-thumb-key");
+          if (key) {
+            state.slotVariantOverrides[slotNum] = key;
+            renderActiveCgStage();
+            renderPartsCustomizerModal();
+          }
         });
       });
-
-      // Hydrate missing thumbnails in the background and populate `<img>` tags in-place
-      for (const tk of thumbKeysToHydrate) {
-        const asset = resolveCgAssetSmart(tk);
-        if (asset && !asset.blobUrl) {
-          ensureAssetBlobUrl(asset).then(url => {
-            if (!url) return;
-            container.querySelectorAll(`[data-part-modal-thumb="${CSS.escape(tk)}"]`).forEach(img => {
-              img.src = url;
-              img.classList.remove("hidden");
-            });
-          });
-        }
-      }
     }
 
     async function renderFacePortrait(step) {
@@ -3175,44 +3406,53 @@
       return nonEmpty.length > 0 ? nonEmpty : unhidden.slice(0, 1);
     }
 
-    function extractEventDialogueList(ev, mapId) {
+    function getEventContentSignature(ev, mapId) {
+      const validPages = getValidPages(ev, mapId);
+      const firstLines = [];
+      for (const p of validPages) {
+        for (const s of (p.steps || [])) {
+          if (s.type === "dialogue" && firstLines.length < 3) {
+            firstLines.push(s.rawText.trim());
+          } else if (s.type === "branch" && Array.isArray(s.options) && firstLines.length < 3) {
+            firstLines.push("BR:" + s.options.map(o => o.label).join(","));
+          }
+        }
+      }
+      if (firstLines.length === 0) return null;
+      return `${ev.entryPageSwitchReq || 0}_${ev.entryPageVarId || 0}_${ev.entryPageVarVal || 0}::${firstLines.join("|")}`;
+    }
+
+    function getEventAllDialogueLines(ev, mapId) {
       const validPages = getValidPages(ev, mapId);
       const lines = [];
       for (const p of validPages) {
         for (const s of (p.steps || [])) {
           if (s.type === "dialogue" && s.rawText) {
-            const norm = String(s.rawText).replace(/\s+/g, " ").trim();
+            const norm = s.rawText.replace(/\s+/g, " ").trim();
             if (norm) lines.push(norm);
-          } else if (s.type === "branch" && Array.isArray(s.options)) {
-            lines.push("BR:" + s.options.map(o => o.label).join(","));
           }
-          if (lines.length >= 12) break;
         }
-        if (lines.length >= 12) break;
       }
       return lines;
     }
 
-    function getEventContentSignature(ev, mapId) {
-      const firstLines = extractEventDialogueList(ev, mapId).slice(0, 3);
-      if (firstLines.length === 0) return null;
-      return `${ev.entryPageSwitchReq || 0}_${ev.entryPageVarId || 0}_${ev.entryPageVarVal || 0}::${firstLines.join("|")}`;
-    }
-
-    function isSystemMapInitEventName(name) {
-      const s = String(name || "");
-      return /ダンジョンスタートアップ|ダンジョン開始処理|街中屋内移動直後処理|던전\s*스타트업|던전\s*개시\s*처리|거리\s*실내\s*이동\s*직후\s*처리|맵\s*이동\s*직후\s*처리|マップ移動直後処理|イベントストッパー|シンボル非追跡|隠密シンボル|デバッグ|debug/i.test(s);
-    }
-
-    function isHudOrSystemDummyEvent(ev, st, mapName = "") {
+    function isHudOrSystemDummyEvent(ev, st) {
       if (st.dialogueCount === 0 && st.cgCount === 0) return true;
       if (ev.isParallelOrHud && st.dialogueCount === 0) return true;
-      if (isSystemMapInitEventName(ev.name)) return true;
-      // Filter out 0-dialogue events on normal maps (`2층 아이템 항아리` etc.) unless on a Recollection/Gallery/OP/ED map or event
-      if (st.dialogueCount === 0) {
-        const combinedTitle = `${mapName} ${ev.name || ""}`;
-        const isRecollectionOrCgScene = /回想|회상|갤러리|cg|gallery|memory|room|op|오프닝|オープニング|ed|엔딩|エンディング/i.test(combinedTitle);
-        if (!isRecollectionOrCgScene) return true;
+      // Filter 0-dialogue orphan background/standing/HUD media events unless they play a movie or multiple sequential H-CG steps
+      if (st.dialogueCount === 0 && st.cgCount > 0) {
+        const pages = ev.pages || [];
+        let hasMovie = false;
+        let realEventCgStepCount = 0;
+        for (const p of pages) {
+          for (const s of (p.steps || [])) {
+            if (s.isMovie) hasMovie = true;
+            if (s.type === "cg" && s.cgKey && !isStandingOrTachieFileName(s.cgKey) && !/^300background\//i.test(s.cgKey) && !isDummyBlackOrSystemPicture(s.cgKey)) {
+              realEventCgStepCount++;
+            }
+          }
+        }
+        if (!hasMovie && realEventCgStepCount < 2) return true;
       }
       return false;
     }
@@ -3224,19 +3464,9 @@
       return ev.storyOrder ?? ev.id;
     }
 
-    function isDialoguePrefixOrSubset(shortLines, longLines) {
-      if (!shortLines.length || !longLines.length || shortLines.length > longLines.length) return false;
-      if (shortLines[0].length < 8 && shortLines.length === 1 && longLines.length > 1) return false;
-      for (let i = 0; i < shortLines.length; i++) {
-        if (shortLines[i] !== longLines[i]) return false;
-      }
-      return true;
-    }
-
     function getFilteredAndMergedEvents(map) {
       if (!map || !Array.isArray(map.events)) return [];
       const sigMap = new Map();
-      const condBucketMap = new Map();
       const result = [];
 
       const rawEvents = [...map.events].sort((a, b) => {
@@ -3253,23 +3483,21 @@
           return acc;
         }, { dialogueCount: 0, cgCount: 0 });
 
-        if (state.hideSystemHudEvents && isHudOrSystemDummyEvent(ev, st, map.name || "")) continue;
+        if (state.hideSystemHudEvents && isHudOrSystemDummyEvent(ev, st)) continue;
         if (state.sceneFilter === "cg" && st.cgCount === 0) continue;
         if (state.sceneFilter === "fav" && !state.favoriteEvents.has(`${state.activeGameId}_${map.id}_${ev.id}`)) continue;
 
         if (state.mergeIdenticalEvents) {
-          const dLines = extractEventDialogueList(ev, map.id);
+          const sig = getEventContentSignature(ev, map.id);
+          const evLines = getEventAllDialogueLines(ev, map.id);
           const condKey = `${ev.entryPageSwitchReq || 0}_${ev.entryPageVarId || 0}_${ev.entryPageVarVal || 0}`;
-          const sig = dLines.length > 0 ? `${condKey}::${dLines.slice(0, 3).join("|")}` : null;
 
           if (sig && sigMap.has(sig)) {
             const primary = sigMap.get(sig);
-            const primLines = primary._dLines || [];
-            // If `ev` has MORE dialogue lines than `primary` (`EV149` vs `EV150`), upgrade `primary` in-place to `ev`'s fuller content!
-            if (dLines.length > primLines.length) {
-              const mergedIds = primary.mergedIds ? [...primary.mergedIds] : [primary.id];
-              if (!mergedIds.includes(ev.id)) mergedIds.push(ev.id);
-              Object.assign(primary, ev, { mergedIds, _dLines: dLines });
+            const primLines = primary._allLines || getEventAllDialogueLines(primary, map.id);
+            if (evLines.length > primLines.length) {
+              const mergedIds = [...(primary.mergedIds || [primary.id]), ev.id];
+              Object.assign(primary, ev, { mergedIds, _allLines: evLines, _condKey: condKey });
             } else {
               primary.mergedIds = primary.mergedIds || [primary.id];
               if (!primary.mergedIds.includes(ev.id)) primary.mergedIds.push(ev.id);
@@ -3277,35 +3505,32 @@
             continue;
           }
 
-          // Prefix / Subset Dialogue Merger (`image_4c2f1e.png`: `EV149` with 2 boxes vs `EV150..153` with 1 box of the same opening dialogue!)
-          if (dLines.length > 0 && condBucketMap.has(condKey)) {
-            const bucket = condBucketMap.get(condKey);
-            let mergedIntoExisting = false;
-            for (const existing of bucket) {
-              const exLines = existing._dLines || [];
-              if (isDialoguePrefixOrSubset(dLines, exLines)) {
-                existing.mergedIds = existing.mergedIds || [existing.id];
-                if (!existing.mergedIds.includes(ev.id)) existing.mergedIds.push(ev.id);
-                mergedIntoExisting = true;
-                break;
-              } else if (isDialoguePrefixOrSubset(exLines, dLines)) {
-                const mergedIds = existing.mergedIds ? [...existing.mergedIds] : [existing.id];
-                if (!mergedIds.includes(ev.id)) mergedIds.push(ev.id);
-                Object.assign(existing, ev, { mergedIds, _dLines: dLines });
-                if (sig) sigMap.set(sig, existing);
-                mergedIntoExisting = true;
-                break;
+          // Prefix / Subset Dialogue Merge: when two NPC events share the same prerequisite condition and one's dialogue lines are a prefix of the other's, merge into the fuller event!
+          if (evLines.length >= 2) {
+            const prefixMatch = result.find(existing => {
+              if (existing._condKey !== condKey) return false;
+              const exLines = existing._allLines || [];
+              if (exLines.length < 2) return false;
+              const minLen = Math.min(exLines.length, evLines.length);
+              for (let k = 0; k < minLen; k++) {
+                if (exLines[k] !== evLines[k]) return false;
               }
+              return true;
+            });
+            if (prefixMatch) {
+              const exLines = prefixMatch._allLines || [];
+              if (evLines.length > exLines.length) {
+                const mergedIds = [...(prefixMatch.mergedIds || [prefixMatch.id]), ev.id];
+                Object.assign(prefixMatch, ev, { mergedIds, _allLines: evLines, _condKey: condKey });
+              } else {
+                if (!prefixMatch.mergedIds.includes(ev.id)) prefixMatch.mergedIds.push(ev.id);
+              }
+              continue;
             }
-            if (mergedIntoExisting) continue;
           }
 
-          const clone = { ...ev, mergedIds: [ev.id], _dLines: dLines };
+          const clone = { ...ev, mergedIds: [ev.id], _allLines: evLines, _condKey: condKey };
           if (sig) sigMap.set(sig, clone);
-          if (dLines.length > 0) {
-            if (!condBucketMap.has(condKey)) condBucketMap.set(condKey, []);
-            condBucketMap.get(condKey).push(clone);
-          }
           result.push(clone);
         } else {
           result.push({ ...ev, mergedIds: [ev.id] });
@@ -3913,38 +4138,20 @@
     function syncPictureSlotsAtStep(stepIndex) {
       state.activePictureSlots = {};
       const steps = state.activeSteps || [];
-      if (!steps.length) return;
-      const targetIdx = Math.max(0, Math.min(stepIndex, steps.length - 1));
-      const curStep = steps[targetIdx];
-
-      // Each step's `pictureSnapshot` is already the complete active picture state at that moment!
-      // Using `curStep.pictureSnapshot` directly prevents erased/branch-local/superseded CGs from earlier steps from sticking on screen!
-      if (curStep && curStep.pictureSnapshot && Object.keys(curStep.pictureSnapshot).length > 0) {
-        for (const [slot, val] of Object.entries(curStep.pictureSnapshot)) {
-          if (val !== null && val !== undefined) {
-            state.activePictureSlots[slot] = val;
+      for (let i = 0; i <= stepIndex && i < steps.length; i++) {
+        const s = steps[i];
+        if (s.pictureSnapshot) {
+          for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
+            if (val === null) delete state.activePictureSlots[slot];
+            else state.activePictureSlots[slot] = val;
           }
         }
-      } else {
-        // Fallback: look backwards for the nearest step with a snapshot
-        for (let i = targetIdx; i >= 0; i--) {
-          const s = steps[i];
-          if (s && s.pictureSnapshot && Object.keys(s.pictureSnapshot).length > 0) {
-            for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
-              if (val !== null && val !== undefined) {
-                state.activePictureSlots[slot] = val;
-              }
-            }
-            break;
-          }
+        if (s.type === "cg" || s.type === "movie") {
+          state.activePictureSlots[s.slot || 1] = {
+            key: s.cgKey, x: s.x || 0, y: s.y || 0, origin: s.origin || 0,
+            scaleX: s.scaleX ?? 100, scaleY: s.scaleY ?? 100, opacity: s.opacity ?? 255
+          };
         }
-      }
-      if (curStep && (curStep.type === "cg" || curStep.type === "movie") && curStep.cgKey) {
-        state.activePictureSlots[curStep.slot || 1] = {
-          key: curStep.cgKey, x: curStep.x || 0, y: curStep.y || 0, origin: curStep.origin || 0,
-          scaleX: curStep.scaleX ?? 100, scaleY: curStep.scaleY ?? 100, opacity: curStep.opacity ?? 255,
-          variants: curStep.pictureSnapshot?.[curStep.slot || 1]?.variants || [curStep.cgKey]
-        };
       }
     }
 
@@ -4011,6 +4218,12 @@
       const isLastStep = state.currentStepIndex >= steps.length - 1;
       const step = steps[state.currentStepIndex];
       counterEl.textContent = `${state.currentStepIndex + 1} / ${steps.length}`;
+      const minPrevEl = document.getElementById("minimizedDialoguePreview");
+      if (minPrevEl) {
+        minPrevEl.textContent = step.rawText
+          ? `[${cleanSpeakerName(step.speaker)}] ${String(step.rawText).replace(/\s+/g, " ").slice(0, 50)}`
+          : `장면 ${state.currentStepIndex + 1} / ${steps.length}`;
+      }
       dialogueEl.scrollTop = 0;
 
       if (isLastStep && step.type !== "branch") {
@@ -4219,7 +4432,8 @@
         const isBaseStanding = /(?:_base|_zenshin|sifuku|seifuku|stand|tatie|tachie)/i.test(a.name) && !isPart;
 
         if (cat === "event_cg" && (isPart || a.mediaType === "video")) return false;
-        if (cat === "standing" && !isBaseStanding) return false;
+        if (cat === "standing" && !isBaseStanding && a.systemUsage?.badge?.indexOf("스탠딩") === -1) return false;
+        if (cat === "system" && !a.isProtectedSystemCg) return false;
         if (cat === "movies" && a.mediaType !== "video") return false;
 
         if (!q) return true;
@@ -4263,8 +4477,10 @@
                   ? `<img src="${a.blobUrl}" alt="${escapeHtml(a.name)}" loading="lazy" class="w-full h-full object-contain group-hover:scale-105 transition duration-200" />`
                   : `<div class="text-xs text-slate-500">미리보기</div>`
               }
-              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/75 text-[10px] ${sceneCount > 0 ? "text-emerald-300" : "text-amber-300"} font-mono">
-                ${a.mediaType === "video" ? (sceneCount > 0 ? `🎬 영상 (${sceneCount}곳)` : "🎬 동영상") : (sceneCount > 0 ? `✓ ${sceneCount}곳 등장` : "미사용 후보")}
+              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[10px] ${sceneCount > 0 ? "text-emerald-300" : (a.systemUsage ? "text-sky-300 font-bold" : "text-amber-300")} font-mono">
+                ${a.mediaType === "video"
+                  ? (sceneCount > 0 ? `🎬 영상 (${sceneCount}곳)` : "🎬 동영상")
+                  : (sceneCount > 0 ? `✓ ${sceneCount}곳 등장` : (a.systemUsage ? escapeHtml(a.systemUsage.badge) : "미사용 후보"))}
               </span>
               <button type="button" data-del-cg="${escapeHtml(a.name)}" class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded bg-rose-700/90 hover:bg-rose-600 text-white text-[10px] font-bold">
                 🗑
@@ -4279,6 +4495,10 @@
                 ${sceneCount > 0 ? `
                   <button type="button" data-jump-cg-key="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[10px] font-semibold border border-emerald-500/30">
                     ${sceneCount > 1 ? `등장 씬 (${sceneCount}곳) ▾` : "등장 씬 이동"}
+                  </button>
+                ` : (a.systemUsage && (a.systemUsage.targetTab === "status" || a.systemUsage.targetTab === "battle")) ? `
+                  <button type="button" data-jump-sys-tab="${escapeHtml(a.systemUsage.targetTab)}" data-jump-sys-key="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-sky-600/25 hover:bg-sky-600 text-sky-200 hover:text-white text-[10px] font-semibold border border-sky-500/30">
+                    ${a.systemUsage.targetTab === "status" ? "📊 상태창에서 보기" : "⚔️ 전투 시뮬에서 보기"}
                   </button>
                 ` : ""}
               </div>
@@ -4318,6 +4538,20 @@
           const key = btn.getAttribute("data-jump-cg-key");
           const asset = state.project.cgAssets[key];
           openCgScenesPickerOrJump(asset);
+        });
+      });
+
+      grid.querySelectorAll("[data-jump-sys-tab]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.getAttribute("data-jump-sys-tab");
+          const key = btn.getAttribute("data-jump-sys-key");
+          if (tab === "battle") {
+            state.selectedBattleCutinKey = key;
+            switchMainTab("battle");
+          } else {
+            state.selectedStatusBgKey = key;
+            switchMainTab("status");
+          }
         });
       });
     }
@@ -4491,12 +4725,14 @@
         }
       }
 
-      // Collect Battle Cut-in / Damage / Defeat CGs & Heroine Standing Snapshots
+      // Collect Battle Cut-in / Damage / Defeat CGs & Heroine Standing Snapshots (includes `<CutIn:...>` / `CC用` skill cut-ins!)
       const cutinKeys = Object.keys(state.project.cgAssets || {}).filter(k => {
         if (k === "__fastIndex" || state.deletedCgKeys.has(k) || isDummyBlackOrSystemPicture(k)) return false;
         if (isDetachedSubPartFile(k)) return false;
-        return /cutin|battle|damage|break|pinch|bind|defeat|lose|敗北|カットイン|拘束|破損|ev|cg|h/i.test(k);
-      }).slice(0, 50);
+        const a = state.project.cgAssets[k];
+        if (a?.systemUsage?.targetTab === "battle") return true;
+        return /cc用|cutin|battle|damage|break|pinch|bind|defeat|lose|敗北|カットイン|拘束|破損|ev|cg|h/i.test(k);
+      }).slice(0, 60);
 
       if (cutinSel) {
         cutinSel.innerHTML = `<option value="__standing__">🧍 주인공 기본 멀티레이어 스탠딩</option>` +
@@ -4729,14 +4965,6 @@
           const cmd = list[i];
           if (!cmd) continue;
           const indent = cmd.indent || 0;
-          if (cmd.code === 109) {
-            i++;
-            while (i < list.length) {
-              if (list[i] && list[i].code === 409 && (list[i].indent || 0) === indent) break;
-              i++;
-            }
-            continue;
-          }
           while (branchStack.length > 0 && branchStack[branchStack.length - 1].indent >= indent) {
             if (branchStack[branchStack.length - 1].indent === indent && (cmd.code === 411 || cmd.code === 412)) break;
             branchStack.pop();
@@ -5814,7 +6042,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <button type="button" data-lib-select="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white">이 게임 열기</button>
               <button type="button" data-lib-rename="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">✎ 이름 변경</button>
-              ${state.library.length > 1 ? `<button type="button" data-lib-delete="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-xs text-rose-300 border border-rose-500/30">🗑 삭제</button>` : ""}
+              <button type="button" data-lib-delete="${escapeHtml(g.id)}" class="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-xs text-rose-300 border border-rose-500/30 font-semibold">🗑 영구 삭제</button>
             </div>
           </div>
         `;
@@ -5833,7 +6061,10 @@
           const g = state.library.find(x => x.id === gId);
           if (!g) return;
           openEditModal("게임 이름 변경", g.title, (newVal) => {
-            if (newVal.trim()) g.title = newVal.trim();
+            if (newVal.trim()) {
+              g.title = newVal.trim();
+              autoSaveProjectToIndexedDb(g);
+            }
             renderLibraryHeaderSelect();
             renderLibraryTab();
           });
@@ -5841,12 +6072,34 @@
       });
 
       grid.querySelectorAll("[data-lib-delete]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const gId = btn.getAttribute("data-lib-delete");
-          if (state.library.length <= 1) return;
+          const target = state.library.find(x => x.id === gId);
+          markGameIdDeletedPermanent(gId, target?.title || "");
+          await deleteGameFromIndexedDb(gId);
           state.library = state.library.filter(x => x.id !== gId);
+          if (state.library.length === 0) {
+            state.library = [{
+              id: "empty_placeholder",
+              title: "게임을 불러와 주세요 (+ 폴더/ZIP)",
+              engine: "RPG Maker MV/MZ/VX",
+              startMapId: 1,
+              actors: { 1: "주인공" },
+              actorProfiles: [],
+              variableNames: {},
+              variables: {},
+              switchNames: {},
+              switches: {},
+              cgAssets: {},
+              faceAssets: {},
+              enemyAssets: {},
+              audioAssets: {},
+              maps: [{ id: 1, name: "001: 게임을 불러와 주세요", events: [] }]
+            }];
+          }
           if (state.activeGameId === gId) switchActiveGame(state.library[0].id);
           else { renderLibraryHeaderSelect(); renderLibraryTab(); }
+          showToast(`'${target?.title || "게임"}'을(를) 영구 저장소(IndexedDB)에서 완전히 삭제했습니다.`);
         });
       });
     }
@@ -5931,14 +6184,7 @@
         }
       }
       if (condType === 2) return p[2] === 1;
-      if (condType === 4) {
-        // p[2] === 0: Actor in Party -> Only Protagonist (Actor #1) is in party by default (prevents CE#341 dumping all 15 companion farewells!)
-        if (p[2] === 0) return Number(p[1]) === 1;
-        // p[2] === 2 (Name), 3 (Skill learned), 4 (Weapon): return true so skill-unlocked scenes (e.g. Map055 EV#140) are accessible
-        if (p[2] === 2 || p[2] === 3 || p[2] === 4) return true;
-        // p[2] === 5 (Armor like Slave Mask #608) or p[2] === 6 (Abnormal State like #11 Petrified, #117 Slime, #128 Futanari): false by default
-        return false;
-      }
+      if (condType === 4 && p[2] === 0) return true;
       if (condType === 7 || condType === 8 || condType === 9 || condType === 10) return true;
       if (condType === 12) {
         const sc = String(p[1] || "");
@@ -6314,6 +6560,23 @@
             }
           }
         }
+        // High-Slot Full-Screen Event CG Occlusion (`16d91933.jpeg` & `Map256 EV#6` Fix!):
+        // When a full-screen Event CG is active on Slot #10..#96 at (0,0) (e.g. `#20 E共通01触手用A1` or `Fドニ02A2` or `#80 CGevent_`),
+        // any lower-slot standing character (`slot < cgSlot` with `x !== 0` or standing naming like `ABA04_`, `AAA02_`) is covered behind the full-screen CG!
+        const highSlotEventCg = Object.entries(snap).find(([sNum, sp]) => {
+          const n = Number(sNum);
+          return n >= 10 && n <= 96 && sp && sp.key && !sp.isTextPicture && (Number(sp.x) || 0) === 0 && (Number(sp.y) || 0) === 0 &&
+            getPartCategoryAndPrefix(sp.key).category === "기본 이미지" && !isStandingOrTachieFileName(sp.key) && !isGlassesOrOptionalOverlayName(sp.key) && !/^300background\//i.test(sp.key);
+        });
+        if (highSlotEventCg) {
+          const cgSlotNum = Number(highSlotEventCg[0]);
+          for (const [sNum, sp] of Object.entries(snap)) {
+            const n = Number(sNum);
+            if (n < cgSlotNum && sp && sp.key && ((Number(sp.x) || 0) !== 0 || isStandingOrTachieFileName(sp.key) || /^A[A-Z]{2}\d{2}_/.test(sp.key))) {
+              delete snap[sNum];
+            }
+          }
+        }
         // Unholy Maiden CharacterPictureManager standing fallback: when Switch #57 is ON and no CG/standing is currently on stage, show Heroine standing layers
         const cpmLayers = simState.cpmLayers || state.project?.menuCharacterLayers?.[1];
         if (cpmLayers && cpmLayers.length > 0 && simState.switches[57] !== false && !simState.switches[22]) {
@@ -6340,29 +6603,12 @@
         return snap;
       };
 
-      const unmetFallbackBranches = [];
-
       while (i < list.length) {
         if (++opsBudget.count > opsBudget.max) break;
         const cmd = list[i];
         if (!cmd) { i++; continue; }
         const code = cmd.code;
         const p = cmd.parameters || [];
-
-        // RPG Maker MZ Code 109 (Skip) .. Code 409 (End Skip) disabled block!
-        // Prevents commented-out developer scratchpads (e.g. CE #1 lines 0..228 in Unholy Maiden) from executing!
-        if (code === 109) {
-          const skipIndent = cmd.indent;
-          i++;
-          while (i < list.length) {
-            if (list[i] && list[i].code === 409 && list[i].indent === skipIndent) {
-              i++;
-              break;
-            }
-            i++;
-          }
-          continue;
-        }
 
         if (code === 230) {
           hadWaitSinceLastCgFlush = true;
@@ -6490,10 +6736,8 @@
           const opacity = rawOpacity > 0 ? rawOpacity : 255;
 
           if (!rawPicParam && pendingDText) {
-            // In Story Viewer (`parseMvEventCommandsV10`), skip HUD DTextPicture overlays (`Slots #51..#59` like `0/150%` Fatigue or Eroste side HUD);
-            // Status screens use `executeNativeStatusCeSnapshot` which renders all DTextPictures natively!
-            const isStatusOrRecCe = slotNum < 50 && ceDepth === 0;
-            if (isStatusOrRecCe) {
+            const isHudOverlaySlot = slotNum >= 50 && (ceDepth > 0 || x >= 600);
+            if (!isHudOverlaySlot) {
               pendingPictures[slotNum] = {
                 key: "__dtext__",
                 isTextPicture: true,
@@ -6566,23 +6810,41 @@
             for (const dv of dynamicVariants) {
               if (!prevVariants.includes(dv)) prevVariants.push(dv);
             }
-            // Cross-Fade Slot Anti-Overlap (`#80 -> #81 -> #82 -> #83` in Unholy Maiden CE#240, CE#340, CE#358):
-            // When a new full-frame image of the same series is placed on a higher/different slot, clear earlier slots of the same series!
+            // Cross-Fade Slot & Same-Position Standing Anti-Overlap (v16):
+            // 1) When a full-frame Event CG (`slotNum >= 10 && x === 0 && y === 0`) is shown, replace earlier cross-fade Event CG slots (`10 <= exSlot < 100` at `x=0, y=0`) and carry over their `.variants`!
+            // 2) When a non-subpart standing character (`2 <= slotNum <= 15`) is placed at `(x, y)` where another different character's `기본 이미지` is already at `|x1 - x2| <= 60 && |y1 - y2| <= 60`, replace the old standing slot!
             const newPartCat = getPartCategoryAndPrefix(picName).category;
             const newSeriesKey = getNormalizedSeriesKey(picName);
             const isExOverlay = /(?:_ex\d*|onomatope)$/i.test(picName);
-            if (newPartCat === "기본 이미지" && !isExOverlay && newSeriesKey) {
+            if (newPartCat === "기본 이미지" && !isExOverlay) {
               for (const [exSlotStr, exSpec] of Object.entries(pendingPictures)) {
                 const exSlot = Number(exSlotStr);
                 if (exSlot === slotNum || !exSpec || !exSpec.key || exSpec.isTextPicture) continue;
                 if (/(?:_ex\d*|onomatope)$/i.test(exSpec.key)) continue;
                 const exCat = getPartCategoryAndPrefix(exSpec.key).category;
-                if (exCat === "기본 이미지") {
-                  const exSeries = getNormalizedSeriesKey(exSpec.key);
-                  if (exSeries === newSeriesKey || (exSlot >= 60 && slotNum >= 60 && /^(?:cgevent_|mod\/scenes\/|200eventcg\/)/i.test(picName) && /^(?:cgevent_|mod\/scenes\/|200eventcg\/)/i.test(exSpec.key) && !slotsUpdatedInCurrentStep.has(exSlot))) {
-                    pendingPictures[exSlot] = null;
-                    slotsUpdatedInCurrentStep.delete(exSlot);
+                if (exCat !== "기본 이미지") continue;
+                const exSeries = getNormalizedSeriesKey(exSpec.key);
+                const isSameSeries = Boolean(newSeriesKey && exSeries === newSeriesKey);
+                const isHighSlotEventCgCrossfade = (
+                  slotNum >= 10 && slotNum <= 96 && exSlot >= 10 && exSlot <= 96 &&
+                  x === 0 && y === 0 && (Number(exSpec.x) || 0) === 0 && (Number(exSpec.y) || 0) === 0 &&
+                  !isStandingOrTachieFileName(picName) && !isStandingOrTachieFileName(exSpec.key) &&
+                  !slotsUpdatedInCurrentStep.has(exSlot)
+                );
+                const isSamePositionStandingReplace = (
+                  slotNum >= 2 && slotNum <= 15 && exSlot >= 2 && exSlot <= 15 &&
+                  Math.abs((Number(exSpec.x) || 0) - x) <= 60 && Math.abs((Number(exSpec.y) || 0) - y) <= 60 &&
+                  extractCharacterStem(exSpec.key) !== extractCharacterStem(picName) &&
+                  !slotsUpdatedInCurrentStep.has(exSlot)
+                );
+                if (isSameSeries || isHighSlotEventCgCrossfade || isSamePositionStandingReplace) {
+                  if ((isSameSeries || isHighSlotEventCgCrossfade) && Array.isArray(exSpec.variants)) {
+                    for (const v of exSpec.variants) {
+                      if (!prevVariants.includes(v)) prevVariants.push(v);
+                    }
                   }
+                  pendingPictures[exSlot] = null;
+                  slotsUpdatedInCurrentStep.delete(exSlot);
                 }
               }
             }
@@ -6605,14 +6867,20 @@
 
         if (code === 232) {
           const slotNum = Number(p[0]) || 1;
-          if (pendingPictures[slotNum]) {
+          const newOp = Number(p[8] ?? 255);
+          // CRITICAL FIX IN v16 (`bd2a5f6c.jpeg`, `16d91933.jpeg`, `d4b0ad9d.jpeg` Fix!):
+          // When `Code 232 (Move Picture)` sets `opacity = 0` (`newOp <= 0`), the game is fading out / hiding that character or CG!
+          if (newOp <= 0) {
+            updateLastNonEmptyPictures();
+            pendingPictures[slotNum] = null;
+            slotsUpdatedInCurrentStep.delete(slotNum);
+          } else if (pendingPictures[slotNum]) {
             const coordMode = Number(p[3]) || 0;
             pendingPictures[slotNum].x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simState.vars[p[4]]) || 0);
             pendingPictures[slotNum].y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
             pendingPictures[slotNum].scaleX = Number(p[6] ?? 100);
             pendingPictures[slotNum].scaleY = Number(p[7] ?? 100);
-            const newOp = Number(p[8] ?? 255);
-            if (newOp > 0) pendingPictures[slotNum].opacity = newOp;
+            pendingPictures[slotNum].opacity = newOp;
             updateLastNonEmptyPictures();
           }
           i++;
@@ -6963,9 +7231,9 @@
           const thenSt = analyzeStepsStats(thenSteps);
           const elseSt = analyzeStepsStats(elseSteps);
 
-          // FIXED IN v15:
-          // 1) When `thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0`:
-          //    Only apply picture changes if `condMet` is true (or `elseCmds.length > 0` when `!condMet`), and only attach same-character part variants from the non-winning branch.
+          // FIXED IN v13 (`image_5c0939.jpg` & `image_5baf1f.jpg`):
+          // Winning branch (`condMet` for `then`, `!condMet` for `else`) MUST be merged FIRST with `allowErase = true`,
+          // and non-winning branch merged second with `allowErase = false`!
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
             if (condMet) {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
@@ -6984,25 +7252,12 @@
             if (condMet) {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
               if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
-              updateLastNonEmptyPictures();
-              steps.push(...thenSteps);
-              continue;
+            } else {
+              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
             }
-            // `condMet === false` and `elseSt.dialogueCount === 0`:
-            // Do NOT unconditionally push `thenSteps` when `condMet === false`!
-            // Inside Common Events (`ceDepth > 0`) or for Party/Actor/Script checks (`p[0] === 4` or `p[0] === 12`), an unmet `If` without `Else` MUST be skipped
-            // so `CE #31` (Slime/Petrification/Urination), `CE #341` (15 Companion Farewells), `CE #510` (Random 0..5), and `Map055 EV#142` don't dump unmet branches!
-            if (elseCmds.length > 0) {
-              mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-            }
-            mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
             updateLastNonEmptyPictures();
-            if (ceDepth === 0 && p[0] !== 4 && p[0] !== 12 && thenSt.dialogueCount > 0) {
-              let condLabel = `추가 조건 분기 #${unmetFallbackBranches.length + 1}`;
-              if (p[0] === 0) condLabel = `스위치 #${p[1]} ${p[2] === 0 ? "ON" : "OFF"} 분기`;
-              else if (p[0] === 1) condLabel = `변수 #${p[1]} (${p[3]}) 조건 분기`;
-              unmetFallbackBranches.push({ label: condLabel, steps: thenSteps, pending: thenPending });
-            }
+            steps.push(...thenSteps);
             continue;
           }
           if (thenSt.dialogueCount === 0) {
@@ -7049,15 +7304,9 @@
 
         const executeCommonEventCall = (ceId) => {
           if (!ceId || activeCeStack.has(ceId) || ceDepth >= 4) return;
+          if (metaTracker && metaTracker.calledCommonEvents) metaTracker.calledCommonEvents.add(ceId);
           const ce = commonEventsMap[ceId];
           if (!ce || !Array.isArray(ce.list)) return;
-          const ceName = String(ce.name || "");
-          // Skip H-option chastity rejection checks (`CE #360, #361, #365`), companion breakup hook (`CE #341`),
-          // dungeon/indoor step post-processors (`CE #9, #10, #31, #32, #33, #36, #363`), and Eroste side HUD (`CE #282`) during story playback!
-          if (/H\s*option\s*rejection|H選択肢拒否|Breaking\s*Up\s*with\s*Your\s*Peers|仲間と別れる際の処理|Immediately\s*after\s*moving|移動直後処理|time\s*management\s*system|時間管理システム|Fatigue\s*result\s*processing|疲労結果処理|Display\s*of\s*Eroste\s*UI|エロステUIの表示/i.test(ceName)) {
-            return;
-          }
-          if (metaTracker && metaTracker.calledCommonEvents) metaTracker.calledCommonEvents.add(ceId);
 
           if (ceEffectCache && ceEffectCache.has(ceId)) {
             const cached = ceEffectCache.get(ceId);
@@ -7508,23 +7757,10 @@
             }
           }
           if (/erasePicture/i.test(scriptText)) {
-            const loopEraseMatch = scriptText.match(/for\s*\([^;]*?(\d+)\s*;[^;]*?<=?\s*(\d+)[^)]*\)\s*\{?\s*\$gameScreen\.erasePicture/i);
-            if (loopEraseMatch) {
+            const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
+            if (eraseMatch) {
               updateLastNonEmptyPictures();
-              const startSlot = Number(loopEraseMatch[1]) || 1;
-              const endSlot = Math.min(200, Number(loopEraseMatch[2]) || startSlot);
-              for (let s = startSlot; s <= endSlot; s++) {
-                pendingPictures[s] = null;
-                slotsUpdatedInCurrentStep.delete(s);
-              }
-            } else {
-              const eraseMatch = scriptText.match(/erasePicture\(\s*(\d+)\s*\)/i);
-              if (eraseMatch) {
-                updateLastNonEmptyPictures();
-                const s = Number(eraseMatch[1]) || 1;
-                pendingPictures[s] = null;
-                slotsUpdatedInCurrentStep.delete(s);
-              }
+              pendingPictures[Number(eraseMatch[1]) || 1] = null;
             }
           }
           if (/showPicture/i.test(scriptText)) {
@@ -7533,44 +7769,37 @@
               const sNum = Number(showPicMatch[1]) || 1;
               const pName = showPicMatch[2].trim();
               if (!isDummyBlackOrSystemPicture(pName)) {
-                const resolved = cgAssetsDict ? resolveAssetInDict(pName, cgAssetsDict, true) : null;
-                const finalKey = resolved ? resolved.name : pName;
-                if (usageTracker) usageTracker(finalKey, steps.length);
-                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(finalKey);
-                pendingPictures[sNum] = { key: finalKey, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [finalKey] };
+                if (usageTracker) usageTracker(pName, steps.length);
+                if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(pName);
+                pendingPictures[sNum] = { key: pName, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [pName] };
                 slotsUpdatedInCurrentStep.add(sNum);
                 updateLastNonEmptyPictures();
               }
             }
           }
 
-          // Strict Zero-False-Positive Video/Picture Plugin Matcher (v15):
-          // Never tokenizes math/variable scripts (`controlSelfVariable`, `MPP_MapLight`, `PictureControlExtend`) into numbers like `"1"` or `"100"`!
-          const isNonMediaPlugin = /^(?:MPP_|MNKR_|PANDA_|SimpleVoice|ParallelBgs|FilterController|PictureControlExtend|Torigoya|TRP_)/i.test(String(p[0] || "")) ||
-            /controlSelfVariable|setDarkness|clearParamPlus|SceneManager/i.test(scriptText);
-          if (!isNonMediaPlugin && cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 500 && /movie|video|play|pict|cg|anime|cutin/i.test(scriptText)) {
+          if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 600) {
             const candidateTokens = new Set();
-            const quotedRegex = /["'「]([^"'」\n]{3,80})["'」]/g;
+            const quotedRegex = /["'「]([^"'」\n]{2,80})["'」]/g;
             let qm;
             while ((qm = quotedRegex.exec(scriptText)) !== null) {
-              const tok = qm[1].trim();
-              if (/[A-Za-z가-힣\u3040-\u30ff\u4e00-\u9fff]/.test(tok) && !/^(?:true|false|null|none|default|normal|wait|loop)$/i.test(tok)) {
-                candidateTokens.add(tok);
-              }
+              candidateTokens.add(qm[1].trim());
             }
-            if (code === 356) {
-              for (const sub of scriptText.split(/[\s\u3000]+/).slice(1)) {
-                if (sub.length >= 4 && /[A-Za-z가-힣\u3040-\u30ff\u4e00-\u9fff]/.test(sub)) {
-                  candidateTokens.add(sub);
-                }
+            const wordTokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_\-\u3000 ]{3,}/g) || [];
+            for (const wt of wordTokens) {
+              candidateTokens.add(wt.trim());
+              for (const sub of wt.split(/[\s\u3000]+/)) {
+                if (sub.length >= 3) candidateTokens.add(sub);
               }
             }
 
+            let pluginSlotCounter = 50;
             for (const tk of candidateTokens) {
               const hit = resolveAssetInDict(tk, cgAssetsDict, true);
-              if (hit && hit.mediaType === "video" && !isDummyBlackOrSystemPicture(hit.name)) {
+              if (hit && !isDummyBlackOrSystemPicture(hit.name)) {
                 const sKey = getNormalizedSeriesKey(hit.name);
                 const seriesSibs = cgAssetsDict.__fastIndex.seriesMap?.get(sKey) || [hit];
+
                 if (usageTracker) {
                   usageTracker(hit.name, steps.length);
                   for (const sib of seriesSibs) {
@@ -7583,17 +7812,34 @@
                     if (sib && sib.mediaType === "video") metaTracker.usedCgs.add(sib.name);
                   }
                 }
-                const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
-                if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
-                steps.push({
-                  type: "movie",
-                  slot: 1,
-                  cgKey: hit.name,
-                  pictureSnapshot: {
-                    1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
-                  },
-                  source: "Plugin/Script Video"
-                });
+
+                if (hit.mediaType === "video") {
+                  const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
+                  if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
+                  steps.push({
+                    type: "movie",
+                    slot: 1,
+                    cgKey: hit.name,
+                    pictureSnapshot: {
+                      1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
+                    },
+                    source: "Plugin/Script Video"
+                  });
+                } else {
+                  const slotToUse = pluginSlotCounter++;
+                  pendingPictures[slotToUse] = {
+                    key: hit.name,
+                    origin: 0,
+                    x: 0,
+                    y: 0,
+                    scaleX: 100,
+                    scaleY: 100,
+                    opacity: 255,
+                    variants: [hit.name]
+                  };
+                  slotsUpdatedInCurrentStep.add(slotToUse);
+                  updateLastNonEmptyPictures();
+                }
               }
             }
           }
@@ -7609,41 +7855,11 @@
         i++;
       }
 
-      if (ceDepth === 0 && !inConditionalBranch && unmetFallbackBranches.length > 0) {
-        if (!steps.some(s => s.type === "dialogue")) {
-          if (unmetFallbackBranches.length === 1) {
-            steps.push(...unmetFallbackBranches[0].steps);
-          } else {
-            steps.push({
-              type: "branch",
-              branchTitle: `조건별 스토리 분기 (${unmetFallbackBranches.length}종)`,
-              pictureSnapshot: buildCleanStepSnapshot(),
-              options: unmetFallbackBranches.map((fb, idx) => ({
-                label: fb.label || `조건 분기 #${idx + 1}`,
-                preview: (fb.steps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
-                steps: fb.steps
-              }))
-            });
-          }
-        } else if (unmetFallbackBranches.length <= 10) {
-          steps.push({
-            type: "branch",
-            branchTitle: `다른 조건·진행도 분기 대사 (${unmetFallbackBranches.length}종)`,
-            pictureSnapshot: buildCleanStepSnapshot(),
-            options: unmetFallbackBranches.map((fb, idx) => ({
-              label: fb.label || `조건 분기 #${idx + 1}`,
-              preview: (fb.steps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
-              steps: fb.steps
-            }))
-          });
-        }
-      }
-
       if (steps.length === 0 && ceDepth === 0 && !inConditionalBranch) {
-        const activeEntries = Object.entries(pendingPictures).filter(([k, v]) => Number(k) < 200 && v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
+        const activeEntries = Object.entries(pendingPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const fallbackEntries = activeEntries.length > 0
           ? activeEntries
-          : Object.entries(lastNonEmptyPictures).filter(([k, v]) => Number(k) < 200 && v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
+          : Object.entries(lastNonEmptyPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const snapToUse = activeEntries.length > 0 ? pendingPictures : lastNonEmptyPictures;
 
         if (fallbackEntries.length > 0) {
@@ -7841,9 +8057,7 @@
           buildFastAssetLookup(pkgJson.cgAssets);
           buildFastAssetLookup(pkgJson.faceAssets);
           buildFastAssetLookup(pkgJson.audioAssets);
-          state.library.unshift(pkgJson);
-          switchActiveGame(pkgJson.id);
-          autoSaveProjectToIndexedDb(pkgJson, file);
+          await deduplicateAndInsertGame(pkgJson, file, true);
           showToast(`'${pkgJson.title}' 패키지를 로드했습니다!`);
           return;
         }
@@ -7989,6 +8203,7 @@
       const enemiesArr = jsonFiles["enemies.json"] || [];
       const skillsArr = jsonFiles["skills.json"] || [];
       const statesArr = jsonFiles["states.json"] || [];
+      const items = jsonFiles["items.json"] || [];
       const actorsArr = jsonFiles["actors.json"] || [];
       const classesArr = jsonFiles["classes.json"] || [];
 
@@ -8618,7 +8833,34 @@
           }
 
           if (events.length > 0) {
-            rawMapRecords.set(mapId, { id: mapId, editorOrder: editorMapOrder, name: `${String(mapId).padStart(3, "0")}: ${mapTitle}`, events });
+            // Reconstruct `MapInfos.json` parentId ancestor chain (`ストーリー用 -> 第１章 盗賊 -> ...`)
+            const ancestorNames = [];
+            let curParentId = Number(mInfo.parentId) || 0;
+            const visitedParents = new Set([mapId]);
+            while (curParentId > 0 && mapInfos[curParentId] && !visitedParents.has(curParentId)) {
+              visitedParents.add(curParentId);
+              const pName = String(mapInfos[curParentId].name || "").trim();
+              if (pName) ancestorNames.unshift(pName);
+              curParentId = Number(mapInfos[curParentId].parentId) || 0;
+            }
+            const rootFolderName = ancestorNames[0] || "";
+            const chapterFolder = ancestorNames.find(n => /プロローグ|프롤로그|(?:第|제)?\s*[0-9１-９一二三四五六七八九十]+\s*(?:章|장|막|부|話|화|層|층)|最終章|최종장|エンディング|엔딩/i.test(n)) || "";
+            const cleanChapTag = chapterFolder.replace(/^[◇▽◆■\s]+/, "").trim();
+            const enrichedTitle = (cleanChapTag && !mapTitle.includes(cleanChapTag))
+              ? `[${cleanChapTag}] ${mapTitle}`
+              : mapTitle;
+
+            rawMapRecords.set(mapId, {
+              id: mapId,
+              parentId: Number(mInfo.parentId) || 0,
+              editorOrder: editorMapOrder,
+              rawTitle: mapTitle,
+              rootFolderName,
+              chapterFolder,
+              fullTreePath: [...ancestorNames, mapTitle].join(" / "),
+              name: `${String(mapId).padStart(3, "0")}: ${enrichedTitle}`,
+              events
+            });
           }
         }
       }
@@ -8815,6 +9057,131 @@
         }
       }
 
+      // =====================================================================
+      // v16 SYSTEM / STATUS / SKILL CUT-IN / BATTLE / TITLE CG DETECTOR
+      // Connects Title screens, Status screen graphics, Skill/Enemy Cut-ins (`<CutIn:...>`, `<Actor:0_...CC用>`, `<BPnormal:...>`),
+      // and Menu/Standing parts so they are NEVER misclassified as "Unused" or deleted by `[⚡ 미사용 더미 삭제]`!
+      // =====================================================================
+      function markAssetSystemProtected(rawNameOrAsset, badgeText, targetTab = "status") {
+        const asset = typeof rawNameOrAsset === "string"
+          ? resolveAssetInDict(rawNameOrAsset, cgAssets, true)
+          : rawNameOrAsset;
+        if (!asset || !asset.name) return null;
+        asset.isProtectedSystemCg = true;
+        if (!asset.systemUsage) {
+          asset.systemUsage = { badge: badgeText, targetTab };
+        }
+        const pfx = asset.groupPrefix || getVariationPrefix(asset.name);
+        const sKey = asset.seriesKey || getNormalizedSeriesKey(asset.name);
+        const sibs = new Set([
+          ...(prefixToAssetKeys.get(pfx) || []),
+          ...(seriesToAssetKeys.get(sKey) || [])
+        ]);
+        for (const sk of sibs) {
+          const sib = cgAssets[sk];
+          if (sib) {
+            sib.isProtectedSystemCg = true;
+            if (!sib.systemUsage) sib.systemUsage = { badge: badgeText, targetTab };
+          }
+        }
+        return asset;
+      }
+
+      // 1) Title Screen & Battleback images from `System.json`
+      for (const tName of [sys.title1Name, sys.title2Name, sys.battleback1Name, sys.battleback2Name]) {
+        if (tName && String(tName).trim()) {
+          markAssetSystemProtected(String(tName).trim(), "👑 타이틀·시스템 화면", "vn");
+        }
+      }
+
+      // 2) Actor Profiles, Ero-Status, CharacterPictureManager (`menuCharacterLayers`), AdvExtention (`advCharactersConfig`), SceneLewdStatus
+      for (const prof of actorProfiles) {
+        if (prof.eroStatusCg) markAssetSystemProtected(prof.eroStatusCg, `📊 상태창 (${prof.name})`, "status");
+        if (prof.portraitCg) markAssetSystemProtected(prof.portraitCg, `📊 상태창·프로필 (${prof.name})`, "status");
+        for (const ck of (prof.candidateCgs || [])) {
+          markAssetSystemProtected(ck, `🧍 캐릭터 스탠딩 (${prof.name})`, "status");
+        }
+      }
+      for (const layers of Object.values(menuCharacterLayers)) {
+        for (const l of (layers || [])) {
+          if (l.fileName) markAssetSystemProtected(l.fileName, "📊 인게임 상태창·메뉴 파츠", "status");
+          for (const vk of (l.variants || [])) markAssetSystemProtected(vk, "📊 인게임 상태창·메뉴 파츠", "status");
+        }
+      }
+      for (const advDef of Object.values(advCharactersConfig)) {
+        for (const pArr of Object.values(advDef.parts || {})) {
+          for (const pk of (pArr || [])) markAssetSystemProtected(pk, `🧍 스탠딩 파츠 (${advDef.name || "주인공"})`, "status");
+        }
+      }
+
+      // 3) Scan `<Tag:Value>` note metadata across Actors, Classes, Skills, Items, Weapons, Armors, Enemies, States (e.g. `<CutIn:...>`, `<ティーナ:0_ティーナCC用>`, `<BPnormal:...>`)
+      const cutInTagToAssetKey = new Map();
+      const dbCollections = [
+        { arr: actorsArr, badge: "📊 액터·전투 컷인", tab: "battle" },
+        { arr: classesArr, badge: "📊 클래스 그래픽", tab: "status" },
+        { arr: enemiesArr, badge: "⚔️ 적 보스·컷인", tab: "battle" },
+        { arr: skillsArr, badge: "⚔️ 스킬 컷인 연출", tab: "battle" },
+        { arr: items, badge: "🎒 아이템 연출", tab: "vn" },
+        { arr: jsonFiles["weapons.json"] || [], badge: "⚔️ 무기·전투 파츠", tab: "battle" },
+        { arr: jsonFiles["armors.json"] || [], badge: "👙 방어구·복장 파츠", tab: "status" },
+        { arr: statesArr, badge: "💫 상태이상 연출", tab: "battle" }
+      ];
+      for (const { arr, badge, tab } of dbCollections) {
+        if (!Array.isArray(arr)) continue;
+        for (const entry of arr) {
+          if (!entry || !entry.note) continue;
+          const noteStr = String(entry.note);
+          const tagRx = /<([^:>\n]+):([^>\n]+)>/g;
+          let tm;
+          while ((tm = tagRx.exec(noteStr)) !== null) {
+            const tagKey = tm[1].trim();
+            const rawVal = tm[2].trim();
+            const firstToken = rawVal.split(/[\s,]+/)[0].trim();
+            if (!firstToken) continue;
+            if (/^(?:CutIn|カットイン)$/i.test(tagKey)) {
+              const linkedAssetKey = cutInTagToAssetKey.get(firstToken) || firstToken;
+              const hit = markAssetSystemProtected(linkedAssetKey, `⚔️ 스킬 컷인 (${entry.name || firstToken})`, "battle");
+              if (hit && entry.name) entry._cutInAssetKey = hit.name;
+            } else {
+              const hit = markAssetSystemProtected(firstToken, `${badge} (${entry.name || tagKey})`, tab);
+              if (hit) {
+                cutInTagToAssetKey.set(tagKey, hit.name);
+              }
+            }
+          }
+        }
+      }
+
+      // Second pass for `<CutIn:Tag>` in `Skills.json` in case `Skills.json` was scanned or referenced `Enemies.json` tags
+      if (Array.isArray(skillsArr)) {
+        for (const sk of skillsArr) {
+          if (!sk || !sk.note) continue;
+          const cm = String(sk.note).match(/<(?:CutIn|カットイン):([^>\s]+)/i);
+          if (cm && cm[1]) {
+            const tag = cm[1].trim();
+            const mappedKey = cutInTagToAssetKey.get(tag) || tag;
+            markAssetSystemProtected(mappedKey, `⚔️ 스킬 컷인 (${sk.name || tag})`, "battle");
+          }
+        }
+      }
+
+      // 4) Folder & Filename Heuristic Protection for Title / Status / Cut-in / Standing assets
+      for (const k of allCgKeys) {
+        const asset = cgAssets[k];
+        if (!asset) continue;
+        const lowerK = k.toLowerCase();
+        const lowerFolder = String(asset.folder || "").toLowerCase();
+        if (lowerFolder.includes("titles") || /title|タイトル/i.test(lowerK)) {
+          markAssetSystemProtected(asset, "👑 타이틀 화면", "vn");
+        } else if (lowerK.includes("lewd_status") || /erosta|prof_base|h-prof|status|ステータス|エロステ/i.test(lowerK)) {
+          markAssetSystemProtected(asset, "📊 상태창 전용 그래픽", "status");
+        } else if (/cc用|cutin|カットイン|battle|戦闘/i.test(lowerK)) {
+          markAssetSystemProtected(asset, "⚔️ 전투·스킬 컷인", "battle");
+        } else if (/^a[a-z]{2}\d{2}_|^100standing|standing|tachie|立ち絵/i.test(lowerK)) {
+          markAssetSystemProtected(asset, "🧍 캐릭터 스탠딩", "vn");
+        }
+      }
+
       // Single O(N) Post-Pass: Propagate `usedInList` across both `prefixToAssetKeys` AND `seriesToAssetKeys` (for `居酒屋　雨2, 3`, `Prison02`, etc.!)
       for (const k of allCgKeys) {
         const asset = cgAssets[k];
@@ -8919,25 +9286,6 @@
         }
       }
 
-      function computeMapProgressionTier(mObj) {
-        if (!mObj) return 500;
-        if (mObj.id === startMapId) return 1;
-        const mName = String(mObj.name || "");
-        if (/回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(mName)) return 850;
-        if (/テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(mName)) return 950;
-        if (/OP|오프닝|オープニング|프롤로그|プロローグ|튜토리얼|チュートリアル|キャラクターメイク|캐릭터\s*생성/i.test(mName)) return 5;
-        if (/ED|엔딩|エンディング|에필로그|エピローグ/i.test(mName)) return 780;
-        // Town / Base camp hubs come early
-        if (/拠点|キャンプ|酒場|教会|宿|길드|거점|캠프|술집|주점|성당|교회|여관|상점가|상층구|중층구|하층구/i.test(mName)) return 25;
-        // Explicit Floor / Layer numbers (`1層`/`1층`/`B1F` -> `2層`/`2층` -> `3層`/`3층` -> `4層`/`4층`)
-        if (/一層|1層|1층|지하\s*1층|1F|B1F/i.test(mName)) return 60;
-        if (/二層|2層|2층|지하\s*2층|2F|B2F|헤구이|ヘグイ/i.test(mName)) return 110;
-        if (/三層|3層|3층|지하\s*3층|3F|B3F/i.test(mName)) return 160;
-        if (/四層|4層|4층|지하\s*4층|4F|B4F/i.test(mName)) return 210;
-        if (/五層|5層|5층|심층|최심부|보스|마왕|深層|最深部|ボス/i.test(mName)) return 260;
-        return 140;
-      }
-
       const mapVisitRank = new Map();
       const mapQueue = [startMapId];
       mapVisitRank.set(startMapId, 1);
@@ -8945,63 +9293,30 @@
         const curMId = mapQueue.shift();
         const curM = rawMapRecords.get(curMId);
         if (!curM) continue;
-        const nextCandidates = [];
         for (const ev of curM.events) {
           for (const nextMId of (ev.transfersToMaps || [])) {
             if (rawMapRecords.has(nextMId) && !mapVisitRank.has(nextMId)) {
-              nextCandidates.push(nextMId);
+              mapVisitRank.set(nextMId, mapVisitRank.size + 1);
+              mapQueue.push(nextMId);
             }
           }
         }
-        nextCandidates.sort((a, b) => computeMapProgressionTier(rawMapRecords.get(a)) - computeMapProgressionTier(rawMapRecords.get(b)) || (a - b));
-        for (const nextMId of nextCandidates) {
-          if (!mapVisitRank.has(nextMId)) {
-            mapVisitRank.set(nextMId, mapVisitRank.size + 1);
-            mapQueue.push(nextMId);
-          }
-        }
-      }
-
-      // Assign deterministic progression rank to maps not directly reached via static Code 201 transfer
-      const unvisitedMaps = Array.from(rawMapRecords.values())
-        .filter(m => m.id < 9000 && !mapVisitRank.has(m.id))
-        .sort((a, b) => {
-          const tA = computeMapProgressionTier(a);
-          const tB = computeMapProgressionTier(b);
-          if (tA !== tB) return tA - tB;
-          return (a.editorOrder || a.id) - (b.editorOrder || b.id);
-        });
-      for (const um of unvisitedMaps) {
-        mapVisitRank.set(um.id, mapVisitRank.size + 1);
       }
 
       function computeBaseHeuristicScore(ev) {
-        const mObj = rawMapRecords.get(ev.mapId);
-        const mTier = computeMapProgressionTier(mObj);
-        const mRank = mapVisitRank.get(ev.mapId) || (200 + (mObj?.editorOrder || ev.mapId));
-        let score = mTier * 1500 + mRank * 600 + ev.id;
-
-        if (isSystemMapInitEventName(ev.name)) {
-          score += 900000;
-        } else if (ev.isAmbientOneLinerNpc) {
-          score += 400000;
-        } else if (ev.totalDialogue <= 2 && ev.totalCg === 0 && !ev.entryPageAutorun && (ev.turnsOnSwitches?.length || 0) === 0) {
-          score += 220000;
-        } else if (ev.totalDialogue >= 15 || ev.totalCg > 0 || (ev.pages?.length || 0) >= 3) {
-          // Prioritize rich multi-stage NPC / Boss / Story events over minor map objects
-          score -= 15000;
-        }
-
-        if (ev.mapId === startMapId && ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 600000;
-        else if (ev.entryPageAutorun && ev.entryPageSwitchReq === 0 && !isSystemMapInitEventName(ev.name)) score -= 45000;
-        else if (/(?:^|:\s*)(?:OP|오프닝|オープニング|キャラクターメイク|캐릭터\s*생성|復活処理|부활\s*처리)/i.test(ev.name || "")) score -= 35000;
-
+        const mRank = mapVisitRank.get(ev.mapId) || (200 + (rawMapRecords.get(ev.mapId)?.editorOrder || ev.mapId));
+        let score = mRank * 1000 + ev.id;
+        if (ev.isAmbientOneLinerNpc) score += 350000;
+        else if (ev.totalDialogue <= 2 && ev.totalCg === 0 && !ev.entryPageAutorun && (ev.turnsOnSwitches?.length || 0) === 0) score += 180000;
+        if (ev.mapId === startMapId && ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 500000;
+        else if (ev.entryPageAutorun && ev.entryPageSwitchReq === 0) score -= 50000;
+        else if (/(?:^|:\s*)(?:OP|오프닝|オープニング|復活処理|부활\s*처리)/i.test(ev.name || "")) score -= 25000;
         if (mainProgressVarId > 0 && ev.entryPageVarId === mainProgressVarId && ev.entryPageVarVal > 0) {
-          score = ev.entryPageVarVal * 12000 + mRank * 100 + ev.id;
+          score = ev.entryPageVarVal * 10000 + mRank * 100 + ev.id;
         } else if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0) {
-          score += Math.min(ev.entryPageVarVal * 1800, 90000);
+          score += ev.entryPageVarVal * 2500;
         } else if (ev.entryPageSwitchReq > 0) {
-          score += Math.min(ev.entryPageSwitchReq * 20, 18000);
+          score += Math.min(ev.entryPageSwitchReq * 20, 15000);
         }
         return score;
       }
@@ -9065,13 +9380,97 @@
         ev.storyOrder = (idx + 1) * 10;
       });
 
+      // Build incoming static transfer map set so we can detect unreferenced backup/non-voiced duplicate maps (`BU` / old non-`vo.ver`)
+      const incomingTransferMaps = new Set([startMapId]);
+      for (const m of rawMapRecords.values()) {
+        for (const ev of m.events) {
+          for (const destId of (ev.transfersToMaps || [])) incomingTransferMaps.add(destId);
+        }
+      }
+
+      function parseChapterNumberToken(str) {
+        const s = String(str || "");
+        const m = s.match(/(?:第|제)\s*([0-9１-９一二三四五六七八九十]+)\s*(?:章|장|막|부|절|話|화|편)/i) ||
+                  s.match(/(?:^|[^0-9])([0-9１-９]+)\s*(?:章|장|막|부|절|話|화|편)/i) ||
+                  s.match(/chapter\s*(\d+)/i);
+        if (!m || !m[1]) return 0;
+        const kanjiMap = { "一": "1", "二": "2", "三": "3", "四": "4", "五": "5", "六": "6", "七": "7", "八": "8", "九": "9", "十": "10" };
+        const tok = m[1]
+          .replace(/[１-９]/g, ch => String(ch.charCodeAt(0) - 0xff10))
+          .replace(/[一二三四五六七八九十]/g, d => kanjiMap[d] || d);
+        return parseInt(tok, 10) || 0;
+      }
+
+      function computeMapProgressionTier(mObj) {
+        if (!mObj) return 500;
+        if (mObj.id === startMapId) return 1;
+        const rawTitle = String(mObj.rawTitle || mObj.name || "");
+        const rootName = String(mObj.rootFolderName || "");
+        const chapFolder = String(mObj.chapterFolder || "");
+        const treePath = String(mObj.fullTreePath || mObj.name || "");
+
+        // 1) Demote unreferenced Backup (`ＢＵ`, `BU`, `バックアップ`) or non-`vo.ver` parent maps whose `vo.ver` child is reachable
+        if (/(?:ＢＵ|BU|バックアップ|コピー)$/i.test(rawTitle) && !incomingTransferMaps.has(mObj.id)) {
+          return 960;
+        }
+        if (!incomingTransferMaps.has(mObj.id)) {
+          const voChild = Array.from(rawMapRecords.values()).find(c => c.parentId === mObj.id && /vo\.ver/i.test(c.rawTitle || "") && incomingTransferMaps.has(c.id));
+          if (voChild) return 960;
+        }
+
+        // 2) Test / Debug / Template maps
+        if (/テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(treePath)) return 950;
+
+        // 3) Recollection / CG Gallery Room (Only when rootFolder or rawTitle is a Recollection Room, NOT a mid-chapter flashback inside `ストーリー用 / 第６章`!)
+        const isUnderMainStoryRoot = /ストーリー|스토리|메인|本編|main|story/i.test(rootName);
+        if (!isUnderMainStoryRoot && /回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(treePath)) {
+          return 850;
+        }
+
+        // 4) Prologue / Opening / Character Creation
+        if (/OP|오프닝|オープニング|프롤로그|プロローグ|튜토리얼|チュートリアル|キャラクターメイク|캐릭터\s*생성/i.test(chapFolder || rawTitle)) {
+          return 8;
+        }
+
+        // 5) Explicit Numbered Chapter (`第１章` .. `第６章`) in `chapFolder` or `rawTitle`
+        const chapNum = parseChapterNumberToken(chapFolder || rawTitle);
+        if (chapNum > 0 && (isUnderMainStoryRoot || chapFolder)) {
+          return 15 + chapNum * 22;
+        }
+
+        // 6) Final Chapter & Ending / Epilogue
+        if (/最終章|최종장|종장|final\s*chapter/i.test(chapFolder || rawTitle)) return 210;
+        if (/ED|엔딩|エンディング|에필로그|エピローグ|ending|epilogue/i.test(chapFolder || rawTitle)) return 240;
+
+        // 7) If inside a dedicated Main Story Root (`ストーリー用`), keep in early story range ordered by `editorOrder`
+        if (isUnderMainStoryRoot) return 180;
+
+        // 8) Dungeon Layer / Floor Progression (for Dungeon crawlers like Unholy Maiden)
+        if (/拠点|キャンプ|教会|길드|거점|캠프|성당|교회|상층구|중층구|하층구/i.test(rawTitle)) return 280;
+        if (/一層|1層|1층|지하\s*1층|1F|B1F/i.test(treePath)) return 310;
+        if (/二層|2層|2층|지하\s*2층|2F|B2F|헤구이|ヘグイ/i.test(treePath)) return 340;
+        if (/三層|3層|3층|지하\s*3층|3F|B3F/i.test(treePath)) return 370;
+        if (/四層|4層|4층|지하\s*4층|4F|B4F/i.test(treePath)) return 400;
+        if (/五層|5層|5층|심층|최심부|보스|마왕|深層|最深部|ボス/i.test(treePath)) return 430;
+
+        // 9) Common / Character sub-routes (`共通用`, `ティーナ用`, `セシル用`, `エールケ用`)
+        if (/共通|공통/i.test(rootName)) return 480;
+        if (/用$/.test(rootName)) return 520;
+
+        return 350;
+      }
+
       const sortedMaps = Array.from(rawMapRecords.values()).sort((a, b) => {
         if (a.id === startMapId) return -1;
         if (b.id === startMapId) return 1;
         if ((a.id >= 9000) !== (b.id >= 9000)) return a.id >= 9000 ? 1 : -1;
         const tA = computeMapProgressionTier(a);
         const tB = computeMapProgressionTier(b);
-        if (Math.abs(tA - tB) >= 40) return tA - tB;
+        if (tA !== tB) return tA - tB;
+        // Within the same Chapter/Tier, preserve MapInfos editor tree order (`editorOrder`) combined with BFS transfer rank
+        if (a.chapterFolder && a.chapterFolder === b.chapterFolder) {
+          return (a.editorOrder || a.id) - (b.editorOrder || b.id);
+        }
         const rA = mapVisitRank.get(a.id) || (500 + (a.editorOrder || a.id));
         const rB = mapVisitRank.get(b.id) || (500 + (b.editorOrder || b.id));
         return rA - rB;
@@ -9139,13 +9538,9 @@
         maps: sortedMaps
       };
 
-      state.library.unshift(newGame);
-      switchActiveGame(newGame.id);
       const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
-      if (!isMobileDevice || !isLargeMobileGame) {
-        autoSaveProjectToIndexedDb(newGame, rawZipFile);
-      } else if (rawZipFile) {
-        // On huge 300+ map games on mobile, save only the raw ZIP file handle without cloning 300 maps via JSON.stringify!
+      await deduplicateAndInsertGame(newGame, rawZipFile, !isMobileDevice || !isLargeMobileGame);
+      if (isMobileDevice && isLargeMobileGame && rawZipFile) {
         setTimeout(async () => {
           try {
             const db = await openGameDbV10();
@@ -9663,11 +10058,13 @@
         const catBtns = {
           event_cg: "galCatEventCg",
           standing: "galCatStanding",
+          system: "galCatSystem",
           movies: "galCatMovies",
           all: "galCatAll"
         };
         for (const [k, bId] of Object.entries(catBtns)) {
           const b = document.getElementById(bId);
+          if (!b) continue;
           b.className = k === cat
             ? "px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white"
             : "px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white";
@@ -9676,8 +10073,274 @@
       };
       document.getElementById("galCatEventCg").addEventListener("click", () => setGalleryCat("event_cg"));
       document.getElementById("galCatStanding").addEventListener("click", () => setGalleryCat("standing"));
+      document.getElementById("galCatSystem")?.addEventListener("click", () => setGalleryCat("system"));
       document.getElementById("galCatMovies").addEventListener("click", () => setGalleryCat("movies"));
       document.getElementById("galCatAll").addEventListener("click", () => setGalleryCat("all"));
+
+      // =====================================================================
+      // v16 MOBILE FULLSCREEN, LANDSCAPE SPLIT, QUICK DRAWER & TOUCH GESTURES
+      // =====================================================================
+      function toggleAppImmersiveFullscreen() {
+        const isImmersive = document.body.classList.contains("immersive-fullscreen-mode");
+        const docEl = document.documentElement;
+        if (!isImmersive) {
+          document.body.classList.add("immersive-fullscreen-mode");
+          if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+          else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+          showToast("⛶ 전체화면 몰입 모드 활성화! (상단 플로팅 바에서 장소 전환·파츠·대사창 제어 가능)");
+        } else {
+          document.body.classList.remove("immersive-fullscreen-mode");
+          if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+          showToast("일반 화면 모드로 복귀했습니다.");
+        }
+        setTimeout(() => renderActiveCgStage(), 80);
+      }
+
+      function toggleLandscapeSplitMode() {
+        if (document.body.classList.contains("force-landscape-split")) {
+          document.body.classList.remove("force-landscape-split");
+          document.body.classList.add("force-portrait-stack");
+          showToast("상하(세로형) 기본 뷰어 레이아웃으로 전환했습니다.");
+        } else {
+          document.body.classList.add("force-landscape-split");
+          document.body.classList.remove("force-portrait-stack");
+          showToast("🔄 가로 좌우 분할(좌측 CG · 우측 대사창) 시네마 레이아웃으로 전환했습니다!");
+        }
+        setTimeout(() => renderActiveCgStage(), 60);
+      }
+
+      function toggleDialogueVisibilityMode() {
+        if (document.body.classList.contains("dialogue-minimized-mode")) {
+          document.body.classList.remove("dialogue-minimized-mode");
+          showToast("대사창을 다시 표시합니다.");
+        } else {
+          document.body.classList.add("dialogue-minimized-mode");
+          const curStep = (state.activeSteps || [])[state.currentStepIndex];
+          const prevEl = document.getElementById("minimizedDialoguePreview");
+          if (prevEl) {
+            prevEl.textContent = curStep && curStep.rawText
+              ? `[${cleanSpeakerName(curStep.speaker)}] ${String(curStep.rawText).replace(/\s+/g, " ").slice(0, 45)}`
+              : `${state.currentStepIndex + 1} / ${(state.activeSteps || []).length}`;
+          }
+          showToast("👁 대사창을 최소화하여 CG 화면을 최대화했습니다.");
+        }
+        setTimeout(() => renderActiveCgStage(), 60);
+      }
+
+      function openQuickSceneDrawerModal() {
+        const modal = document.getElementById("quickSceneDrawerModal");
+        if (!modal) return;
+        modal.classList.remove("hidden");
+        renderQuickDrawerLists();
+      }
+
+      function renderQuickDrawerLists() {
+        const q = (document.getElementById("quickDrawerSearchInput")?.value || "").trim().toLowerCase();
+        const mBox = document.getElementById("quickDrawerMapsList");
+        const eBox = document.getElementById("quickDrawerEventsList");
+        if (!mBox || !eBox) return;
+
+        const maps = (state.project.maps || []).filter(m => {
+          if (state.hiddenMaps.has(`${state.activeGameId}_m_${m.id}`)) return false;
+          const evs = getFilteredAndMergedEvents(m);
+          if (evs.length === 0 && !q && m.id !== state.selectedMapId) return false;
+          if (!q) return true;
+          return getDisplayMapName(m).toLowerCase().includes(q) || evs.some(ev => getDisplayEventName(m.id, ev).toLowerCase().includes(q));
+        });
+
+        mBox.innerHTML = maps.map(m => {
+          const isSel = m.id === state.selectedMapId;
+          return `
+            <button type="button" data-qd-map="${m.id}" class="w-full text-left px-2.5 py-2 rounded-lg text-xs truncate transition ${
+              isSel ? "bg-indigo-600 text-white font-bold shadow" : "bg-slate-900 hover:bg-slate-800 text-slate-300"
+            }">
+              ${escapeHtml(getDisplayMapName(m))}
+            </button>
+          `;
+        }).join("");
+
+        const curMap = getCurrentMap();
+        const evs = curMap ? getFilteredAndMergedEvents(curMap) : [];
+        eBox.innerHTML = evs.map((ev, idx) => {
+          const isSel = ev.id === state.selectedEventId || (ev.mergedIds && ev.mergedIds.includes(state.selectedEventId));
+          return `
+            <button type="button" data-qd-ev="${ev.id}" class="w-full text-left p-2 rounded-xl border text-xs transition flex items-center justify-between gap-2 ${
+              isSel ? "bg-indigo-950/90 border-emerald-400 text-white font-bold" : "bg-slate-900/90 border-slate-800 hover:border-indigo-500/40 text-slate-200"
+            }">
+              <span class="truncate"><strong class="text-emerald-400 font-mono mr-1">#${idx + 1}</strong>${escapeHtml(getDisplayEventName(curMap.id, ev))}</span>
+              <span class="text-[10px] text-indigo-300 flex-shrink-0">실행 →</span>
+            </button>
+          `;
+        }).join("");
+
+        mBox.querySelectorAll("[data-qd-map]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.selectedMapId = Number(btn.getAttribute("data-qd-map"));
+            renderMapsList();
+            const nextMap = getCurrentMap();
+            const firstEvs = getFilteredAndMergedEvents(nextMap);
+            if (firstEvs[0]) selectEvent(firstEvs[0].id);
+            renderQuickDrawerLists();
+          });
+        });
+
+        eBox.querySelectorAll("[data-qd-ev]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const evId = Number(btn.getAttribute("data-qd-ev"));
+            selectEvent(evId);
+            document.getElementById("quickSceneDrawerModal").classList.add("hidden");
+            switchMainTab("vn");
+          });
+        });
+      }
+
+      document.getElementById("btnToggleFullscreenHeader")?.addEventListener("click", toggleAppImmersiveFullscreen);
+      document.getElementById("btnStageToggleFullscreen")?.addEventListener("click", toggleAppImmersiveFullscreen);
+      document.getElementById("btnFsExitFullscreen")?.addEventListener("click", toggleAppImmersiveFullscreen);
+
+      document.getElementById("btnToggleLandscapeSplit")?.addEventListener("click", toggleLandscapeSplitMode);
+      document.getElementById("btnFsToggleSplit")?.addEventListener("click", toggleLandscapeSplitMode);
+
+      document.getElementById("btnStageToggleDialogueVis")?.addEventListener("click", toggleDialogueVisibilityMode);
+      document.getElementById("btnFsToggleDialogueVis")?.addEventListener("click", toggleDialogueVisibilityMode);
+      document.getElementById("btnRestoreDialogueBox")?.addEventListener("click", toggleDialogueVisibilityMode);
+
+      document.getElementById("btnDialogueTranslucent")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.body.classList.toggle("dialogue-translucent-mode");
+      });
+
+      document.getElementById("btnToggleMobileViewerTools")?.addEventListener("click", () => {
+        const row = document.getElementById("viewerCollapsibleToolsRow");
+        if (!row) return;
+        row.classList.toggle("hidden");
+        row.classList.toggle("flex");
+        setTimeout(() => renderActiveCgStage(), 50);
+      });
+
+      document.getElementById("btnOpenQuickDrawerTop")?.addEventListener("click", openQuickSceneDrawerModal);
+      document.getElementById("btnFsQuickDrawer")?.addEventListener("click", openQuickSceneDrawerModal);
+      document.getElementById("btnCloseQuickSceneDrawer")?.addEventListener("click", () => {
+        document.getElementById("quickSceneDrawerModal")?.classList.add("hidden");
+      });
+      document.getElementById("quickDrawerSearchInput")?.addEventListener("input", renderQuickDrawerLists);
+      document.querySelectorAll("[data-quick-drawer-tab]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const t = btn.getAttribute("data-quick-drawer-tab").toLowerCase();
+          document.getElementById("quickSceneDrawerModal")?.classList.add("hidden");
+          switchMainTab(t);
+        });
+      });
+
+      document.getElementById("btnFsPartsModal")?.addEventListener("click", () => {
+        renderPartsCustomizerModal();
+        document.getElementById("partsCustomizerModal").classList.remove("hidden");
+      });
+
+      document.getElementById("btnMinPrevStep")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (state.currentStepIndex > 0) {
+          state.currentStepIndex--;
+          renderCurrentStep();
+        }
+      });
+      document.getElementById("btnMinNextStep")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        stepForward();
+      });
+
+      document.getElementById("btnClearAllSavedGamesDb")?.addEventListener("click", async () => {
+        await clearAllGamesFromIndexedDb();
+        localStorage.removeItem("rpg_player_deleted_games_v16");
+        state.library = state.library.slice(0, 1);
+        renderLibraryHeaderSelect();
+        renderLibraryTab();
+        showToast("🧹 기기에 저장된 모든 게임 캐시(IndexedDB)를 깨끗하게 초기화했습니다!");
+      });
+
+      // Touch Ergonomics: Stage Left/Right Edge Tap Zones, Swipe on Dialogue Box, and Long-Press Fast Skip on Next Button
+      let stageTouchStartX = 0, stageTouchStartY = 0, stageTouchMoved = false;
+      cgCanvas.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+          stageTouchStartX = e.touches[0].clientX;
+          stageTouchStartY = e.touches[0].clientY;
+          stageTouchMoved = false;
+        }
+      }, { passive: true });
+      cgCanvas.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 1) {
+          const dx = Math.abs(e.touches[0].clientX - stageTouchStartX);
+          const dy = Math.abs(e.touches[0].clientY - stageTouchStartY);
+          if (dx > 14 || dy > 14) stageTouchMoved = true;
+        }
+      }, { passive: true });
+      cgCanvas.addEventListener("touchend", (e) => {
+        if (stageTouchMoved || state.stageZoom > 1.05) return;
+        const rect = cgCanvas.getBoundingClientRect();
+        if (!rect.width) return;
+        const relX = (stageTouchStartX - rect.left) / rect.width;
+        if (relX >= 0.68) {
+          stepForward();
+        } else if (relX <= 0.32 && state.currentStepIndex > 0) {
+          state.currentStepIndex--;
+          renderCurrentStep();
+        }
+      }, { passive: true });
+
+      // Swipe Left/Right on Dialogue Box
+      const diagBoxEl = document.getElementById("dialogueBoxPro");
+      let diagSwipeX = 0, diagSwipeY = 0;
+      diagBoxEl?.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+          diagSwipeX = e.touches[0].clientX;
+          diagSwipeY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+      diagBoxEl?.addEventListener("touchend", (e) => {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        const dx = e.changedTouches[0].clientX - diagSwipeX;
+        const dy = e.changedTouches[0].clientY - diagSwipeY;
+        if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+          if (dx < 0) stepForward();
+          else if (state.currentStepIndex > 0) {
+            state.currentStepIndex--;
+            renderCurrentStep();
+          }
+        }
+      }, { passive: true });
+
+      // Long-Press on Next Step Button for Rapid Fast-Forward (`고속 스킵`)
+      const btnNextEl = document.getElementById("btnNextStep");
+      let fastSkipTimer = null;
+      const startFastSkip = () => {
+        clearInterval(fastSkipTimer);
+        fastSkipTimer = setInterval(() => {
+          if (state.currentStepIndex < (state.activeSteps || []).length - 1) {
+            const cur = state.activeSteps[state.currentStepIndex];
+            if (cur && cur.type === "branch") { clearInterval(fastSkipTimer); return; }
+            stepForward();
+          } else {
+            clearInterval(fastSkipTimer);
+          }
+        }, 110);
+      };
+      const stopFastSkip = () => { clearInterval(fastSkipTimer); fastSkipTimer = null; };
+      let holdTimeout = null;
+      btnNextEl?.addEventListener("touchstart", () => {
+        holdTimeout = setTimeout(startFastSkip, 380);
+      }, { passive: true });
+      btnNextEl?.addEventListener("touchend", () => {
+        clearTimeout(holdTimeout);
+        stopFastSkip();
+      }, { passive: true });
+      btnNextEl?.addEventListener("mousedown", () => {
+        holdTimeout = setTimeout(startFastSkip, 380);
+      });
+      window.addEventListener("mouseup", () => {
+        clearTimeout(holdTimeout);
+        stopFastSkip();
+      });
 
       document.getElementById("btnGalleryLoadMore").addEventListener("click", () => {
         state.galleryDisplayLimit += 80;
@@ -9777,15 +10440,23 @@
 
       document.getElementById("btnPurgeUnusedCgs").addEventListener("click", () => {
         let count = 0;
+        let protectedCount = 0;
         for (const [k, asset] of Object.entries(state.project.cgAssets || {})) {
-          if (k !== "__fastIndex" && asset && getEffectiveUsedListForAsset(asset).length === 0 && !state.deletedCgKeys.has(k)) {
-            state.deletedCgKeys.add(k);
-            count++;
+          if (k === "__fastIndex" || !asset || state.deletedCgKeys.has(k)) continue;
+          if (getEffectiveUsedListForAsset(asset).length > 0) continue;
+          // NEVER delete Title, Status, Skill Cut-in, Battle Cut-in, or Standing CGs!
+          if (asset.isProtectedSystemCg || asset.systemUsage) {
+            protectedCount++;
+            continue;
           }
+          state.deletedCgKeys.add(k);
+          count++;
         }
         updateHiddenCountBadge();
         renderGalleryView(false);
-        showToast(count > 0 ? `미사용 더미 미디어 ${count}개를 삭제했습니다.` : `미사용 더미 미디어가 없습니다.`);
+        showToast(count > 0
+          ? `순수 미사용 더미 이미지 ${count}개를 정리했습니다. (상태창·스킬·전투·타이틀·스탠딩 ${protectedCount}개는 안전하게 보호됨)`
+          : `정리할 미사용 더미 미디어가 없습니다. (상태창·스킬·전투·타이틀 미디어 ${protectedCount}개 자동 보호 중)`);
       });
 
       document.getElementById("lightboxDeleteBtn").addEventListener("click", () => {
