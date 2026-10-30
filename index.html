@@ -161,40 +161,24 @@
     </div>
   </div>
 
-  <!-- MODAL 0: High-Speed Large Game ZIP Export Modal -->
+  <!-- MODAL 0: Unified Full Lossless Game ZIP Export Progress Modal -->
   <div id="exportZipModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-4 space-y-3.5 shadow-2xl text-xs">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h4 class="text-sm font-bold text-white">📦 고속 Game.zip 패키지 내보내기 (대용량 메모리 최적화)</h4>
+        <h4 class="text-sm font-bold text-white">📦 전체 게임 무손실 통합 ZIP 내보내기</h4>
         <button id="btnCloseExportModal" type="button" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">닫기</button>
       </div>
       <p class="text-slate-300 leading-relaxed">
-        대용량 게임 내보내기 실패를 막기 위해 이미 압축된 이미지/영상에는 <strong>무압축 다이렉트 패킹(STORE 모드, 50배 고속·메모리 절약)</strong>을 적용합니다.
+        현재 불러온 게임의 모든 스토리·이벤트·전체 미디어를 누락 없이 <strong>원본 그대로 무압축(STORE) 고속 패킹</strong>하여 저장합니다.
       </p>
-      <div id="exportProgressBox" class="hidden bg-slate-950 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
+      <div id="exportProgressBox" class="bg-slate-950 border border-indigo-500/40 rounded-xl p-3 space-y-1.5">
         <div class="flex justify-between text-indigo-200 font-semibold">
-          <span id="exportProgressText">파일 패킹 준비 중...</span>
+          <span id="exportProgressText">전체 미디어 패킹 준비 중...</span>
           <span id="exportProgressPct">0%</span>
         </div>
-        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div id="exportProgressBar" class="h-full bg-indigo-500 transition-all duration-150" style="width:0%"></div>
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="exportProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width:0%"></div>
         </div>
-      </div>
-      <div class="space-y-2 pt-1">
-        <button id="btnExportUsedOnlyZip" type="button" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-left flex items-center justify-between shadow">
-          <div>
-            <div>⚡ 스마트 경량 패키지 저장 (대용량·모바일 강력 추천)</div>
-            <div class="text-[10px] text-emerald-100 font-normal">스토리/초상화에서 실제 사용되는 미디어만 추려 초고속으로 묶습니다</div>
-          </div>
-          <span>저장 →</span>
-        </button>
-        <button id="btnExportFullStoreZip" type="button" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600/30 hover:bg-indigo-600 text-indigo-100 font-bold text-left flex items-center justify-between border border-indigo-500/40">
-          <div>
-            <div>📦 전체 리소스 포함 패키지 저장 (STORE 무압축 고속)</div>
-            <div class="text-[10px] text-slate-300 font-normal">삭제하지 않은 모든 갤러리 이미지를 원본 그대로 포함합니다</div>
-          </div>
-          <span>저장 →</span>
-        </button>
       </div>
     </div>
   </div>
@@ -527,10 +511,10 @@
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-2 flex-shrink-0">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex flex-wrap items-center gap-1">
-                <button id="galCatEventCg" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white">🔥 이벤트·본편 CG (파츠 제외)</button>
+                <button id="galCatAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white">🗂 전체 표시 (기본)</button>
+                <button id="galCatEventCg" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🔥 이벤트·본편 CG</button>
                 <button id="galCatStanding" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🧍 기본 스탠딩</button>
                 <button id="galCatMovies" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🎬 동영상</button>
-                <button id="galCatAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🧩 파츠 포함 전체</button>
               </div>
               <div class="flex items-center gap-1.5">
                 <button id="btnPurgeUnusedCgs" type="button" class="px-2 py-1 rounded-lg bg-rose-900/50 hover:bg-rose-700 text-rose-200 text-[11px] font-semibold border border-rose-500/40">
@@ -610,9 +594,9 @@
             </div>
           </div>
 
-          <!-- VISUAL IN-GAME STATUS BOARD (NEVER collapses! Reconstructs the full integrated layout of image_68d640.jpg!) -->
-          <div id="visualStatusBoardContainer" class="flex-shrink-0 rounded-2xl border-2 border-amber-700/70 shadow-2xl relative min-h-[480px]" style="background: linear-gradient(135deg, #fdfbf7 0%, #f5ebd6 100%); color: #2d1e12;">
-            <div id="visualStatusInnerContent" class="p-3 sm:p-5"></div>
+          <!-- GAME-SPECIFIC NATIVE IN-GAME STATUS SCREEN & ADAPTIVE DASHBOARD -->
+          <div id="visualStatusBoardContainer" class="flex-shrink-0 rounded-2xl border border-indigo-500/40 bg-slate-950/90 shadow-2xl relative min-h-[480px] text-slate-100">
+            <div id="visualStatusInnerContent" class="p-3 sm:p-4"></div>
           </div>
 
           <!-- Optional Collapsible Drawer for Raw Variable / Switch Editing (Hidden by default so the Visual Status Screen is clean!) -->
@@ -942,7 +926,94 @@
       ["新藤", "신도"],
       ["村の", "마을의 "],
       ["町の", "마을의 "],
-      ["街の", "거리의 "]
+      ["街の", "거리의 "],
+      ["胸あき", "가슴트임"],
+      ["あえぎ", "신음"],
+      ["手コキ", "대딸"],
+      ["足コキ", "풋잡"],
+      ["パイズリ", "파이즈리"],
+      ["フェラ", "펠라"],
+      ["イラマ", "이라마치오"],
+      ["中出し", "질내사정"],
+      ["絶頂", "절정"],
+      ["凌辱", "능욕"],
+      ["調教", "조교"],
+      ["拘束", "구속"],
+      ["触手", "촉수"],
+      ["催眠", "최면"],
+      ["敗北", "패배"],
+      ["輪姦", "윤간"],
+      ["痴漢", "치한"],
+      ["露出", "노출"],
+      ["売春", "매춘"],
+      ["居酒屋", "선술집"],
+      ["回覧板", "회람판"],
+      ["ビデオ", "비디오"],
+      ["モザイク", "모자이크"],
+      ["主人公", "주인공"],
+      ["メイド", "메이드"],
+      ["バニー", "바니"],
+      ["ナース", "간호사"],
+      ["シスター", "수녀"],
+      ["ビキニ", "비키니"],
+      ["踊り子", "무희"],
+      ["囚人", "죄수"],
+      ["看守", "간수"],
+      ["盗賊", "도적"],
+      ["山賊", "산적"],
+      ["ゴブリン", "고블린"],
+      ["オーク", "오크"],
+      ["スライム", "슬라임"],
+      ["メルメイア", "메르메이아"],
+      ["マキナ", "마키나"],
+      ["Reiri", "레이리"],
+      ["Suzurika", "스즈리카"],
+      ["Mermeia", "메르메이아"],
+      ["Makina", "마키나"],
+      ["ShoulderArmor", "어깨갑옷"],
+      ["FullNaked", "전라"],
+      ["UnderWear", "속옷"],
+      ["MicroBikini", "마이크로비키니"],
+      ["FaceCutin", "얼굴컷인"],
+      ["Cutin", "컷인"],
+      ["Prisoner", "죄수복"],
+      ["Prison", "감옥"],
+      ["Hospital", "병원"],
+      ["Waitress", "서빙복"],
+      ["Sister", "수녀복"],
+      ["Nurse", "간호사복"],
+      ["Bunny", "바니걸"],
+      ["Bikini", "비키니"],
+      ["Odoriko", "무희복"],
+      ["Armor", "갑옷"],
+      ["Cloth", "의상"],
+      ["Naked", "나체"],
+      ["Zenshin", "전신"],
+      ["Bust", "가슴"],
+      ["Base", "베이스"],
+      ["Front", "전면"],
+      ["Under", "하단"],
+      ["Arm", "팔"],
+      ["Eyes", "눈"],
+      ["Mouth", "입"],
+      ["Cheek", "볼홍조"],
+      ["Face", "표정"],
+      ["Sweat", "땀"],
+      ["Smile", "미소"],
+      ["Serious", "진지"],
+      ["Surprise", "놀람"],
+      ["Anger", "분노"],
+      ["Shy", "수줍음"],
+      ["Cry", "울음"],
+      ["Default", "기본"],
+      ["Virgin", "처녀"],
+      ["Pregnant", "임신"],
+      ["Semen", "정액"],
+      ["Vagina", "자궁단면"],
+      ["Stamp", "스탬프"],
+      ["Title", "칭호"],
+      ["Rate", "평가"],
+      ["PageIcon", "페이지아이콘"]
     ];
 
     const JP_CHAR_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
@@ -1022,8 +1093,8 @@
       }
       let galAdded = 0;
       for (const [k, a] of Object.entries(project.cgAssets || {})) {
-        if (k === "__fastIndex" || !a || !a.name || galAdded >= 300) continue;
-        if (!isDetachedSubPartFile(a.name) && JP_CHAR_REGEX.test(a.name)) {
+        if (k === "__fastIndex" || !a || !a.name || galAdded >= 1000) continue;
+        if (JP_CHAR_REGEX.test(a.name)) {
           candidates.add(a.name);
           galAdded++;
         }
@@ -1045,10 +1116,6 @@
         return;
       }
 
-      for (const src of uncached) {
-        const d = dictionaryTranslate(src);
-        if (d !== src) translationCache.set(src, d);
-      }
       renderMapsList();
       renderEventsList();
       if (state.activeTab === "gallery") renderGalleryView(false);
@@ -1530,8 +1597,9 @@
       selectedPageIdx: 0,
       sortOrderMode: "progress_chain",
       sceneFilter: "all",
-      galleryCategory: "event_cg",
+      galleryCategory: "all",
       statusVarCategory: "key",
+      selectedNativeStatusPageIdx: 0,
       autoTranslateJp: true,
       trimTransparentBounds: true,
       autoPlayVoice: true,
@@ -1585,21 +1653,53 @@
       });
     }
 
-    // Crash-proof persistence: Saves lightweight project metadata + single raw ZIP File Blob (if loaded from ZIP).
-    // NEVER decompresses hundreds of images in the background on Mobile Safari!
+    // Upgraded in v13: Persists lightweight project metadata AND native Structured-Clone File/Blob handles
+    // (`zipBlob` for ZIPs, plus `cgFiles`, `faceFiles`, `enemyFiles`, `audioOggFiles`, `audioM4aFiles` for Folder loads)
+    // so closing and reopening the Windows EXE or browser retains 100% of images without reloading!
     async function autoSaveProjectToIndexedDb(proj, rawZipFile = null) {
       setTimeout(async () => {
         try {
           const db = await openGameDbV10();
+          const cgFiles = {};
+          const faceFiles = {};
+          const enemyFiles = {};
+          const audioOggFiles = {};
+          const audioM4aFiles = {};
+          let hasFolderFiles = false;
+
+          for (const [k, a] of Object.entries(proj.cgAssets || {})) {
+            if (k !== "__fastIndex" && a && a.lazyFile) { cgFiles[k] = a.lazyFile; hasFolderFiles = true; }
+          }
+          for (const [k, a] of Object.entries(proj.faceAssets || {})) {
+            if (k !== "__fastIndex" && a && a.lazyFile) { faceFiles[k] = a.lazyFile; hasFolderFiles = true; }
+          }
+          for (const [k, a] of Object.entries(proj.enemyAssets || {})) {
+            if (k !== "__fastIndex" && a && a.lazyFile) { enemyFiles[k] = a.lazyFile; hasFolderFiles = true; }
+          }
+          for (const [k, a] of Object.entries(proj.audioAssets || {})) {
+            if (k !== "__fastIndex" && a) {
+              if (a.oggFile) { audioOggFiles[k] = a.oggFile; hasFolderFiles = true; }
+              if (a.m4aFile) { audioM4aFiles[k] = a.m4aFile; hasFolderFiles = true; }
+            }
+          }
+
           const cleanProj = JSON.parse(JSON.stringify(proj, (key, val) => {
-            if (key === "zipEntry" || key === "lazyFile" || key === "oggFile" || key === "m4aFile" || key === "oggEntry" || key === "m4aEntry" || key === "rawBytes" || key === "blobUrl" || key === "rawList" || key === "_ceEffectCache" || key === "_directLocKeys") return undefined;
+            if (key === "zipEntry" || key === "lazyFile" || key === "oggFile" || key === "m4aFile" || key === "oggEntry" || key === "m4aEntry" || key === "rawBytes" || key === "blobUrl" || key === "_ceEffectCache" || key === "_directLocKeys") return undefined;
             return val;
           }));
 
           const tx = db.transaction(["projects", "zipFiles"], "readwrite");
           tx.objectStore("projects").put(cleanProj);
-          if (rawZipFile) {
-            tx.objectStore("zipFiles").put({ id: proj.id, zipBlob: rawZipFile });
+          if (rawZipFile || hasFolderFiles) {
+            tx.objectStore("zipFiles").put({
+              id: proj.id,
+              zipBlob: rawZipFile || null,
+              cgFiles: hasFolderFiles ? cgFiles : null,
+              faceFiles: hasFolderFiles ? faceFiles : null,
+              enemyFiles: hasFolderFiles ? enemyFiles : null,
+              audioOggFiles: hasFolderFiles ? audioOggFiles : null,
+              audioM4aFiles: hasFolderFiles ? audioM4aFiles : null
+            });
           }
         } catch (e) {}
       }, 300);
@@ -1615,16 +1715,43 @@
 
         const zipReq = tx.objectStore("zipFiles").getAll();
         const zipRecords = await new Promise((res, rej) => { zipReq.onsuccess = () => res(zipReq.result); zipReq.onerror = rej; });
-        const zipMap = new Map();
-        if (Array.isArray(zipRecords)) zipRecords.forEach(r => zipMap.set(r.id, r.zipBlob));
+        const mediaMap = new Map();
+        if (Array.isArray(zipRecords)) zipRecords.forEach(r => mediaMap.set(r.id, r));
 
         for (const p of projects) {
-          const savedZipBlob = zipMap.get(p.id);
-          if (savedZipBlob && window.JSZip) {
-            try {
-              const zip = await window.JSZip.loadAsync(savedZipBlob);
-              reattachZipEntriesToProject(p, zip);
-            } catch (e) {}
+          const savedMedia = mediaMap.get(p.id);
+          if (savedMedia) {
+            if (savedMedia.zipBlob) {
+              try {
+                const zip = await openZipArchiveSmart(savedMedia.zipBlob);
+                reattachZipEntriesToProject(p, zip);
+              } catch (e) {}
+            }
+            if (savedMedia.cgFiles && p.cgAssets) {
+              for (const [k, f] of Object.entries(savedMedia.cgFiles)) {
+                if (p.cgAssets[k]) p.cgAssets[k].lazyFile = f;
+              }
+            }
+            if (savedMedia.faceFiles && p.faceAssets) {
+              for (const [k, f] of Object.entries(savedMedia.faceFiles)) {
+                if (p.faceAssets[k]) p.faceAssets[k].lazyFile = f;
+              }
+            }
+            if (savedMedia.enemyFiles && p.enemyAssets) {
+              for (const [k, f] of Object.entries(savedMedia.enemyFiles)) {
+                if (p.enemyAssets[k]) p.enemyAssets[k].lazyFile = f;
+              }
+            }
+            if (savedMedia.audioOggFiles && p.audioAssets) {
+              for (const [k, f] of Object.entries(savedMedia.audioOggFiles)) {
+                if (p.audioAssets[k]) { p.audioAssets[k].oggFile = f; p.audioAssets[k].lazyFile = f; }
+              }
+            }
+            if (savedMedia.audioM4aFiles && p.audioAssets) {
+              for (const [k, f] of Object.entries(savedMedia.audioM4aFiles)) {
+                if (p.audioAssets[k]) { p.audioAssets[k].m4aFile = f; if (!p.audioAssets[k].lazyFile) p.audioAssets[k].lazyFile = f; }
+              }
+            }
           }
           buildFastAssetLookup(p.cgAssets);
           buildFastAssetLookup(p.faceAssets);
@@ -1685,7 +1812,7 @@
       let linkedCount = 0;
       if (files.length === 1 && /\.zip$/i.test(files[0].name) && window.JSZip) {
         showToast("ZIP 파일에서 미디어를 재연결하고 있습니다...");
-        const zip = await window.JSZip.loadAsync(files[0]);
+        const zip = await openZipArchiveSmart(files[0]);
         linkedCount = reattachZipEntriesToProject(state.project, zip);
         if (linkedCount < 3) {
           // User selected a fresh game ZIP after a session reset -> load the full ZIP!
@@ -2430,7 +2557,7 @@
           const obj = typeof spec === "string" ? { key: spec, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } : spec;
           return [Number(slot), obj];
         })
-        .filter(([, obj]) => obj && obj.key && !isDummyBlackOrSystemPicture(obj.key) && (obj.opacity === undefined || obj.opacity > 0))
+        .filter(([, obj]) => obj && (obj.isTextPicture || (obj.key && !isDummyBlackOrSystemPicture(obj.key))) && (obj.opacity === undefined || obj.opacity > 0))
         .sort((a, b) => a[0] - b[0]);
 
       slotEntries = injectMissingCharacterBaseBodies(slotEntries);
@@ -2484,6 +2611,25 @@
 
       for (let idx = 0; idx < slotEntries.length; idx++) {
         const [slotNum, spec] = slotEntries[idx];
+        if (state.hiddenLayers.has(slotNum)) continue;
+        if (spec.isTextPicture) {
+          const rawX = Number(spec.x) || 0;
+          const rawY = Number(spec.y) || 0;
+          loadedLayers.push({
+            slotNum,
+            spec,
+            isTextPicture: true,
+            lx: rawX,
+            ly: rawY,
+            lw: 240,
+            lh: 40,
+            visMinX: rawX,
+            visMinY: rawY,
+            visMaxX: rawX + 200,
+            visMaxY: rawY + 36
+          });
+          continue;
+        }
         const defaultBestKey = pickBestDefaultVariant(spec.variants, spec.key);
         const effectiveKey = state.slotVariantOverrides[slotNum] || defaultBestKey;
 
@@ -2494,7 +2640,6 @@
         ) {
           continue;
         }
-        if (state.hiddenLayers.has(slotNum)) continue;
 
         const asset = resolveCgAssetSmart(effectiveKey);
         if (!asset) continue;
@@ -2577,14 +2722,18 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       for (const item of loadedLayers) {
-        const { img, spec, lx, ly, lw, lh } = item;
+        const { img, spec, lx, ly, lw, lh, isTextPicture } = item;
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, (spec.opacity ?? 255) / 255));
         const dx = offsetX + (lx - minX) * finalScale;
         const dy = offsetY + (ly - minY) * finalScale;
-        const dw = lw * finalScale;
-        const dh = lh * finalScale;
-        ctx.drawImage(img, dx, dy, dw, dh);
+        if (isTextPicture) {
+          drawDTextLayerOnCanvas(ctx, spec, dx, dy, finalScale);
+        } else if (img) {
+          const dw = lw * finalScale;
+          const dh = lh * finalScale;
+          ctx.drawImage(img, dx, dy, dw, dh);
+        }
         ctx.restore();
       }
     }
@@ -3905,8 +4054,51 @@
       });
     }
 
-    // Multi-Layer Composite Helper for Any Canvas (Used by Battle Simulator & Visual Status Board!)
-    async function drawSnapshotOnCanvas(canvasEl, snapshotObj, fallbackCgKey = null) {
+    // Renders DTextPicture (`Code 357 DTextPicture` / `Code 356 D_TEXT`) strings with \V[n], \N[n], \c[n], \oc[n], \{, \}
+    function drawDTextLayerOnCanvas(ctx, spec, dx, dy, scale) {
+      if (!spec || !spec.dText) return;
+      let raw = replaceActorAndVarCodes(String(spec.dText || ""));
+      let fillColor = "#ffffff";
+      let strokeColor = "rgba(0, 0, 0, 0.92)";
+      const cMatch = raw.match(/\\[cC]\[(\d+)\]/);
+      if (cMatch) {
+        const cIdx = Number(cMatch[1]);
+        if (RPG_COLORS[cIdx]) fillColor = RPG_COLORS[cIdx];
+      }
+      const ocMatch = raw.match(/\\oc\[(\d+)\]/i);
+      if (ocMatch) {
+        const ocIdx = Number(ocMatch[1]);
+        if (RPG_COLORS[ocIdx]) strokeColor = RPG_COLORS[ocIdx];
+      }
+      let baseFontSize = Number(spec.fontSize) || 24;
+      if (/\\\{/.test(raw)) baseFontSize += 4;
+      if (/\\\}/.test(raw)) baseFontSize = Math.max(12, baseFontSize - 3);
+
+      const cleanText = raw
+        .replace(/\\[A-Za-z_]+\[[^\]]*\]/g, "")
+        .replace(/\\[{}|!^><.]/g, "");
+
+      const lines = cleanText.split(/\r?\n/);
+      const scaledFontPx = Math.max(10, Math.round(baseFontSize * scale));
+      ctx.font = `700 ${scaledFontPx}px 'Noto Sans KR', sans-serif`;
+      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = Math.max(2.5, scaledFontPx * 0.16);
+      ctx.strokeStyle = strokeColor;
+      ctx.fillStyle = fillColor;
+
+      const lineH = Math.round(scaledFontPx * 1.32);
+      for (let idx = 0; idx < lines.length; idx++) {
+        const lineStr = lines[idx];
+        const yPos = dy + idx * lineH;
+        ctx.strokeText(lineStr, dx, yPos);
+        ctx.fillText(lineStr, dx, yPos);
+      }
+    }
+
+    // Multi-Layer Composite Helper for Any Canvas (Supports both Opaque-Cropped Character Sprites AND Full-Screen Native Status Canvases with DTextPicture!)
+    async function drawSnapshotOnCanvas(canvasEl, snapshotObj, fallbackCgKey = null, preserveFullScreenCoords = false) {
       if (!canvasEl) return;
       const ctx = canvasEl.getContext("2d");
       const w = canvasEl.width;
@@ -3916,7 +4108,7 @@
       let entries = [];
       if (snapshotObj && Object.keys(snapshotObj).length > 0) {
         entries = Object.entries(snapshotObj)
-          .filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key))
+          .filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))))
           .map(([k, v]) => [Number(k), v])
           .sort((a, b) => a[0] - b[0]);
       } else if (fallbackCgKey) {
@@ -3925,6 +4117,23 @@
 
       const loaded = [];
       for (const [, spec] of entries) {
+        if (spec.isTextPicture) {
+          const lx = Number(spec.x) || 0;
+          const ly = Number(spec.y) || 0;
+          loaded.push({
+            isTextPicture: true,
+            spec,
+            lx,
+            ly,
+            lw: 220,
+            lh: 36,
+            visMinX: lx,
+            visMinY: ly,
+            visMaxX: lx + 180,
+            visMaxY: ly + 32
+          });
+          continue;
+        }
         const asset = resolveCgAssetSmart(spec.key);
         if (!asset || asset.mediaType === "video") continue;
         const url = await ensureAssetBlobUrl(asset);
@@ -3937,9 +4146,9 @@
           const lh = img.height * sy;
           const lx = spec.origin === 1 ? ((spec.x || 0) - lw / 2) : (spec.x || 0);
           const ly = spec.origin === 1 ? ((spec.y || 0) - lh / 2) : (spec.y || 0);
-          const ob = getImageOpaqueBounds(img);
+          const ob = preserveFullScreenCoords ? { rx0: 0, ry0: 0, rx1: 1, ry1: 1 } : getImageOpaqueBounds(img);
           loaded.push({
-            img, lw, lh, lx, ly,
+            img, spec, lw, lh, lx, ly,
             visMinX: lx + ob.rx0 * lw,
             visMinY: ly + ob.ry0 * lh,
             visMaxX: lx + ob.rx1 * lw,
@@ -3949,21 +4158,34 @@
       }
 
       if (loaded.length === 0) return;
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      let minX = preserveFullScreenCoords ? 0 : Infinity;
+      let minY = preserveFullScreenCoords ? 0 : Infinity;
+      let maxX = preserveFullScreenCoords ? 1280 : -Infinity;
+      let maxY = preserveFullScreenCoords ? 720 : -Infinity;
+
       for (const l of loaded) {
-        if (l.visMinX < minX) minX = l.visMinX;
-        if (l.visMinY < minY) minY = l.visMinY;
-        if (l.visMaxX > maxX) maxX = l.visMaxX;
-        if (l.visMaxY > maxY) maxY = l.visMaxY;
+        if (!preserveFullScreenCoords) {
+          if (l.visMinX < minX) minX = l.visMinX;
+          if (l.visMinY < minY) minY = l.visMinY;
+        }
+        if (!l.isTextPicture) {
+          if (l.visMaxX > maxX) maxX = l.visMaxX;
+          if (l.visMaxY > maxY) maxY = l.visMaxY;
+        }
       }
       const bboxW = Math.max(64, maxX - minX);
       const bboxH = Math.max(64, maxY - minY);
-      const scale = Math.min((w * 0.96) / bboxW, (h * 0.96) / bboxH);
+      const padRatio = preserveFullScreenCoords ? 0.99 : 0.96;
+      const scale = Math.min((w * padRatio) / bboxW, (h * padRatio) / bboxH);
       const offX = (w - bboxW * scale) / 2;
       const offY = (h - bboxH * scale) / 2;
 
       for (const l of loaded) {
-        ctx.drawImage(l.img, offX + (l.lx - minX) * scale, offY + (l.ly - minY) * scale, l.lw * scale, l.lh * scale);
+        if (l.isTextPicture) {
+          drawDTextLayerOnCanvas(ctx, l.spec, offX + (l.lx - minX) * scale, offY + (l.ly - minY) * scale, scale);
+        } else if (l.img) {
+          ctx.drawImage(l.img, offX + (l.lx - minX) * scale, offY + (l.ly - minY) * scale, l.lw * scale, l.lh * scale);
+        }
       }
     }
 
@@ -4163,12 +4385,386 @@
       return s || translateJpName(varName);
     }
 
+    // =========================================================================
+    // v13 GAME-SPECIFIC NATIVE IN-GAME STATUS SCREEN ENGINE
+    // Executes each game's actual Status CommonEvents (`CE #39: 스테이터스 표시1`, `CE #40: 스테이터스 표시2`, `CE #41: 스테이터스 표시3`, `CE220: 에로스테 화면`, etc.)
+    // with real `DTextPicture` coordinates, background graphics (`Prof_Base`, `H-Prof1_Base1`, `H-Prof2_Base1`, `eroStaBack01`),
+    // `CharacterPictureManager` menu portraits, and `ExtraWindow` / `System.json` parameters!
+    // =========================================================================
+    function executeNativeStatusCeSnapshot(ceId) {
+      const ce = state.project?.commonEventsMap?.[ceId];
+      if (!ce || !Array.isArray(ce.list)) return { snapshot: {}, referencedVars: [], referencedSwitches: [] };
+
+      const simVars = { ...(state.project.variables || {}) };
+      const simSwitches = { ...(state.project.switches || {}) };
+      const refVars = new Set();
+      const refSwitches = new Set();
+      const slots = {};
+      let pendingDText = null;
+
+      function runList(list, depth = 0) {
+        if (!Array.isArray(list) || depth > 5) return;
+        const branchStack = [];
+        for (let i = 0; i < list.length; i++) {
+          const cmd = list[i];
+          if (!cmd) continue;
+          const indent = cmd.indent || 0;
+          while (branchStack.length > 0 && branchStack[branchStack.length - 1].indent >= indent) {
+            if (branchStack[branchStack.length - 1].indent === indent && (cmd.code === 411 || cmd.code === 412)) break;
+            branchStack.pop();
+          }
+
+          if (cmd.code === 111) {
+            const parentActive = branchStack.every(b => b.active);
+            const p = cmd.parameters || [];
+            if (p[0] === 0 && Number(p[1]) > 0) refSwitches.add(Number(p[1]));
+            if (p[0] === 1 && Number(p[1]) > 0) refVars.add(Number(p[1]));
+            let cond = false;
+            if (parentActive) {
+              cond = evaluateBranchInSimState(p, simVars, simSwitches);
+            }
+            branchStack.push({ indent, active: parentActive && cond, condMet: cond, parentActive });
+            continue;
+          }
+          if (cmd.code === 411) {
+            if (branchStack.length > 0 && branchStack[branchStack.length - 1].indent === indent) {
+              const top = branchStack[branchStack.length - 1];
+              top.active = top.parentActive && !top.condMet;
+            }
+            continue;
+          }
+          if (cmd.code === 412) {
+            if (branchStack.length > 0 && branchStack[branchStack.length - 1].indent === indent) {
+              branchStack.pop();
+            }
+            continue;
+          }
+
+          if (!branchStack.every(b => b.active)) continue;
+
+          const p = cmd.parameters || [];
+          if (cmd.code === 119) {
+            const labelName = String(p[0] || "");
+            const targetIdx = list.findIndex(c => c && c.code === 118 && String(c.parameters?.[0] || "") === labelName);
+            if (targetIdx >= 0) {
+              i = targetIdx;
+              branchStack.length = 0;
+              continue;
+            }
+          } else if (cmd.code === 121) {
+            const s1 = Number(p[0]) || 0, s2 = Number(p[1]) || s1, isOn = (p[2] === 0);
+            for (let s = s1; s <= s2; s++) simSwitches[s] = isOn;
+          } else if (cmd.code === 122) {
+            const v1 = Number(p[0]) || 0, v2 = Number(p[1]) || v1, op = Number(p[2]) || 0, opType = Number(p[3]) || 0;
+            if (opType === 0 || opType === 1) {
+              const rhs = opType === 0 ? (Number(p[4]) || 0) : (Number(simVars[Number(p[4])] || 0));
+              if (opType === 1 && Number(p[4]) > 0) refVars.add(Number(p[4]));
+              for (let v = v1; v <= v2; v++) {
+                refVars.add(v);
+                const cur = Number(simVars[v] || 0);
+                if (op === 0) simVars[v] = rhs;
+                else if (op === 1) simVars[v] = cur + rhs;
+                else if (op === 2) simVars[v] = cur - rhs;
+              }
+            }
+          } else if (cmd.code === 357 && (p[0] === "DTextPicture" || p[1] === "dText" || p[1] === "set")) {
+            const args = p[3] || {};
+            const txt = String(args.text || "");
+            const vMatches = txt.matchAll(/\\[vV]\[(\d+)\]/g);
+            for (const vm of vMatches) refVars.add(Number(vm[1]));
+            pendingDText = { text: txt, fontSize: parseInt(args.fontSize || "24", 10) || 24 };
+          } else if (cmd.code === 356) {
+            const s = String(p[0] || "").trim();
+            const dtMatch = s.match(/^(?:D_TEXT|TEXT_PICTURE)\s+(.+?)(?:\s+(\d{2}))?$/i);
+            if (dtMatch) {
+              const txt = dtMatch[1];
+              const vMatches = txt.matchAll(/\\[vV]\[(\d+)\]/g);
+              for (const vm of vMatches) refVars.add(Number(vm[1]));
+              const fSize = dtMatch[2] ? parseInt(dtMatch[2], 10) : (pendingDText?.fontSize || 24);
+              pendingDText = {
+                text: pendingDText ? (pendingDText.text + "\n" + txt) : txt,
+                fontSize: fSize
+              };
+            }
+          } else if (cmd.code === 231) {
+            const slot = Number(p[0]) || 1;
+            const rawName = String(p[1] || "").trim();
+            const origin = Number(p[2]) || 0;
+            const coordMode = Number(p[3]) || 0;
+            const x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simVars[p[4]]) || 0);
+            const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simVars[p[5]]) || 0);
+            const scaleX = Number(p[6] ?? 100);
+            const scaleY = Number(p[7] ?? 100);
+            const opacity = Number(p[8] ?? 255) || 255;
+
+            if (!rawName && pendingDText) {
+              slots[slot] = {
+                key: "__dtext__",
+                isTextPicture: true,
+                dText: pendingDText.text,
+                fontSize: pendingDText.fontSize,
+                origin, x, y, scaleX, scaleY, opacity
+              };
+              pendingDText = null;
+            } else if (rawName) {
+              pendingDText = null;
+              let resolvedName = rawName.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => {
+                refVars.add(Number(vId));
+                return String(simVars[Number(vId)] || 1);
+              });
+              const asset = resolveCgAssetSmart(resolvedName);
+              if (asset) resolvedName = asset.name;
+              slots[slot] = { key: resolvedName, origin, x, y, scaleX, scaleY, opacity };
+            }
+          } else if (cmd.code === 235) {
+            delete slots[Number(p[0]) || 1];
+          } else if (cmd.code === 117) {
+            const subCe = state.project?.commonEventsMap?.[Number(p[0])];
+            if (subCe && Array.isArray(subCe.list)) {
+              runList(subCe.list, depth + 1);
+            }
+          }
+        }
+      }
+
+      runList(ce.list, 0);
+
+      for (const [k, v] of Object.entries(simVars)) {
+        state.project.variables[k] = v;
+      }
+
+      const hasProfBase = Object.values(slots).some(s => s && /^Prof_Base$/i.test(String(s.key || "")));
+      if (hasProfBase && state.project.menuCharacterLayers) {
+        const isSecondHeroine = Boolean(simSwitches[202]);
+        const targetActorId = isSecondHeroine ? 3 : 1;
+        const cpmLayers = state.project.menuCharacterLayers[targetActorId] || state.project.menuCharacterLayers[1] || [];
+        let extraSlot = 80;
+        for (const layer of cpmLayers) {
+          const asset = resolveCgAssetSmart(layer.fileName);
+          if (asset) {
+            slots[extraSlot++] = {
+              key: asset.name,
+              origin: 0,
+              x: Number(layer.x) || 0,
+              y: Number(layer.y) || 0,
+              scaleX: 100,
+              scaleY: 100,
+              opacity: 255
+            };
+          }
+        }
+      }
+
+      return {
+        snapshot: slots,
+        referencedVars: Array.from(refVars).filter(v => v > 0),
+        referencedSwitches: Array.from(refSwitches).filter(s => s > 0)
+      };
+    }
+
     async function renderStatusViewerTab() {
       const profiles = state.project.actorProfiles || [];
       const tabsBox = document.getElementById("statusActorTabs");
       const bgSel = document.getElementById("statusBgGraphicSelect");
       const boardBox = document.getElementById("visualStatusInnerContent");
+      const nativePages = state.project.nativeStatusPages || [];
 
+      const statusGraphicKeys = Object.keys(state.project.cgAssets || {}).filter(k => {
+        if (k === "__fastIndex" || state.deletedCgKeys.has(k) || isDummyBlackOrSystemPicture(k)) return false;
+        return /status|ero|prof|menu|ステ|プロフ/i.test(k);
+      });
+      if (bgSel) {
+        bgSel.innerHTML = `<option value="">🎨 게임 고유 스테이터스 화면 (자동 감지)</option>` +
+          statusGraphicKeys.map(k => `<option value="${escapeHtml(k)}" ${state.selectedStatusBgKey === k ? "selected" : ""}>🖼 원본 상태 그래픽: ${escapeHtml(translateJpName(k))}</option>`).join("");
+      }
+
+      // MODE A: GAME HAS NATIVE GRAPHICAL STATUS COMMONEVENTS
+      if (nativePages.length > 0 && !state.selectedStatusBgKey) {
+        if (state.selectedNativeStatusPageIdx >= nativePages.length) state.selectedNativeStatusPageIdx = 0;
+        const activePage = nativePages[state.selectedNativeStatusPageIdx] || nativePages[0];
+        const execResult = executeNativeStatusCeSnapshot(activePage.ceId);
+
+        const charModeSwitches = execResult.referencedSwitches.filter(sId => {
+          const sName = state.project.switchNames?.[sId] || "";
+          return /操作|조작|캐릭터|주인공|変更|切替|모드/i.test(sName) || sId === 202;
+        });
+
+        tabsBox.innerHTML = nativePages.map((pg, idx) => `
+          <button type="button" data-native-status-page="${idx}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            idx === state.selectedNativeStatusPageIdx
+              ? "bg-emerald-500 text-black shadow-md scale-105"
+              : "bg-slate-800 text-slate-300 hover:text-white"
+          }">
+            📄 ${escapeHtml(translateJpName(pg.title))}
+          </button>
+        `).join("") + charModeSwitches.map(sId => {
+          const isOn = Boolean(state.project.switches?.[sId]);
+          const sName = translateJpName(state.project.switchNames?.[sId] || `캐릭터 전환 SW#${sId}`);
+          return `
+            <button type="button" data-native-char-sw="${sId}" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+              isOn
+                ? "bg-amber-500 text-black border-amber-300 shadow-md"
+                : "bg-indigo-950/80 text-indigo-200 border-indigo-500/40 hover:bg-indigo-900"
+            }">
+              🔄 ${escapeHtml(sName)}: ${isOn ? "ON" : "OFF (기본 주인공)"}
+            </button>
+          `;
+        }).join("");
+
+        tabsBox.querySelectorAll("[data-native-status-page]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.selectedNativeStatusPageIdx = Number(btn.getAttribute("data-native-status-page"));
+            renderStatusViewerTab();
+          });
+        });
+        tabsBox.querySelectorAll("[data-native-char-sw]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const sId = Number(btn.getAttribute("data-native-char-sw"));
+            state.project.switches[sId] = !state.project.switches[sId];
+            reEvaluateCurrentEventWithUpdatedState();
+            renderStatusViewerTab();
+          });
+        });
+
+        const pageVars = execResult.referencedVars.filter(vId => !isJunkSystemVariableName(state.project.variableNames?.[vId] || `변수#${vId}`));
+        const pageSwitches = execResult.referencedSwitches;
+        const extraWindows = state.project.extraWindowConfigs || [];
+
+        boardBox.innerHTML = `
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+            <div class="xl:col-span-8 flex flex-col items-center bg-black/95 rounded-2xl border-2 border-indigo-500/40 p-2 shadow-2xl">
+              <div class="w-full flex flex-wrap items-center justify-between gap-2 px-2 pb-2 border-b border-slate-800 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">🎮 원본 인게임 스테이터스 렌더러</span>
+                  <span class="font-bold text-white">${escapeHtml(translateJpName(activePage.title))} (CE #${activePage.ceId})</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  ${nativePages.map((pg, idx) => `
+                    <button type="button" data-native-status-page-sub="${idx}" class="px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                      idx === state.selectedNativeStatusPageIdx ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"
+                    }">${idx + 1}P</button>
+                  `).join("")}
+                </div>
+              </div>
+              <canvas id="gameNativeStatusCanvas" width="1280" height="720" class="w-full h-auto max-h-[560px] object-contain rounded-xl mt-1 cursor-pointer" title="더블클릭하면 전체화면으로 확대됩니다"></canvas>
+              <div class="w-full flex items-center justify-between px-2 pt-1.5 text-[11px] text-slate-400">
+                <span>💡 우측 패널에서 변수/스위치를 바꾸면 인게임 상태창 그래픽·도장·단면도·수치가 즉시 바뀝니다!</span>
+                <button type="button" id="btnZoomNativeStatusCanvas" class="text-indigo-300 hover:text-white font-semibold">🔍 크게 보기</button>
+              </div>
+            </div>
+
+            <div class="xl:col-span-4 space-y-3 max-h-[620px] overflow-y-auto pr-1">
+              ${pageSwitches.length > 0 ? `
+                <div class="bg-slate-900/95 border border-amber-500/30 rounded-xl p-3 space-y-2">
+                  <div class="text-xs font-bold text-amber-300">🔘 이 페이지 연동 스위치 (처녀/임신/캐릭터 전환 등)</div>
+                  <div class="grid grid-cols-2 gap-1.5">
+                    ${pageSwitches.map(sId => {
+                      const isOn = Boolean(state.project.switches?.[sId]);
+                      const sName = translateJpName(state.project.switchNames?.[sId] || `스위치 #${sId}`);
+                      return `
+                        <button type="button" data-native-toggle-sw="${sId}" class="px-2.5 py-1.5 rounded-lg text-left text-[11px] font-bold border transition flex items-center justify-between gap-1 ${
+                          isOn ? "bg-emerald-600/30 border-emerald-500/60 text-emerald-200" : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                        }">
+                          <span class="truncate" title="${escapeHtml(sName)}">${escapeHtml(sName)}</span>
+                          <span class="font-mono flex-shrink-0">${isOn ? "ON" : "OFF"}</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              ` : ""}
+
+              <div class="bg-slate-900/95 border border-indigo-500/30 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-indigo-300">📊 이 페이지 표시 수치 (${pageVars.length}개 · 클릭/직접입력)</span>
+                </div>
+                <div class="space-y-1.5">
+                  ${pageVars.map(vId => {
+                    const vName = translateJpName(state.project.variableNames?.[vId] || `변수 #${vId}`);
+                    const curVal = state.project.variables?.[vId] ?? 0;
+                    return `
+                      <div class="flex items-center justify-between gap-2 bg-slate-950/90 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                        <div class="min-w-0 flex-1">
+                          <span class="text-[10px] font-mono text-slate-500">#${vId}</span>
+                          <span class="text-xs font-semibold text-slate-200 truncate ml-1" title="${escapeHtml(vName)}">${escapeHtml(vName)}</span>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                          <button type="button" data-native-var-delta="${vId},-1" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300">-1</button>
+                          <input type="text" data-native-var-inp="${vId}" value="${escapeHtml(String(curVal))}" class="w-14 bg-slate-900 border border-indigo-500/40 rounded px-1.5 py-0.5 text-xs text-emerald-300 font-mono text-center font-bold" />
+                          <button type="button" data-native-var-delta="${vId},1" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300">+1</button>
+                          <button type="button" data-native-var-delta="${vId},10" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-amber-300">+10</button>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+
+              ${extraWindows.length > 0 ? `
+                <div class="bg-slate-900/95 border border-emerald-500/30 rounded-xl p-3 space-y-1.5">
+                  <div class="text-xs font-bold text-emerald-300">🪟 플러그인 추가 스테이터스 창 (ExtraWindow)</div>
+                  ${extraWindows.map(ew => {
+                    const formatted = formatRpgText(ew.text, "");
+                    return `<div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2.5 text-xs font-mono text-slate-200 leading-relaxed">${formatted.html}</div>`;
+                  }).join("")}
+                </div>
+              ` : ""}
+            </div>
+          </div>
+        `;
+
+        const nativeCanvas = document.getElementById("gameNativeStatusCanvas");
+        if (nativeCanvas) {
+          await drawSnapshotOnCanvas(nativeCanvas, execResult.snapshot, null, true);
+          const openZoom = () => {
+            const dataUrl = nativeCanvas.toDataURL("image/png");
+            openMediaLightboxModal(null, dataUrl, translateJpName(activePage.title));
+          };
+          nativeCanvas.addEventListener("dblclick", openZoom);
+          document.getElementById("btnZoomNativeStatusCanvas")?.addEventListener("click", openZoom);
+        }
+
+        boardBox.querySelectorAll("[data-native-status-page-sub]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.selectedNativeStatusPageIdx = Number(btn.getAttribute("data-native-status-page-sub"));
+            renderStatusViewerTab();
+          });
+        });
+
+        boardBox.querySelectorAll("[data-native-toggle-sw]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const sId = Number(btn.getAttribute("data-native-toggle-sw"));
+            state.project.switches[sId] = !state.project.switches[sId];
+            reEvaluateCurrentEventWithUpdatedState();
+            renderStatusViewerTab();
+          });
+        });
+
+        boardBox.querySelectorAll("[data-native-var-delta]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const [vId, delta] = btn.getAttribute("data-native-var-delta").split(",").map(Number);
+            state.project.variables[vId] = (Number(state.project.variables[vId]) || 0) + delta;
+            reEvaluateCurrentEventWithUpdatedState();
+            renderStatusViewerTab();
+          });
+        });
+
+        boardBox.querySelectorAll("[data-native-var-inp]").forEach(inp => {
+          inp.addEventListener("change", (e) => {
+            const vId = Number(inp.getAttribute("data-native-var-inp"));
+            const raw = e.target.value.trim();
+            state.project.variables[vId] = isNaN(Number(raw)) ? raw : Number(raw);
+            reEvaluateCurrentEventWithUpdatedState();
+            renderStatusViewerTab();
+          });
+        });
+
+        renderConditionVariablesTopGrid();
+        renderStatusVariablesList();
+        return;
+      }
+
+      // MODE B: ADAPTIVE GAME-SPECIFIC STATUS DASHBOARD
       tabsBox.innerHTML = profiles.map((prof, idx) => `
         <button type="button" data-status-actor-idx="${idx}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
           idx === state.selectedStatusActorIdx ? "bg-amber-500 text-black shadow-md scale-105" : "bg-slate-800 text-slate-300 hover:text-white"
@@ -4184,43 +4780,23 @@
         });
       });
 
-      const statusGraphicKeys = Object.keys(state.project.cgAssets || {}).filter(k => {
-        if (k === "__fastIndex" || state.deletedCgKeys.has(k) || isDummyBlackOrSystemPicture(k)) return false;
-        return /status|ero|prof|menu|ステ|プロフ/i.test(k);
-      });
-      if (bgSel) {
-        bgSel.innerHTML = `<option value="">🎨 인게임 상태창 통합 보드 (자동합성)</option>` +
-          statusGraphicKeys.map(k => `<option value="${escapeHtml(k)}" ${state.selectedStatusBgKey === k ? "selected" : ""}>🖼 원본 상태 그래픽: ${escapeHtml(translateJpName(k))}</option>`).join("");
-      }
-
       const activeProf = profiles[state.selectedStatusActorIdx] || profiles[0];
       if (activeProf && boardBox) {
         const varNames = state.project.variableNames || {};
         const heroineVarEntries = getHeroineSpecificVariables(activeProf, profiles, varNames);
-
-        const loveVars = heroineVarEntries.filter(([, n]) => /好感|LOVE|호감|애정|신뢰|연모/i.test(n)).slice(0, 6);
-        const coreHeaderVars = heroineVarEntries.filter(([, n]) => /倫理|淫乱|露出|発情|윤리|음란|노출|발정|이성/i.test(n)).slice(0, 4);
-        const eroBodyVars = heroineVarEntries.filter(([id, n]) => {
-          if (coreHeaderVars.some(c => c[0] === id) || loveVars.some(l => l[0] === id)) return false;
-          return isEroOrBodyVariableName(n) || isProgressOrAffectionVariableName(n);
-        }).slice(0, 18);
-
-        // If coreHeaderVars is empty, provide default Ethics 100 / Lewdness 0 display so the board always looks complete like `image_68d640.jpg`!
-        const effectiveHeaderVars = coreHeaderVars.length > 0 ? coreHeaderVars : [
-          [-1, "윤리도 (倫理度)"],
-          [-2, "음란도 (淫乱度)"]
-        ];
-
+        const eroAndBodyVars = heroineVarEntries.filter(([, n]) => isEroOrBodyVariableName(n)).slice(0, 24);
+        const progressAndAffVars = heroineVarEntries.filter(([id, n]) => !eroAndBodyVars.some(e => e[0] === id) && isProgressOrAffectionVariableName(n)).slice(0, 14);
         const metaEntries = Object.entries(activeProf.customMeta || {});
         const baseStatsEntries = Object.entries(activeProf.baseStats || {});
+        const extraWindows = state.project.extraWindowConfigs || [];
 
         let customBgHtml = "";
         if (state.selectedStatusBgKey && state.project.cgAssets[state.selectedStatusBgKey]) {
           const bgUrl = await ensureAssetBlobUrl(state.project.cgAssets[state.selectedStatusBgKey]);
           if (bgUrl) {
             customBgHtml = `
-              <div class="mb-3 rounded-xl overflow-hidden border-2 border-amber-800/40 bg-black/90 flex items-center justify-center max-h-[360px]">
-                <img src="${bgUrl}" alt="Status Graphic" class="max-h-[350px] object-contain" />
+              <div class="mb-3 rounded-xl overflow-hidden border border-indigo-500/40 bg-black/90 flex items-center justify-center max-h-[380px]">
+                <img src="${bgUrl}" alt="Status Graphic" class="max-h-[370px] object-contain" />
               </div>
             `;
           }
@@ -4229,126 +4805,85 @@
         boardBox.innerHTML = `
           ${customBgHtml}
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-
-            <!-- LEFT COLUMN: ♥LOVE♥ / Affection & Likes/Dislikes Pink Box (Exact image_68d640.jpg Left Side!) -->
-            <div class="lg:col-span-3 flex flex-col justify-between gap-2.5">
-              <div class="rounded-2xl p-3.5 border-2 border-[#7a1c4b] shadow-md flex-1 space-y-2.5" style="background: linear-gradient(180deg, #f07fb8 0%, #e56ca8 100%); color: #ffffff;">
-                <div class="text-center font-extrabold text-base tracking-wider drop-shadow" style="text-shadow: 0 2px 4px rgba(0,0,0,0.45);">
-                  ♥ LOVE · 호감도 ♥
-                </div>
-                <div class="space-y-2">
-                  ${loveVars.length > 0 ? loveVars.map(([vId, vName]) => {
-                    const val = Number(state.project.variables[Number(vId)] ?? 0);
-                    const pct = Math.max(0, Math.min(100, val));
-                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
-                    return `
-                      <button type="button" data-quick-edit-var="${vId}" class="w-full text-left bg-black/25 hover:bg-black/40 rounded-xl p-2 transition border border-white/25 space-y-1">
-                        <div class="flex items-center justify-between font-bold text-xs">
-                          <span class="truncate">♥ ${escapeHtml(shortLabel)}</span>
-                          <span class="font-mono text-sm text-yellow-200">✎ ${escapeHtml(String(val))}</span>
-                        </div>
-                        <div class="w-full h-2 rounded-full bg-black/40 overflow-hidden p-0.5">
-                          <div class="h-full rounded-full transition-all" style="width:${pct}%; background: linear-gradient(90deg, #ffea79, #ff3b8d);"></div>
-                        </div>
-                      </button>
-                    `;
-                  }).join("") : `
-                    <div class="bg-black/20 rounded-xl p-2.5 text-xs space-y-1 border border-white/20">
-                      <div class="font-bold">♥ 주요 인물 관계 · 호감도</div>
-                      <p class="text-[11px] text-white/90 leading-snug">${escapeHtml(translateJpName(activeProf.profile || "상단 [+ 스탯 추가] 버튼으로 원하는 호감도나 특징을 자유롭게 추가할 수 있습니다."))}</p>
-                    </div>
-                  `}
-                </div>
-              </div>
-
-              <!-- Likes / Dislikes / Profile Speech Box -->
-              <div class="space-y-1.5 text-xs">
-                <div id="btnEditActorProfileText" class="cursor-pointer rounded-xl p-2.5 border-2 border-[#a83868] shadow-sm transition hover:brightness-95" style="background:#fbd0e5; color:#3d1024;" title="클릭하여 프로필/기호 수정">
-                  <span class="px-1.5 py-0.5 rounded bg-[#d94682] text-white text-[10px] font-bold mr-1">프로필·기호 ✎</span>
-                  <span class="font-semibold leading-snug">${escapeHtml(translateJpName(activeProf.profile || activeProf.likes || "클릭하여 이 캐릭터의 프로필·좋아하는 것/싫어하는 것을 메모하세요."))}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CENTER COLUMN: Heroine Full Standing / Ero-Status Graphic Canvas (Exact image_68d640.jpg Center!) -->
-            <div class="lg:col-span-4 flex flex-col items-center justify-center relative rounded-2xl border-2 border-amber-900/25 bg-gradient-to-b from-amber-50/70 to-amber-100/90 p-2 min-h-[340px]">
-              <canvas id="statusHeroineCanvas" width="540" height="640" class="max-h-[360px] w-full object-contain drop-shadow-xl"></canvas>
-              <div class="mt-1.5 flex flex-wrap items-center justify-center gap-1.5">
-                <span class="text-xs font-extrabold text-amber-950">${escapeHtml(translateJpName(activeProf.name))}</span>
-                <button type="button" id="btnCycleStatusPortrait" class="px-2 py-0.5 rounded bg-amber-900/20 hover:bg-amber-900/35 text-[10px] font-bold text-amber-950">🔄 다른 스탠딩 전환</button>
-                <button type="button" id="btnChangeStatusPortrait" class="px-2 py-0.5 rounded bg-amber-900/15 hover:bg-amber-900/30 text-[10px] font-bold text-amber-950">직접 지정 ✎</button>
-              </div>
-            </div>
-
-            <!-- RIGHT COLUMN: Decorative Title Header + Brown Stone Ero-Status Box (Exact image_68d640.jpg Right Side!) -->
-            <div class="lg:col-span-5 flex flex-col justify-between gap-2.5">
-              <div class="rounded-xl border-2 border-amber-800/40 bg-amber-50/95 p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+            <div class="lg:col-span-4 flex flex-col items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/90 p-3 min-h-[360px]">
+              <div class="w-full flex items-center justify-between border-b border-slate-800 pb-2">
                 <div>
-                  <button type="button" id="btnEditActorNickname" class="text-xs font-extrabold text-amber-800 hover:underline block">
-                    ✎ ${escapeHtml(translateJpName(activeProf.nickname || activeProf.className || "성기사 히로인"))}
-                  </button>
-                  <h4 class="text-xl sm:text-2xl font-black tracking-tight" style="color:#7c1919;">
-                    ${escapeHtml(translateJpName(activeProf.name))}
-                  </h4>
+                  <span class="text-[11px] text-indigo-300 font-bold">${escapeHtml(translateJpName(activeProf.nickname || activeProf.className || "주인공"))}</span>
+                  <h4 class="text-lg font-extrabold text-white">${escapeHtml(translateJpName(activeProf.name))}</h4>
                 </div>
-                <div class="text-right rounded-lg px-2.5 py-1.5 text-xs font-bold border border-amber-900/30" style="background:#6e6049; color:#fff9eb;">
-                  <div>${escapeHtml(activeProf.measurements || activeProf.customMeta?.["신장"] || "T(신장) · 쓰리사이즈")}</div>
-                  <div class="text-[11px] text-amber-200">${escapeHtml(activeProf.customMeta?.["쓰리사이즈"] || (activeProf.age ? `Age: ${activeProf.age}` : "우측 상단 [+ 스탯 추가]로 등록"))}</div>
+                <div class="flex items-center gap-1">
+                  <button type="button" id="btnCycleStatusPortrait" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-indigo-200">🔄 스탠딩 전환</button>
+                  <button type="button" id="btnChangeStatusPortrait" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300">직접 지정 ✎</button>
                 </div>
               </div>
-
-              <!-- Brown Stone Ero-Status & Experience Grid (image_68d640.jpg style!) -->
-              <div class="rounded-2xl p-3.5 border-4 border-[#9c8c74] shadow-inner flex-1 space-y-3" style="background: linear-gradient(180deg, #6b5a42 0%, #594a35 100%); color: #fffdf9;">
-                <div class="grid grid-cols-2 gap-2 border-b border-amber-100/25 pb-2.5">
-                  ${effectiveHeaderVars.map(([vId, vName]) => {
-                    const val = vId > 0 ? (state.project.variables[Number(vId)] ?? 0) : (vId === -1 ? (activeProf.customMeta?.["윤리도"] ?? 100) : (activeProf.customMeta?.["음란도"] ?? 0));
-                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
-                    return `
-                      <button type="button" ${vId > 0 ? `data-quick-edit-var="${vId}"` : `data-edit-meta-key="${vId === -1 ? "윤리도" : "음란도"}"`} class="text-left px-2.5 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 border border-amber-200/20 flex items-center justify-between transition">
-                        <span class="text-xs sm:text-sm font-extrabold text-amber-100 truncate">♥ ${escapeHtml(shortLabel)}</span>
-                        <span class="text-sm sm:text-base font-black font-mono text-white">✎ ${escapeHtml(String(val))}</span>
-                      </button>
-                    `;
-                  }).join("")}
-                </div>
-
-                <!-- Body Development & Experience Counts Grid -->
-                <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
-                  ${eroBodyVars.map(([vId, vName]) => {
-                    const val = state.project.variables[Number(vId)] ?? 0;
-                    const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
-                    const unit = /開発|개발|노출도|율/i.test(vName) ? "%" : (/回数|횟수|경험/i.test(vName) ? "회" : "");
-                    return `
-                      <button type="button" data-quick-edit-var="${vId}" class="text-left py-1 px-2 rounded-lg hover:bg-black/30 flex items-center justify-between gap-1 border-b border-white/10 transition">
-                        <span class="text-amber-100/95 truncate text-[11px]" title="${escapeHtml(vName)}">${escapeHtml(shortLabel)}</span>
-                        <span class="font-mono font-bold text-yellow-300 flex-shrink-0">✎ ${escapeHtml(String(val))}${unit}</span>
-                      </button>
-                    `;
-                  }).join("")}
-
-                  ${metaEntries.map(([k, v]) => `
-                    <button type="button" data-edit-meta-key="${escapeHtml(k)}" class="text-left py-1 px-2 rounded-lg hover:bg-black/30 flex items-center justify-between gap-1 border-b border-white/10 transition">
-                      <span class="text-amber-200/90 truncate text-[11px]">${escapeHtml(translateJpName(k))}</span>
-                      <span class="font-bold text-emerald-300 truncate text-[11px]">✎ ${escapeHtml(translateJpName(String(v)))}</span>
-                    </button>
-                  `).join("")}
-                </div>
-
-                <!-- Base RPG Stats Footer Bar -->
-                <div class="pt-2 border-t border-amber-100/20 flex flex-wrap items-center justify-between gap-1 text-[10px] text-amber-200/90">
-                  ${baseStatsEntries.map(([bKey, bVal]) => `
-                    <button type="button" data-edit-base-stat="${escapeHtml(bKey)}" class="px-1.5 py-0.5 rounded bg-black/25 hover:bg-black/45 font-mono">
-                      ${escapeHtml(bKey)}: <strong class="text-white">${escapeHtml(String(bVal))}</strong>
-                    </button>
-                  `).join("")}
-                </div>
+              <canvas id="statusHeroineCanvas" width="540" height="640" class="max-h-[360px] w-full object-contain my-2"></canvas>
+              <div class="w-full flex flex-wrap items-center justify-between gap-1 pt-2 border-t border-slate-800 text-[11px]">
+                ${baseStatsEntries.map(([bKey, bVal]) => `
+                  <button type="button" data-edit-base-stat="${escapeHtml(bKey)}" class="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 text-slate-300 font-mono">
+                    ${escapeHtml(bKey)}: <strong class="text-emerald-300">${escapeHtml(String(bVal))}</strong>
+                  </button>
+                `).join("")}
               </div>
             </div>
 
+            <div class="lg:col-span-8 flex flex-col gap-3">
+              ${activeProf.profile || metaEntries.length > 0 || extraWindows.length > 0 ? `
+                <div class="rounded-2xl border border-slate-800 bg-slate-900/90 p-3.5 space-y-2">
+                  <div class="text-xs font-bold text-amber-300">📋 게임 내 캐릭터 프로필 &amp; 플러그인 고유 스탯</div>
+                  ${activeProf.profile ? `<p id="btnEditActorProfileText" class="text-xs text-slate-200 leading-relaxed cursor-pointer hover:text-white">${escapeHtml(translateJpName(activeProf.profile))}</p>` : ""}
+                  ${metaEntries.length > 0 ? `
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                      ${metaEntries.map(([k, v]) => `
+                        <button type="button" data-edit-meta-key="${escapeHtml(k)}" class="text-left p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 flex items-center justify-between gap-1">
+                          <span class="text-[11px] text-slate-400 truncate">${escapeHtml(translateJpName(k))}</span>
+                          <span class="text-xs font-bold text-emerald-300 truncate">✎ ${escapeHtml(translateJpName(String(v)))}</span>
+                        </button>
+                      `).join("")}
+                    </div>
+                  ` : ""}
+                  ${extraWindows.map(ew => `<div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-200">${formatRpgText(ew.text, "").html}</div>`).join("")}
+                </div>
+              ` : ""}
+
+              ${eroAndBodyVars.length > 0 ? `
+                <div class="rounded-2xl border border-rose-500/30 bg-slate-900/90 p-3.5 space-y-2">
+                  <div class="text-xs font-bold text-rose-300">💗 이 게임의 고유 에로·신체·경험 스테이터스 (${eroAndBodyVars.length}개 · 클릭하여 수정)</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    ${eroAndBodyVars.map(([vId, vName]) => {
+                      const val = state.project.variables[Number(vId)] ?? 0;
+                      const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
+                      return `
+                        <button type="button" data-quick-edit-var="${vId}" class="text-left p-2 rounded-xl bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/40 flex items-center justify-between gap-1 transition">
+                          <span class="text-[11px] text-slate-300 truncate" title="${escapeHtml(vName)}">${escapeHtml(shortLabel)}</span>
+                          <span class="font-mono text-xs font-bold text-rose-300 flex-shrink-0">✎ ${escapeHtml(String(val))}</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              ` : ""}
+
+              ${progressAndAffVars.length > 0 ? `
+                <div class="rounded-2xl border border-indigo-500/30 bg-slate-900/90 p-3.5 space-y-2">
+                  <div class="text-xs font-bold text-indigo-300">📈 이 게임의 진행도·호감도·평판 스테이터스 (${progressAndAffVars.length}개)</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    ${progressAndAffVars.map(([vId, vName]) => {
+                      const val = state.project.variables[Number(vId)] ?? 0;
+                      const shortLabel = stripHeroinePrefixFromVarLabel(vName, activeProf.name);
+                      return `
+                        <button type="button" data-quick-edit-var="${vId}" class="text-left p-2 rounded-xl bg-slate-950 hover:bg-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 flex items-center justify-between gap-1 transition">
+                          <span class="text-[11px] text-slate-300 truncate" title="${escapeHtml(vName)}">${escapeHtml(shortLabel)}</span>
+                          <span class="font-mono text-xs font-bold text-emerald-300 flex-shrink-0">✎ ${escapeHtml(String(val))}</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              ` : ""}
+            </div>
           </div>
         `;
 
-        // Render the Heroine's Ero-Status Portrait (`eroStaAb01`, etc.) or Multi-Layer Standing onto `#statusHeroineCanvas`!
         const statusCanvas = document.getElementById("statusHeroineCanvas");
         if (statusCanvas) {
           if (activeProf.eroStatusCg && state.project.cgAssets[activeProf.eroStatusCg]) {
@@ -4357,19 +4892,6 @@
             await drawSnapshotOnCanvas(statusCanvas, activeProf.standingSnapshot, activeProf.portraitCg);
           } else if (activeProf.portraitCg && state.project.cgAssets[activeProf.portraitCg]) {
             await drawSnapshotOnCanvas(statusCanvas, null, activeProf.portraitCg);
-          } else if (activeProf.faceName && state.project.faceAssets[activeProf.faceName]) {
-            const fUrl = await ensureAssetBlobUrl(state.project.faceAssets[activeProf.faceName]);
-            if (fUrl) {
-              const fImg = await loadCachedImage(fUrl);
-              if (fImg) {
-                const sCtx = statusCanvas.getContext("2d");
-                sCtx.clearRect(0, 0, statusCanvas.width, statusCanvas.height);
-                const idx = Number(activeProf.faceIndex || 0);
-                const fw = Math.floor(fImg.width / 4) || 144;
-                const fh = Math.floor(fImg.height / 2) || 144;
-                sCtx.drawImage(fImg, (idx % 4) * fw, Math.floor(idx / 4) * fh, fw, fh, 110, 110, 300, 300);
-              }
-            }
           }
         }
 
@@ -4395,13 +4917,6 @@
               activeProf.standingSnapshot = null;
               renderStatusViewerTab();
             }
-          });
-        });
-
-        document.getElementById("btnEditActorNickname")?.addEventListener("click", () => {
-          openEditModal(`${activeProf.name} 칭호/직업 수정`, activeProf.nickname || activeProf.className || "", (newVal) => {
-            activeProf.nickname = newVal.trim();
-            renderStatusViewerTab();
           });
         });
 
@@ -4462,29 +4977,31 @@
         statusScenes.push({ cgKey: k, title: `원본 상태 그래픽: ${translateJpName(k)}`, type: "cg" });
       }
 
-      customBox.innerHTML = statusScenes.length > 0 ? statusScenes.slice(0, 12).map((sc) => `
-        <button type="button" data-status-jump="${sc.type === "event" ? `ev:${sc.mapId}:${sc.evId}` : `cg:${sc.cgKey}`}" class="p-2.5 rounded-xl bg-slate-900 hover:bg-indigo-950/60 border border-slate-800 hover:border-amber-500/40 text-left flex items-center justify-between gap-2 transition">
-          <span class="text-xs font-bold text-amber-200 truncate">${escapeHtml(sc.title)}</span>
-          <span class="text-[10px] text-indigo-300 flex-shrink-0">열기 →</span>
-        </button>
-      `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">상단 인게임 비주얼 스테이터스 보드에서 모든 호감도·개발도·횟수 변수를 직접 클릭해 수정할 수 있습니다.</div>`;
+      if (customBox) {
+        customBox.innerHTML = statusScenes.length > 0 ? statusScenes.slice(0, 12).map((sc) => `
+          <button type="button" data-status-jump="${sc.type === "event" ? `ev:${sc.mapId}:${sc.evId}` : `cg:${sc.cgKey}`}" class="p-2.5 rounded-xl bg-slate-900 hover:bg-indigo-950/60 border border-slate-800 hover:border-amber-500/40 text-left flex items-center justify-between gap-2 transition">
+            <span class="text-xs font-bold text-amber-200 truncate">${escapeHtml(sc.title)}</span>
+            <span class="text-[10px] text-indigo-300 flex-shrink-0">열기 →</span>
+          </button>
+        `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">상단 스테이터스 화면에서 모든 변수를 직접 클릭해 수정할 수 있습니다.</div>`;
 
-      customBox.querySelectorAll("[data-status-jump]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const val = btn.getAttribute("data-status-jump");
-          if (val.startsWith("ev:")) {
-            const [, mId, eId] = val.split(":");
-            state.selectedMapId = Number(mId);
-            renderMapsList();
-            selectEvent(Number(eId));
-            switchMainTab("vn");
-          } else {
-            const key = val.slice(3);
-            state.selectedStatusBgKey = key;
-            renderStatusViewerTab();
-          }
+        customBox.querySelectorAll("[data-status-jump]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const val = btn.getAttribute("data-status-jump");
+            if (val.startsWith("ev:")) {
+              const [, mId, eId] = val.split(":");
+              state.selectedMapId = Number(mId);
+              renderMapsList();
+              selectEvent(Number(eId));
+              switchMainTab("vn");
+            } else {
+              const key = val.slice(3);
+              state.selectedStatusBgKey = key;
+              renderStatusViewerTab();
+            }
+          });
         });
-      });
+      }
 
       renderConditionVariablesTopGrid();
       renderStatusVariablesList();
@@ -5015,6 +5532,40 @@
     // Instead of `JSZip.loadAsync(file)` allocating a 1GB ArrayBuffer in RAM (which crashes iOS Safari),
     // `openZipArchiveSmart` reads ONLY the ZIP Central Directory at the end of the file via `file.slice()`
     // and decompresses individual entries on demand via native `DecompressionStream("deflate-raw")`!
+    const _utf8FatalDec = new TextDecoder("utf-8", { fatal: true });
+    const _utf8LooseDec = new TextDecoder("utf-8");
+    let _eucKrDec = null;
+    let _sjisDec = null;
+    try { _eucKrDec = new TextDecoder("euc-kr"); } catch (e) {}
+    try { _sjisDec = new TextDecoder("shift-jis"); } catch (e) {}
+
+    function scoreDecodedZipFilename(s) {
+      let score = 0;
+      for (let i = 0; i < s.length; i++) {
+        const code = s.charCodeAt(i);
+        if (code === 0xfffd || (code >= 0xe000 && code <= 0xf8ff)) score -= 60;
+        else if (code >= 0xff61 && code <= 0xff9f) score -= 16; // half-width katakana mojibake (`ｫ皚､ｫﾉ｡｡ﾘｪ｢ｪｭ`)
+        else if (code >= 0xac00 && code <= 0xd7a3) score += 10; // Hangul
+        else if (code >= 0x3040 && code <= 0x30ff) score += 10; // Full-width Hiragana/Katakana
+        else if (code === 0x3000) score += 8; // Full-width space `　`
+        else if (code >= 0x4e00 && code <= 0x9fff) score += 2; // CJK Kanji
+      }
+      return score;
+    }
+
+    function decodeZipFilenameSmart(u8, isUtf8Flag = false) {
+      const bytes = u8 instanceof Uint8Array ? u8 : new Uint8Array(u8);
+      try {
+        return _utf8FatalDec.decode(bytes).normalize("NFC");
+      } catch (e) {}
+      const sKr = _eucKrDec ? _eucKrDec.decode(bytes) : "";
+      const sJp = _sjisDec ? _sjisDec.decode(bytes) : "";
+      if (sKr && sJp) {
+        return (scoreDecodedZipFilename(sKr) >= scoreDecodedZipFilename(sJp) ? sKr : sJp).normalize("NFC");
+      }
+      return (sKr || sJp || _utf8LooseDec.decode(bytes)).normalize("NFC");
+    }
+
     async function openZipArchiveSmart(file) {
       if (typeof DecompressionStream !== "undefined" && file && typeof file.slice === "function" && file.size > 0) {
         try {
@@ -5036,9 +5587,7 @@
               const cdBuf = await file.slice(cdOffset, cdOffset + cdSize).arrayBuffer();
               const cdView = new DataView(cdBuf);
               const cdBytes = new Uint8Array(cdBuf);
-              const utf8Dec = new TextDecoder("utf-8");
-              let sjisDec = null;
-              try { sjisDec = new TextDecoder("shift-jis"); } catch (e) {}
+              const utf8Dec = _utf8LooseDec;
 
               const files = {};
               let p = 0;
@@ -5055,11 +5604,7 @@
 
                 const nameSlice = cdBytes.subarray(p + 46, p + 46 + nameLen);
                 const isUtf8 = (flags & 0x800) !== 0;
-                let entryName = utf8Dec.decode(nameSlice);
-                if (!isUtf8 && entryName.includes("\ufffd") && sjisDec) {
-                  entryName = sjisDec.decode(nameSlice);
-                }
-                entryName = entryName.replace(/\\/g, "/");
+                const entryName = decodeZipFilenameSmart(nameSlice, isUtf8).replace(/\\/g, "/");
                 const isDir = entryName.endsWith("/");
 
                 files[entryName] = {
@@ -5109,7 +5654,7 @@
           // Fallback to JSZip below if non-standard ZIP
         }
       }
-      return await window.JSZip.loadAsync(file);
+      return await window.JSZip.loadAsync(file, { decodeFileName: (b) => decodeZipFilenameSmart(b, false) });
     }
 
     // =========================================================================
@@ -5123,9 +5668,16 @@
           if (isWinningBranch && allowErase) targetPending[slot] = null;
           continue;
         }
-        if (!bSpec || !bSpec.key || isDummyBlackOrSystemPicture(bSpec.key)) continue;
+        if (!bSpec || (!bSpec.isTextPicture && (!bSpec.key || isDummyBlackOrSystemPicture(bSpec.key)))) continue;
 
-        if (targetPending[slot] && targetPending[slot] !== null) {
+        if (bSpec.isTextPicture) {
+          if (isWinningBranch) {
+            targetPending[slot] = { ...bSpec };
+          }
+          continue;
+        }
+
+        if (targetPending[slot] && targetPending[slot] !== null && !targetPending[slot].isTextPicture) {
           const existing = targetPending[slot];
           existing.variants = existing.variants || [existing.key];
           if (!existing.variants.includes(bSpec.key)) existing.variants.push(bSpec.key);
@@ -5135,7 +5687,7 @@
             }
           }
           if (isWinningBranch) {
-            existing.key = pickBestDefaultVariant(existing.variants, bSpec.key);
+            existing.key = bSpec.key;
             existing.x = bSpec.x;
             existing.y = bSpec.y;
             existing.origin = bSpec.origin;
@@ -5143,7 +5695,6 @@
             existing.scaleY = bSpec.scaleY;
             existing.opacity = (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : (existing.opacity || 255);
           } else {
-            existing.key = pickBestDefaultVariant(existing.variants, existing.key);
             if (!existing.opacity || existing.opacity <= 0) existing.opacity = bSpec.opacity || 255;
           }
           continue;
@@ -5160,44 +5711,36 @@
         }
 
         // `isWinningBranch === false`:
+        // Only attach alternative variants onto an existing slot that holds the same `partPrefix`;
+        // do NOT overwrite winning branch slots or resurrect erased standing sprites!
         if (isGlassesOrOptionalOverlayName(bSpec.key)) {
           continue;
         }
-
         const bInfo = getPartCategoryAndPrefix(bSpec.key);
-        // Only merge across different slot numbers if another slot ALREADY holds the EXACT SAME `partPrefix`
-        // (e.g., `Reiri_Arm` == `Reiri_Arm`), NEVER merge `Reiri_Bust` (#18) into `Reiri_Cloth` (#19)!
-        let existingSamePrefixSpec = null;
         if (bInfo.category !== "기본 이미지") {
           for (const [, exSpec] of Object.entries(targetPending)) {
-            if (!exSpec || !exSpec.key) continue;
+            if (!exSpec || !exSpec.key || exSpec.isTextPicture) continue;
             const exInfo = getPartCategoryAndPrefix(exSpec.key);
             if (exInfo.partPrefix.toLowerCase() === bInfo.partPrefix.toLowerCase()) {
-              existingSamePrefixSpec = exSpec;
+              exSpec.variants = exSpec.variants || [exSpec.key];
+              if (!exSpec.variants.includes(bSpec.key)) exSpec.variants.push(bSpec.key);
+              if (Array.isArray(bSpec.variants)) {
+                for (const v of bSpec.variants) {
+                  if (!exSpec.variants.includes(v)) exSpec.variants.push(v);
+                }
+              }
               break;
             }
           }
         }
-
-        if (existingSamePrefixSpec) {
-          existingSamePrefixSpec.variants = existingSamePrefixSpec.variants || [existingSamePrefixSpec.key];
-          if (!existingSamePrefixSpec.variants.includes(bSpec.key)) existingSamePrefixSpec.variants.push(bSpec.key);
-          if (Array.isArray(bSpec.variants)) {
-            for (const v of bSpec.variants) {
-              if (!existingSamePrefixSpec.variants.includes(v)) existingSamePrefixSpec.variants.push(v);
-            }
-          }
-          existingSamePrefixSpec.key = pickBestDefaultVariant(existingSamePrefixSpec.variants, existingSamePrefixSpec.key);
-        } else {
-          // Accept this slot so NO layer (whether `Reiri_Arm` on #18/#28 or the heroine/wall layers in `벽 엉덩이 고블린` EV078!) is ever dropped!
-          targetPending[slot] = {
-            ...bSpec,
-            opacity: (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : 255,
-            key: pickBestDefaultVariant(bSpec.variants || [bSpec.key], bSpec.key),
-            variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key]
-          };
-        }
       }
+    }
+
+    function isStandingOrTachieFileName(name) {
+      const s = String(name || "").split("/").pop();
+      if (!s) return false;
+      if (isDetachedSubPartFile(s)) return true;
+      return /(?:_tat|_stand|_tachie|_base|_zenshin|tachie|stand|스탠딩|立ち絵)/i.test(s);
     }
 
     function parseMvEventCommandsV10(
@@ -5223,15 +5766,36 @@
       let i = 0;
       let pendingAudioKey = null;
       let pendingTransferMapId = null;
+      let pendingDText = null;
       let lastNonEmptyPictures = {};
       let hadWaitSinceLastCgFlush = false;
       let hadDialogueSinceLastPic = true;
+      const slotsUpdatedInCurrentStep = new Set();
 
       const updateLastNonEmptyPictures = () => {
-        const validEntries = Object.entries(pendingPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+        const validEntries = Object.entries(pendingPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         if (validEntries.length > 0) {
           lastNonEmptyPictures = clonePicMapFast(pendingPictures);
         }
+      };
+
+      // Clean up stale standing sprites (`makina_tat` on Slot #6) when a full-screen Event CG (`makina15_0` on Slot #1) is active (`image_5baf1f.jpg` fix!)
+      const buildCleanStepSnapshot = () => {
+        const snap = clonePicMapFast(pendingPictures);
+        const lowSlotEventCg = Object.entries(snap).find(([sNum, sp]) => {
+          const n = Number(sNum);
+          return n >= 1 && n <= 4 && sp && sp.key && !sp.isTextPicture && !isDummyBlackOrSystemPicture(sp.key) && !isStandingOrTachieFileName(sp.key) && /(?:ev|cg|h_|scene|\d{2}_\d)/i.test(sp.key);
+        });
+        if (lowSlotEventCg) {
+          for (const [sNum, sp] of Object.entries(snap)) {
+            const n = Number(sNum);
+            if (n > Number(lowSlotEventCg[0]) && sp && sp.key && isStandingOrTachieFileName(sp.key) && !slotsUpdatedInCurrentStep.has(n)) {
+              delete snap[sNum];
+              delete pendingPictures[sNum];
+            }
+          }
+        }
+        return snap;
       };
 
       while (i < list.length) {
@@ -5243,6 +5807,19 @@
 
         if (code === 230) {
           hadWaitSinceLastCgFlush = true;
+          i++;
+          continue;
+        }
+
+        if (code === 119) {
+          const labelName = String(p[0] || "");
+          if (labelName) {
+            const targetIdx = list.findIndex((c, idx) => idx > i && c && c.code === 118 && String(c.parameters?.[0] || "") === labelName);
+            if (targetIdx > i) {
+              i = targetIdx + 1;
+              continue;
+            }
+          }
           i++;
           continue;
         }
@@ -5263,7 +5840,6 @@
           continue;
         }
 
-        // Upgraded in v12: Supports `operandType === 0` (Constant), `operandType === 1` (Variable Copy!), and `operandType === 2` (Random min..max)!
         if (code === 122) {
           const startVar = Number(p[0]) || 0;
           const endVar = Number(p[1]) || startVar;
@@ -5272,7 +5848,7 @@
           if (startVar > 0 && endVar - startVar <= 50 && (operandType === 0 || operandType === 1 || operandType === 2)) {
             let val = 0;
             if (operandType === 0) val = Number(p[4]) || 0;
-            else if (operandType === 1) val = Number(simState.vars[Number(p[4])] ?? 1);
+            else if (operandType === 1) val = Number(simState.vars[Number(p[4])] ?? 0);
             else if (operandType === 2) val = Number(p[4]) || 1;
 
             for (let vId = startVar; vId <= endVar; vId++) {
@@ -5316,6 +5892,31 @@
         if (code === 231) {
           const slotNum = Number(p[0]) || 1;
           const rawPicParam = String(p[1] || "").trim();
+          const origin = Number(p[2]) || 0;
+          const coordMode = Number(p[3]) || 0;
+          const x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simState.vars[p[4]]) || 0);
+          const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
+          const scaleX = Number(p[6] ?? 100);
+          const scaleY = Number(p[7] ?? 100);
+          const rawOpacity = Number(p[8] ?? 255);
+          const opacity = rawOpacity > 0 ? rawOpacity : 255;
+
+          if (!rawPicParam && pendingDText) {
+            pendingPictures[slotNum] = {
+              key: "__dtext__",
+              isTextPicture: true,
+              dText: pendingDText.text,
+              fontSize: pendingDText.fontSize,
+              origin, x, y, scaleX, scaleY, opacity
+            };
+            pendingDText = null;
+            slotsUpdatedInCurrentStep.add(slotNum);
+            updateLastNonEmptyPictures();
+            i++;
+            continue;
+          }
+          pendingDText = null;
+
           let picName = rawPicParam.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => {
             const curV = simState.vars[Number(vId)];
             return (curV !== undefined && curV !== null && Number(curV) > 0) ? String(curV) : "1";
@@ -5333,18 +5934,7 @@
             if (resolvedDirect) picName = resolvedDirect.name;
           }
 
-          const origin = Number(p[2]) || 0;
-          const coordMode = Number(p[3]) || 0;
-          const x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simState.vars[p[4]]) || 0);
-          const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
-          const scaleX = Number(p[6] ?? 100);
-          const scaleY = Number(p[7] ?? 100);
-          const rawOpacity = Number(p[8] ?? 255);
-          const opacity = rawOpacity > 0 ? rawOpacity : 255;
-
           if (picName && !isDummyBlackOrSystemPicture(picName)) {
-            // If this slot already had a full-screen CG and is being replaced after a Wait (`Code 230`) without dialogue in between (like `Prison01` -> `Prison02`),
-            // emit a CG step for the previous state so sequential CG animations are each viewable!
             if (
               ceDepth === 0 &&
               hadWaitSinceLastCgFlush &&
@@ -5358,7 +5948,7 @@
                 type: "cg",
                 slot: slotNum,
                 cgKey: pendingPictures[slotNum].key,
-                pictureSnapshot: clonePicMapFast(pendingPictures),
+                pictureSnapshot: buildCleanStepSnapshot(),
                 source: "연속 CG 연출"
               });
               hadWaitSinceLastCgFlush = false;
@@ -5382,6 +5972,7 @@
               isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
               variants: prevVariants
             };
+            slotsUpdatedInCurrentStep.add(slotNum);
             hadDialogueSinceLastPic = false;
             updateLastNonEmptyPictures();
           }
@@ -5409,6 +6000,7 @@
           const slotNum = Number(p[0]) || 1;
           updateLastNonEmptyPictures();
           pendingPictures[slotNum] = null;
+          slotsUpdatedInCurrentStep.delete(slotNum);
           i++;
           continue;
         }
@@ -5420,7 +6012,6 @@
             const resolvedMovie = cgAssetsDict ? resolveAssetInDict(movieName, cgAssetsDict, true) : null;
             if (resolvedMovie) movieName = resolvedMovie.name;
 
-            // Also find all series sibling movies (e.g. `居酒屋　雨1`, `居酒屋　雨2`, `居酒屋　雨3` in `image_5d70e0.png`!)
             const sKey = getNormalizedSeriesKey(movieName);
             const seriesSiblings = (cgAssetsDict && cgAssetsDict.__fastIndex && cgAssetsDict.__fastIndex.seriesMap?.get(sKey)) || [];
             const movieVariants = [movieName];
@@ -5458,10 +6049,10 @@
             i++;
           }
           if (lines.length > 0) {
-            const snapshotCopy = clonePicMapFast(pendingPictures);
+            const snapshotCopy = buildCleanStepSnapshot();
             if (usageTracker) {
-              for (const val of Object.values(pendingPictures)) {
-                if (val && val.key) usageTracker(val.key, steps.length);
+              for (const val of Object.values(snapshotCopy)) {
+                if (val && val.key && !val.isTextPicture) usageTracker(val.key, steps.length);
               }
             }
             steps.push({
@@ -5478,6 +6069,7 @@
             pendingAudioKey = null;
             pendingTransferMapId = null;
             hadDialogueSinceLastPic = true;
+            slotsUpdatedInCurrentStep.clear();
           }
           continue;
         }
@@ -5492,10 +6084,10 @@
             lines.push(list[i].parameters[0] || "");
             i++;
           }
-          const snapshotCopy = clonePicMapFast(pendingPictures);
+          const snapshotCopy = buildCleanStepSnapshot();
           if (usageTracker) {
-            for (const val of Object.values(pendingPictures)) {
-              if (val && val.key) usageTracker(val.key, steps.length);
+            for (const val of Object.values(snapshotCopy)) {
+              if (val && val.key && !val.isTextPicture) usageTracker(val.key, steps.length);
             }
           }
           for (const k of Object.keys(pendingPictures)) {
@@ -5516,6 +6108,7 @@
           pendingAudioKey = null;
           pendingTransferMapId = null;
           hadDialogueSinceLastPic = true;
+          slotsUpdatedInCurrentStep.clear();
           continue;
         }
 
@@ -5531,7 +6124,7 @@
             if (!currentChoiceCmds.length || opsBudget.count > opsBudget.max) return;
             const subPending = clonePicMapFast(pendingPictures);
             const subSteps = parseMvEventCommandsV10(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
-              vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
+              vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
             }, true, ceEffectCache, activeCeStack, opsBudget);
             const st = analyzeStepsStats(subSteps);
             if (st.dialogueCount > 0 || st.cgCount > 0) {
@@ -5577,7 +6170,7 @@
             steps.push({
               type: "branch",
               branchTitle: "플레이어 선택지 (Code 102)",
-              pictureSnapshot: clonePicMapFast(pendingPictures),
+              pictureSnapshot: buildCleanStepSnapshot(),
               options
             });
           }
@@ -5633,7 +6226,7 @@
             steps.push({
               type: "branch",
               branchTitle: "⚔️ 전투 결과 분기",
-              pictureSnapshot: clonePicMapFast(pendingPictures),
+              pictureSnapshot: buildCleanStepSnapshot(),
               options
             });
           }
@@ -5668,19 +6261,20 @@
             }
           }
 
-          let condMet = evaluateBranchInSimState(p, simState.vars, simState.switches);
+          // FIXED IN v13 (`image_5c0939.jpg` Reiri Upper Arm Fix!):
+          // Never auto-lock `Variable #10 == 4 (FullNaked)` or `Variable #8 == 1 (Dummy)` to `true` when the variable is `0`!
+          const condMet = evaluateBranchInSimState(p, simState.vars, simState.switches);
 
-          // Never lock to `0` (`targetVal > 0`) so an initial `If (Var == 0)` check doesn't block `If (Var == 1)`!
-          if (p[0] === 1 && p[2] === 0 && (p[4] === 0 || p[4] === 1)) {
-            const varId = Number(p[1]);
-            const targetVal = Number(p[3] || 0);
-            if ((simState.vars[varId] === undefined || simState.vars[varId] === 0) && targetVal > 0) {
-              if (simState.lockedVarBranches[varId] === undefined) {
-                simState.lockedVarBranches[varId] = targetVal;
+          // Handle `Jump to Label (Code 119)` inside a winning `If` branch (e.g. `If Switch #202 == ON -> Jump to Label "メルメイア"` in CE #39/#40/#41!)
+          const activeBranchCmds = condMet ? thenCmds : elseCmds;
+          if (activeBranchCmds.length > 0 && activeBranchCmds.length <= 3 && activeBranchCmds[0].code === 119) {
+            const jumpLabel = String(activeBranchCmds[0].parameters?.[0] || "");
+            if (jumpLabel) {
+              const targetIdx = list.findIndex((c, idx) => idx >= i && c && c.code === 118 && String(c.parameters?.[0] || "") === jumpLabel);
+              if (targetIdx >= i) {
+                i = targetIdx + 1;
+                continue;
               }
-              condMet = p[4] === 1
-                ? (simState.lockedVarBranches[varId] >= targetVal)
-                : (simState.lockedVarBranches[varId] === targetVal);
             }
           }
 
@@ -5688,52 +6282,73 @@
           const elsePending = clonePicMapFast(pendingPictures);
 
           const thenSteps = parseMvEventCommandsV10(thenCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, thenPending, {
-            vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
+            vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
           }, true, ceEffectCache, activeCeStack, opsBudget);
 
           const elseSteps = (elseCmds.length > 0 && opsBudget.count <= opsBudget.max)
             ? parseMvEventCommandsV10(elseCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, elsePending, {
-                vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches }
+                vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
               }, true, ceEffectCache, activeCeStack, opsBudget)
             : [];
 
           const thenSt = analyzeStepsStats(thenSteps);
           const elseSt = analyzeStepsStats(elseSteps);
 
-          // Never let an `Else: Erase Picture` (`elsePending[slot] === null` when `!condMet`) wipe out a slot that `thenPending` just showed!
+          // FIXED IN v13 (`image_5c0939.jpg` & `image_5baf1f.jpg`):
+          // Winning branch (`condMet` for `then`, `!condMet` for `else`) MUST be merged FIRST with `allowErase = true`,
+          // and non-winning branch merged second with `allowErase = false`!
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, condMet);
-            if (elseCmds.length > 0) {
-              mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
+            if (condMet) {
+              mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+            } else {
+              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+            }
+            for (const [k, v] of Object.entries(pendingPictures)) {
+              if (v && v.key) slotsUpdatedInCurrentStep.add(Number(k));
             }
             updateLastNonEmptyPictures();
             continue;
           }
           if (elseSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, condMet);
-            if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
+            if (condMet) {
+              mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+            } else {
+              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+            }
             updateLastNonEmptyPictures();
             steps.push(...thenSteps);
             continue;
           }
           if (thenSt.dialogueCount === 0) {
-            mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, !condMet);
-            mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, false);
+            if (!condMet) {
+              mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+            } else {
+              mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+              mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+            }
             updateLastNonEmptyPictures();
             steps.push(...elseSteps);
             continue;
           }
 
-          // BOTH `then` and `else` have dialogue (`#5 ❖분기` in `image_5d665c.jpg`!):
-          // Merge both branches' picture snapshots into `pendingPictures` AND attach `pictureSnapshot` directly onto the `branch` step!
-          mergePictureSnapshotsV10(pendingPictures, thenPending, condMet, false);
-          mergePictureSnapshotsV10(pendingPictures, elsePending, !condMet, false);
+          if (condMet) {
+            mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+            mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+          } else {
+            mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+            mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+          }
           updateLastNonEmptyPictures();
 
           steps.push({
             type: "branch",
             branchTitle: "스토리 조건 분기",
-            pictureSnapshot: clonePicMapFast(pendingPictures),
+            pictureSnapshot: buildCleanStepSnapshot(),
             options: [
               {
                 label: "조건 성립 루트",
@@ -5759,17 +6374,31 @@
           if (ceEffectCache && ceEffectCache.has(ceId)) {
             const cached = ceEffectCache.get(ceId);
             if (cached.isPurePictureSetup) {
-              mergePictureSnapshotsV10(pendingPictures, cached.pictureOut, true, false);
+              mergePictureSnapshotsV10(pendingPictures, cached.pictureOut, true, true);
+              for (const [k, v] of Object.entries(cached.pictureOut)) {
+                if (v && v.key) slotsUpdatedInCurrentStep.add(Number(k));
+              }
+              if (cached.setsVars) {
+                for (const [vId, vMod] of cached.setsVars.entries()) simState.vars[vId] = vMod.result;
+              }
+              if (cached.turnsOnSwitches) {
+                for (const sId of cached.turnsOnSwitches) simState.switches[sId] = true;
+              }
               updateLastNonEmptyPictures();
               if (usageTracker && cached.usedCgs) {
                 for (const cgName of cached.usedCgs) usageTracker(cgName, steps.length);
               }
-              if (metaTracker && ceDepth <= 1) {
-                if (cached.turnsOnSwitches && metaTracker.turnsOnSwitches) {
-                  for (const sId of cached.turnsOnSwitches) metaTracker.turnsOnSwitches.add(sId);
+              if (metaTracker) {
+                if (cached.calledCommonEvents && metaTracker.calledCommonEvents) {
+                  for (const subCeId of cached.calledCommonEvents) metaTracker.calledCommonEvents.add(subCeId);
                 }
-                if (cached.transfersToMaps && metaTracker.transfersToMaps) {
-                  for (const mId of cached.transfersToMaps) metaTracker.transfersToMaps.add(mId);
+                if (ceDepth <= 1) {
+                  if (cached.turnsOnSwitches && metaTracker.turnsOnSwitches) {
+                    for (const sId of cached.turnsOnSwitches) metaTracker.turnsOnSwitches.add(sId);
+                  }
+                  if (cached.transfersToMaps && metaTracker.transfersToMaps) {
+                    for (const mId of cached.transfersToMaps) metaTracker.transfersToMaps.add(mId);
+                  }
                 }
               }
               return;
@@ -5788,7 +6417,15 @@
               usedCgs: new Set()
             };
             const isoBudget = { count: 0, max: 4500 };
-            const isoSteps = parseMvEventCommandsV10(
+            const isoSim = { vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {} };
+
+            for (const c of ce.list) {
+              if (c && c.code === 235 && c.indent === 0) {
+                isoPic[Number(c.parameters?.[0]) || 1] = null;
+              }
+            }
+
+            let isoSteps = parseMvEventCommandsV10(
               ce.list,
               commonEventsMap,
               cgAssetsDict,
@@ -5796,12 +6433,33 @@
               isoMeta,
               ceDepth + 1,
               isoPic,
-              { vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: { ...simState.lockedVarBranches } },
+              isoSim,
               inConditionalBranch,
               ceEffectCache,
               activeCeStack,
               isoBudget
             );
+
+            const nonNullIsoSlots = Object.values(isoPic).filter(v => v && v.key);
+            if (
+              isoSteps.length === 0 &&
+              nonNullIsoSlots.length <= 1 &&
+              ce.list.length > 30 &&
+              ce.list[0]?.code === 111 &&
+              ce.list[0]?.parameters?.[0] === 0 &&
+              ce.list[0]?.parameters?.[2] === 0
+            ) {
+              const firstOutfitSw = Number(ce.list[0].parameters[1]);
+              if (firstOutfitSw > 0 && !isoSim.switches[firstOutfitSw]) {
+                const retryPic = {};
+                const retrySim = { vars: { ...simState.vars }, switches: { ...simState.switches, [firstOutfitSw]: true }, lockedVarBranches: {} };
+                const retryBudget = { count: 0, max: 4500 };
+                parseMvEventCommandsV10(ce.list, commonEventsMap, cgAssetsDict, null, isoMeta, ceDepth + 1, retryPic, retrySim, inConditionalBranch, ceEffectCache, activeCeStack, retryBudget);
+                if (Object.values(retryPic).filter(v => v && v.key).length > nonNullIsoSlots.length) {
+                  Object.assign(isoPic, retryPic);
+                }
+              }
+            }
 
             if (isoSteps.length === 0) {
               ceEffectCache.set(ceId, {
@@ -5809,16 +6467,26 @@
                 pictureOut: clonePicMapFast(isoPic),
                 usedCgs: isoMeta.usedCgs,
                 turnsOnSwitches: isoMeta.turnsOnSwitches,
-                transfersToMaps: isoMeta.transfersToMaps
+                transfersToMaps: isoMeta.transfersToMaps,
+                calledCommonEvents: isoMeta.calledCommonEvents,
+                setsVars: isoMeta.setsVars
               });
-              mergePictureSnapshotsV10(pendingPictures, isoPic, true, false);
+              mergePictureSnapshotsV10(pendingPictures, isoPic, true, true);
+              for (const [k, v] of Object.entries(isoPic)) {
+                if (v && v.key) slotsUpdatedInCurrentStep.add(Number(k));
+              }
+              for (const [vId, vMod] of isoMeta.setsVars.entries()) simState.vars[vId] = vMod.result;
+              for (const sId of isoMeta.turnsOnSwitches) simState.switches[sId] = true;
               updateLastNonEmptyPictures();
               if (usageTracker && isoMeta.usedCgs) {
                 for (const cgName of isoMeta.usedCgs) usageTracker(cgName, steps.length);
               }
-              if (metaTracker && ceDepth <= 1) {
-                for (const sId of isoMeta.turnsOnSwitches) metaTracker.turnsOnSwitches?.add(sId);
-                for (const mId of isoMeta.transfersToMaps) metaTracker.transfersToMaps?.add(mId);
+              if (metaTracker) {
+                for (const subCeId of isoMeta.calledCommonEvents) metaTracker.calledCommonEvents?.add(subCeId);
+                if (ceDepth <= 1) {
+                  for (const sId of isoMeta.turnsOnSwitches) metaTracker.turnsOnSwitches?.add(sId);
+                  for (const mId of isoMeta.transfersToMaps) metaTracker.transfersToMaps?.add(mId);
+                }
               }
               activeCeStack.delete(ceId);
               return;
@@ -5842,7 +6510,10 @@
             activeCeStack,
             opsBudget
           );
-          mergePictureSnapshotsV10(pendingPictures, ceOutPic, true, false);
+          mergePictureSnapshotsV10(pendingPictures, ceOutPic, true, true);
+          for (const [k, v] of Object.entries(ceOutPic)) {
+            if (v && v.key) slotsUpdatedInCurrentStep.add(Number(k));
+          }
           updateLastNonEmptyPictures();
           steps.push(...subSteps);
           activeCeStack.delete(ceId);
@@ -5855,6 +6526,30 @@
         }
 
         if (code === 355 || code === 356 || code === 357) {
+          if (code === 357 && (p[0] === "DTextPicture" || p[1] === "dText" || p[1] === "set")) {
+            const args = p[3] || {};
+            pendingDText = {
+              text: String(args.text || ""),
+              fontSize: parseInt(args.fontSize || "24", 10) || 24
+            };
+            i++;
+            continue;
+          }
+          if (code === 356) {
+            const rawPluginCmd = String(p[0] || "").trim();
+            const dtMatch = rawPluginCmd.match(/^(?:D_TEXT|TEXT_PICTURE)\s+(.+?)(?:\s+(\d{2}))?$/i);
+            if (dtMatch) {
+              const txt = dtMatch[1];
+              const fSize = dtMatch[2] ? parseInt(dtMatch[2], 10) : (pendingDText?.fontSize || 24);
+              pendingDText = {
+                text: pendingDText ? (pendingDText.text + "\n" + txt) : txt,
+                fontSize: fSize
+              };
+              i++;
+              continue;
+            }
+          }
+
           let scriptText = "";
           if (code === 355) {
             scriptText = String(p[0] || "");
@@ -5896,23 +6591,19 @@
                 if (usageTracker) usageTracker(pName, steps.length);
                 if (metaTracker && metaTracker.usedCgs) metaTracker.usedCgs.add(pName);
                 pendingPictures[sNum] = { key: pName, origin: 0, x: 0, y: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: [pName] };
+                slotsUpdatedInCurrentStep.add(sNum);
                 updateLastNonEmptyPictures();
               }
             }
           }
 
-          // Upgraded in v12 (`image_5d70e0.png` & `image_5d8026.png` fix!):
-          // 1) Matches quoted strings OR space-containing movie/CG names (like `"居酒屋　雨2　主人公"`),
-          // 2) Also registers matched image CGs into `pendingPictures` so plugin-driven CG events (`Prison02`, etc.) actually display the image on stage!
           if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 600) {
             const candidateTokens = new Set();
-            // Extract quoted strings (which may contain spaces `\u3000` / ` `!)
             const quotedRegex = /["'「]([^"'」\n]{2,80})["'」]/g;
             let qm;
             while ((qm = quotedRegex.exec(scriptText)) !== null) {
               candidateTokens.add(qm[1].trim());
             }
-            // Extract space-separated and full-line tokens
             const wordTokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_\-\u3000 ]{3,}/g) || [];
             for (const wt of wordTokens) {
               candidateTokens.add(wt.trim());
@@ -5965,6 +6656,7 @@
                     opacity: 255,
                     variants: [hit.name]
                   };
+                  slotsUpdatedInCurrentStep.add(slotToUse);
                   updateLastNonEmptyPictures();
                 }
               }
@@ -5982,22 +6674,19 @@
         i++;
       }
 
-      // Guaranteed Non-Empty Cutscene Step (`image_5d7fe0.png` `0 / 0` Fix!):
-      // Even if an event ended with `Code 235 (Erase Picture)` so `pendingPictures` became empty,
-      // `lastNonEmptyPictures` preserves the CGs shown during the event so `steps` is NEVER empty!
       if (steps.length === 0 && ceDepth === 0) {
-        const activeEntries = Object.entries(pendingPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+        const activeEntries = Object.entries(pendingPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const fallbackEntries = activeEntries.length > 0
           ? activeEntries
-          : Object.entries(lastNonEmptyPictures).filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key));
+          : Object.entries(lastNonEmptyPictures).filter(([, v]) => v && (v.isTextPicture || (v.key && !isDummyBlackOrSystemPicture(v.key))));
         const snapToUse = activeEntries.length > 0 ? pendingPictures : lastNonEmptyPictures;
 
         if (fallbackEntries.length > 0) {
-          const topEntry = fallbackEntries[fallbackEntries.length - 1][1];
+          const topImageEntry = [...fallbackEntries].reverse().find(([, v]) => v && v.key && !v.isTextPicture) || fallbackEntries[fallbackEntries.length - 1];
           steps.push({
             type: "cg",
             slot: 1,
-            cgKey: topEntry.key,
+            cgKey: topImageEntry[1].key || "스테이터스 화면",
             pictureSnapshot: clonePicMapFast(snapToUse),
             source: "단독 CG 연출"
           });
@@ -6362,23 +7051,103 @@
       }
 
       const switchNames = {};
+      const initialSwitches = {};
       if (Array.isArray(sys.switches)) {
         sys.switches.forEach((sName, idx) => {
           if (idx > 0 && sName && String(sName).trim()) {
-            switchNames[idx] = String(sName).trim();
+            const cleanS = String(sName).trim();
+            switchNames[idx] = cleanS;
+            if (/^(?:通常服|기본\s*복장|평상복)$/i.test(cleanS)) initialSwitches[idx] = true;
           }
         });
       }
 
       const extractedPluginStatusMeta = {};
-      if (pluginsJsText && pluginsJsText.length < 300000) {
-        const vLabelRegex = /([^\s"'\\<>:;,\n]{2,18})[\s:：]*\\[vV]\[(\d+)\]/g;
-        let pm;
-        while ((pm = vLabelRegex.exec(pluginsJsText)) !== null) {
-          const label = pm[1].trim();
-          const vId = Number(pm[2]);
-          if (vId > 0 && !variableNames[vId]) variableNames[vId] = label;
-          extractedPluginStatusMeta[label] = `변수 #${vId} (${variableNames[vId] || label})`;
+      const menuCharacterLayers = {};
+      const extraWindowConfigs = [];
+      if (pluginsJsText) {
+        try {
+          const jsonStart = pluginsJsText.indexOf("[");
+          const jsonEnd = pluginsJsText.lastIndexOf("]");
+          if (jsonStart !== -1 && jsonEnd > jsonStart) {
+            const pluginsArr = JSON.parse(pluginsJsText.slice(jsonStart, jsonEnd + 1));
+            const mainActor = actorsArr && actorsArr[1];
+            const equippedArmorIds = new Set(Array.isArray(mainActor?.equips) ? mainActor.equips.slice(1) : []);
+            const equippedWeaponIds = new Set(Array.isArray(mainActor?.equips) ? [mainActor.equips[0]] : []);
+
+            for (const pl of pluginsArr) {
+              if (!pl || !pl.status || !pl.parameters) continue;
+              if (pl.name === "TriggerOnEquipAndState" && pl.parameters.list) {
+                const rawList = JSON.parse(pl.parameters.list);
+                for (const rawItem of rawList) {
+                  const item = JSON.parse(rawItem);
+                  const aId = parseInt(item.armorId || "0", 10);
+                  const wId = parseInt(item.weaponId || "0", 10);
+                  if ((aId > 0 && equippedArmorIds.has(aId)) || (wId > 0 && equippedWeaponIds.has(wId))) {
+                    const subList = JSON.parse(item.list || "[]").map(s => JSON.parse(s));
+                    for (const s of subList) {
+                      const swId = parseInt(s.targetSwitch || "0", 10);
+                      if (swId > 0) initialSwitches[swId] = true;
+                    }
+                  }
+                }
+              } else if (pl.name === "CharacterPictureManager" && pl.parameters.PictureList) {
+                const rawPicList = JSON.parse(pl.parameters.PictureList);
+                for (const rawItem of rawPicList) {
+                  const item = JSON.parse(rawItem);
+                  const acId = parseInt(item.ActorId || "1", 10) || 1;
+                  const px = parseInt(item.X || "0", 10) || 0;
+                  const py = parseInt(item.Y || "0", 10) || 0;
+                  const files = JSON.parse(item.FileList || "[]").map(f => JSON.parse(f));
+                  if (files.length > 0) {
+                    const preferred = files.find(f => /cloth|default|zenshin|stage1|normal/i.test(f.FileName || "")) || files[0];
+                    if (preferred && preferred.FileName) {
+                      if (!menuCharacterLayers[acId]) menuCharacterLayers[acId] = [];
+                      menuCharacterLayers[acId].push({ fileName: preferred.FileName, x: px, y: py });
+                    }
+                  }
+                }
+              } else if (pl.name === "ExtraWindow" && pl.parameters.WindowList) {
+                const rawWinList = JSON.parse(pl.parameters.WindowList);
+                for (const rawW of rawWinList) {
+                  const wObj = JSON.parse(rawW);
+                  if (wObj && wObj.Text) {
+                    extraWindowConfigs.push({ scene: wObj.SceneName || "", text: String(wObj.Text) });
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {}
+
+        if (pluginsJsText.length < 300000) {
+          const vLabelRegex = /([^\s"'\\<>:;,\n]{2,18})[\s:：]*\\[vV]\[(\d+)\]/g;
+          let pm;
+          while ((pm = vLabelRegex.exec(pluginsJsText)) !== null) {
+            const label = pm[1].trim();
+            const vId = Number(pm[2]);
+            if (vId > 0 && !variableNames[vId]) variableNames[vId] = label;
+            extractedPluginStatusMeta[label] = `변수 #${vId} (${variableNames[vId] || label})`;
+          }
+        }
+      }
+
+      if (Array.isArray(commonEventsArr)) {
+        for (const ce of commonEventsArr) {
+          if (!ce || !ce.name || !Array.isArray(ce.list)) continue;
+          if (/초기\s*설정|初期設定|initial\s*set/i.test(ce.name) && ce.list.length <= 80) {
+            for (const cmd of ce.list) {
+              if (!cmd || cmd.indent > 0) continue;
+              const p = cmd.parameters || [];
+              if (cmd.code === 121) {
+                const s1 = Number(p[0]) || 0, s2 = Number(p[1]) || s1, isOn = (p[2] === 0);
+                for (let s = s1; s <= s2; s++) initialSwitches[s] = isOn;
+              } else if (cmd.code === 122 && Number(p[2]) === 0 && Number(p[3]) === 0) {
+                const v1 = Number(p[0]) || 0, v2 = Number(p[1]) || v1, val = Number(p[4]) || 0;
+                for (let v = v1; v <= v2; v++) initialVariables[v] = val;
+              }
+            }
+          }
         }
       }
 
@@ -6647,7 +7416,7 @@
                 metaTracker,
                 0,
                 {},
-                null,
+                { vars: { ...initialVariables }, switches: { ...initialSwitches }, lockedVarBranches: {} },
                 false,
                 ceEffectCache
               );
@@ -6770,38 +7539,97 @@
         }
       }
 
+      const ceDirectChildren = new Map();
+      for (const ce of Object.values(commonEventsMap)) {
+        if (!ce || !Array.isArray(ce.list)) continue;
+        const children = new Set();
+        for (const cmd of ce.list) {
+          if (cmd && cmd.code === 117 && Number(cmd.parameters?.[0]) > 0) {
+            children.add(Number(cmd.parameters[0]));
+          }
+        }
+        ceDirectChildren.set(ce.id, children);
+      }
+      for (let hop = 0; hop < 4; hop++) {
+        for (const [parentCeId, children] of ceDirectChildren.entries()) {
+          const parentCallers = ceToCallingMapEvents.get(parentCeId);
+          if (!parentCallers || parentCallers.length === 0) continue;
+          for (const childCeId of children) {
+            globalCalledCommonEvents.add(childCeId);
+            if (!ceToCallingMapEvents.has(childCeId)) ceToCallingMapEvents.set(childCeId, []);
+            const childCallers = ceToCallingMapEvents.get(childCeId);
+            for (const loc of parentCallers) {
+              if (childCallers.length < 12 && !childCallers.some(x => x.mapId === loc.mapId && x.eventId === loc.eventId)) {
+                childCallers.push(loc);
+              }
+            }
+          }
+        }
+      }
+
+      const nativeStatusPages = [];
+      for (const ce of Object.values(commonEventsMap)) {
+        if (!ce || !ce.name || !Array.isArray(ce.list)) continue;
+        const ceName = String(ce.name).trim();
+        if (/소거|消去|초기\s*설정|初期設定|취득|取得|첫\s*상대|최근\s*상대|한마디|칭호\s*표시/i.test(ceName)) continue;
+        if (/스테이터스\s*표시\d+|스테이터스\s*화면|에로\s*스테|ステータス\s*表示\d+|ステータス\s*画面|エロステ画面|status\s*screen/i.test(ceName)) {
+          const showPicCount = ce.list.filter(c => c && c.code === 231).length;
+          if (showPicCount >= 3) {
+            nativeStatusPages.push({ ceId: ce.id, title: ceName, showPicCount });
+          }
+        }
+      }
+      if (nativeStatusPages.length === 0) {
+        for (const ce of Object.values(commonEventsMap)) {
+          if (!ce || !ce.name || !Array.isArray(ce.list)) continue;
+          const ceName = String(ce.name).trim();
+          if (/소거|消去|초기\s*설정|初期設定|취득|取得/i.test(ceName)) continue;
+          if (/스테이터스|프로필|에로스테|ステータス|プロフィール|エロステ/i.test(ceName)) {
+            const showPicCount = ce.list.filter(c => c && c.code === 231).length;
+            if (showPicCount >= 4) {
+              nativeStatusPages.push({ ceId: ce.id, title: ceName, showPicCount });
+            }
+          }
+        }
+      }
+      nativeStatusPages.sort((a, b) => a.ceId - b.ceId);
+
       const standaloneCeEvents = [];
       for (const ce of Object.values(commonEventsMap)) {
         if (!ce) continue;
         const isTestOrDummyCe = /テスト|ダミー|予備|デバッグ|test|debug|dummy/i.test(ce.name || "");
         const metaTracker = { turnsOnSwitches: new Set(), transfersToMaps: new Set(), calledCommonEvents: new Set(), firstVarCond: null, varThresholds: new Map(), setsVars: new Map(), usedCgs: new Set() };
+        const callers = ceToCallingMapEvents.get(ce.id) || [];
+        const isStatusOrRecollectionCe = /ステータス|プロフィール|エロステ|回想|스테이터스|프로필|에로스테|회상/i.test(ce.name || "") && !/소거|消去|취득|取得/i.test(ce.name || "");
+
         const steps = parseMvEventCommandsV10(
           ce.list || [],
           commonEventsMap,
           cgAssets,
           isTestOrDummyCe ? null : (usedCgName, stepIdx) => {
-            // If this CE was called by Map Events, link the CG to those calling Map Events FIRST!
-            const callers = ceToCallingMapEvents.get(ce.id) || [];
             for (const callerLoc of callers) {
               markAssetDirectUsedFast(usedCgName, callerLoc);
             }
-            markAssetDirectUsedFast(usedCgName, { mapId: 9000, eventId: ce.id, pageIdx: 0, stepIdx: stepIdx || 0 });
           },
           metaTracker,
           0,
           {},
-          null,
+          { vars: { ...initialVariables }, switches: { ...initialSwitches }, lockedVarBranches: {} },
           false,
           ceEffectCache
         );
         const st = computeStepsStatsRaw(steps);
-        const isStatusOrRecollectionOrBattleCe = /ステータス|プロフィール|エロステ|回想|衣装|敗北|戦闘|拘束|status|profile|ero|memory|cg|defeat|battle/i.test(ce.name || "");
-        if ((st.dialogueCount > 0 || st.cgCount > 0) && (!globalCalledCommonEvents.has(ce.id) || isStatusOrRecollectionOrBattleCe || st.cgCount > 0)) {
+
+        const shouldIncludeIn900 = !isTestOrDummyCe && (st.dialogueCount > 0 || (isStatusOrRecollectionCe && st.cgCount > 0));
+        if (shouldIncludeIn900) {
+          for (const cgKey of st.cgKeys) {
+            markAssetDirectUsedFast(cgKey, { mapId: 9000, eventId: ce.id, pageIdx: 0, stepIdx: 0 });
+          }
           standaloneCeEvents.push({
             id: ce.id,
             mapId: 9000,
             name: `CE${String(ce.id).padStart(3, "0")}: ${ce.name || "공통 이벤트"}`,
-            isParallelOrHud: st.dialogueCount === 0 && st.cgCount === 0,
+            isParallelOrHud: false,
             entryPageSwitchReq: ce.switchId || 0,
             entryPageVarId: 0,
             entryPageVarVal: 0,
@@ -6814,7 +7642,7 @@
             cgOrder: (st.cgCount > 0 ? 500 : 900000) + ce.id,
             manualOrder: 900000 + ce.id,
             storyOrder: 800000 + ce.id,
-            storyReason: "공통 스토리/스테이터스/CG 연동 이벤트",
+            storyReason: "공통 스토리/스테이터스 이벤트",
             pages: [{ pageIndex: 1, conditionLabel: "단계 1", rawList: ce.list || [], steps, _compiled: true, _stats: st }]
           });
 
@@ -7122,7 +7950,10 @@
         variables: initialVariables,
         conditionVarSummary: finalCondSummary,
         switchNames,
-        switches: {},
+        switches: initialSwitches,
+        nativeStatusPages,
+        menuCharacterLayers,
+        extraWindowConfigs,
         faceAssets,
         cgAssets,
         enemyAssets,
@@ -7136,7 +7967,8 @@
 
       state.library.unshift(newGame);
       switchActiveGame(newGame.id);
-      if (!isLargeMobileGame) {
+      const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+      if (!isMobileDevice || !isLargeMobileGame) {
         autoSaveProjectToIndexedDb(newGame, rawZipFile);
       } else if (rawZipFile) {
         // On huge 300+ map games on mobile, save only the raw ZIP file handle without cloning 300 maps via JSON.stringify!
@@ -7586,12 +8418,11 @@
 
       document.getElementById("btnOpenExportModal").addEventListener("click", () => {
         document.getElementById("exportZipModal").classList.remove("hidden");
+        executeHighSpeedZipExport(false);
       });
       document.getElementById("btnCloseExportModal").addEventListener("click", () => {
         document.getElementById("exportZipModal").classList.add("hidden");
       });
-      document.getElementById("btnExportUsedOnlyZip").addEventListener("click", () => executeHighSpeedZipExport(true));
-      document.getElementById("btnExportFullStoreZip").addEventListener("click", () => executeHighSpeedZipExport(false));
 
       document.getElementById("btnOpenSettingsModal").addEventListener("click", () => {
         document.getElementById("settingsModal").classList.remove("hidden");
