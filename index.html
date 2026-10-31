@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0b0f17" />
   <link rel="manifest" href="manifest.json" />
-  <title>RPG Story Player &amp; Extractor Pro v16</title>
+  <title>RPG Story Player &amp; Extractor Pro v17</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -84,17 +84,33 @@
       -webkit-user-select: none;
     }
 
-    /* v16 Mobile Fullscreen & Landscape Split-View Modes */
+    /* Prevent iOS Safari Long-Press Callout (`복사하기 | 찾아보기 | 번역`) on buttons & viewer controls (`IMG_4194.jpg` Fix!) */
+    button, #dialogueBoxPro, #dialogueBottomControls, #btnNextStep, #btnPrevStep, #btnFirstStep, #cgStageContainer, #fullscreenFloatingHud {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+
+    /* v17 Mobile Fullscreen & Landscape Split-View Modes (`IMG_4193.jpg` Fix!)
+       Uses `--app-vvh` (synced live with `window.visualViewport.height`) and hides ALL overhead sub-toolbars
+       so Safari's address/tab bar never crushes or clips the CG Stage and Dialogue Box! */
+    body.immersive-fullscreen-mode {
+      height: var(--app-vvh, 100dvh) !important;
+      max-height: var(--app-vvh, 100dvh) !important;
+      overflow: hidden !important;
+    }
     body.immersive-fullscreen-mode > header,
-    body.immersive-fullscreen-mode > nav#mobileBottomNav {
+    body.immersive-fullscreen-mode > nav#mobileBottomNav,
+    body.immersive-fullscreen-mode #viewerTopHeaderBar,
+    body.immersive-fullscreen-mode:not(.show-fs-tools) #viewerCollapsibleToolsRow,
+    body.immersive-fullscreen-mode:not(.show-fs-tools) #inlineLayerQuickBar,
+    body.immersive-fullscreen-mode:not(.show-fs-tools) #viewerLiveConditionBar {
       display: none !important;
     }
     body.immersive-fullscreen-mode > main {
       padding: 2px !important;
       max-width: 100vw !important;
-    }
-    body.immersive-fullscreen-mode #viewerTopHeaderBar {
-      display: none !important;
+      height: var(--app-vvh, 100dvh) !important;
     }
     body.immersive-fullscreen-mode #fullscreenFloatingHud {
       display: flex !important;
@@ -102,32 +118,37 @@
 
     /* Landscape Split-View Cinema Mode (auto on mobile landscape or manual toggle) */
     @media (max-height: 580px) and (orientation: landscape) {
-      body:not(.force-portrait-stack) > header {
-        padding-top: 2px !important;
-        padding-bottom: 2px !important;
+      body:not(.force-portrait-stack) {
+        height: var(--app-vvh, 100dvh) !important;
+        max-height: var(--app-vvh, 100dvh) !important;
+        overflow: hidden !important;
       }
-      body:not(.force-portrait-stack) > nav#mobileBottomNav {
+      body:not(.force-portrait-stack) > header,
+      body:not(.force-portrait-stack) > nav#mobileBottomNav,
+      body:not(.force-portrait-stack) #viewerTopHeaderBar,
+      body:not(.force-portrait-stack):not(.show-fs-tools) #viewerCollapsibleToolsRow,
+      body:not(.force-portrait-stack):not(.show-fs-tools) #inlineLayerQuickBar,
+      body:not(.force-portrait-stack):not(.show-fs-tools) #viewerLiveConditionBar {
         display: none !important;
       }
       body:not(.force-portrait-stack) > main {
-        padding-bottom: 2px !important;
-      }
-      body:not(.force-portrait-stack) #viewerTopHeaderBar {
-        padding-top: 3px !important;
-        padding-bottom: 3px !important;
+        padding: 2px !important;
+        height: var(--app-vvh, 100dvh) !important;
       }
       body:not(.force-portrait-stack) #vnStageAndDialogueWrapper {
         flex-direction: row !important;
         align-items: stretch !important;
+        padding: 2px !important;
+        gap: 4px !important;
       }
       body:not(.force-portrait-stack) #cgStageContainer {
-        flex: 1 1 60% !important;
+        flex: 1 1 58% !important;
         min-height: 0 !important;
         height: 100% !important;
       }
       body:not(.force-portrait-stack) #vnRightDialogueColumn {
-        width: 40% !important;
-        max-width: 420px !important;
+        width: 42% !important;
+        max-width: 430px !important;
         height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
@@ -183,7 +204,7 @@
   <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
     <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-1 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v16</span>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v17</span>
         <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[105px] sm:max-w-[220px] truncate"></select>
         <button id="btnToggleFullscreenHeader" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-[11px] text-emerald-200 hover:text-white border border-emerald-500/40 font-bold flex-shrink-0" title="전체화면 / 몰입 모드 전환 (모바일 주소창·탭바 가림 해결)">
           ⛶ 전체화면
@@ -537,16 +558,17 @@
               <canvas id="cgCanvas" width="1632" height="1248" class="w-full h-full object-contain cursor-grab active:cursor-grabbing" title="좌/우 가장자리 터치: 이전/다음 대사 · 마우스 휠/핀치: 확대/축소 · 더블클릭: 라이트박스 확대"></canvas>
               <video id="moviePlayer" controls playsinline class="hidden w-full h-full object-contain rounded-lg"></video>
 
-              <!-- Floating Micro-HUD for Fullscreen & Landscape Mode (Allows full control even when headers/bars are hidden!) -->
-              <div id="fullscreenFloatingHud" class="hidden absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-1 pointer-events-none">
-                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/85 backdrop-blur-md border border-slate-700/80 rounded-xl px-2 py-1 shadow-lg">
-                  <button id="btnFsQuickDrawer" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[11px] font-bold text-white">☰ 장소·씬</button>
-                  <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[11px] font-bold text-amber-200">🎨 파츠</button>
-                  <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 font-semibold">🔄 분할/상하</button>
+              <!-- Floating Micro-HUD for Fullscreen & Landscape Mode (Single-line non-wrapping pills!) -->
+              <div id="fullscreenFloatingHud" class="hidden absolute top-1.5 left-1.5 right-1.5 z-30 flex items-center justify-between gap-1 pointer-events-none overflow-x-auto no-scrollbar">
+                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
+                  <button id="btnFsQuickDrawer" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white whitespace-nowrap">☰ 씬</button>
+                  <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[10px] font-bold text-amber-200 whitespace-nowrap">🎨 파츠</button>
+                  <button id="btnFsToggleTools" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300 font-semibold whitespace-nowrap">🛠️ 도구</button>
+                  <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-sky-300 font-semibold whitespace-nowrap">🔄 분할</button>
                 </div>
-                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/85 backdrop-blur-md border border-slate-700/80 rounded-xl px-2 py-1 shadow-lg">
-                  <button id="btnFsToggleDialogueVis" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-200 font-semibold">👁 대사창</button>
-                  <button id="btnFsExitFullscreen" type="button" class="px-2 py-0.5 rounded bg-rose-700/80 hover:bg-rose-600 text-[11px] font-bold text-white">⛶ 화면복귀</button>
+                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
+                  <button id="btnFsToggleDialogueVis" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-indigo-200 font-semibold whitespace-nowrap">👁 대사</button>
+                  <button id="btnFsExitFullscreen" type="button" class="px-2 py-0.5 rounded bg-rose-700/85 hover:bg-rose-600 text-[10px] font-bold text-white whitespace-nowrap">✕ 복귀</button>
                 </div>
               </div>
 
@@ -690,12 +712,11 @@
         <div id="viewGalleryContainer" class="hidden flex-1 flex flex-col p-3 sm:p-4 overflow-y-auto space-y-2.5">
           <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-2 flex-shrink-0">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-1">
-                <button id="galCatAll" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white">🗂 전체 표시 (기본)</button>
-                <button id="galCatEventCg" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🔥 이벤트·본편 CG</button>
-                <button id="galCatStanding" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🧍 기본 스탠딩</button>
-                <button id="galCatSystem" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">👑 상태·스킬·전투·타이틀</button>
-                <button id="galCatMovies" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🎬 동영상</button>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button id="galCatAll" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">📦 전체 표시</button>
+                <button id="galCatImages" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🖼️ 이미지만</button>
+                <button id="galCatMovies" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🎬 동영상만</button>
+                <button id="galCatUnused" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30">🔍 미사용 CG 확인</button>
               </div>
               <div class="flex items-center gap-1.5">
                 <button id="btnPurgeUnusedCgs" type="button" class="px-2 py-1 rounded-lg bg-rose-900/50 hover:bg-rose-700 text-rose-200 text-[11px] font-semibold border border-rose-500/40">
@@ -1849,53 +1870,75 @@
     // Upgraded in v13: Persists lightweight project metadata AND native Structured-Clone File/Blob handles
     // (`zipBlob` for ZIPs, plus `cgFiles`, `faceFiles`, `enemyFiles`, `audioOggFiles`, `audioM4aFiles` for Folder loads)
     // so closing and reopening the Windows EXE or browser retains 100% of images without reloading!
+    const CURRENT_EXTRACTOR_VERSION = "v17.0";
+
+    // Upgraded in v17:
+    // 1) Saves `cleanProj` (stamped with `extractorVersion: "v17.0"`) in its own dedicated transaction FIRST on ALL devices (including iPhone/iPad Safari!)
+    //    so Safari refreshes NEVER lose saved games even if Safari rejects storing a 1.5GB raw File handle in `zipFiles`!
+    // 2) Saves `zipFiles` in a separate isolated transaction so a quota/File clone error on mobile Safari cannot roll back the `projects` save!
     async function autoSaveProjectToIndexedDb(proj, rawZipFile = null) {
-      setTimeout(async () => {
-        try {
-          const db = await openGameDbV10();
-          const cgFiles = {};
-          const faceFiles = {};
-          const enemyFiles = {};
-          const audioOggFiles = {};
-          const audioM4aFiles = {};
-          let hasFolderFiles = false;
+      try {
+        proj.extractorVersion = CURRENT_EXTRACTOR_VERSION;
+        const db = await openGameDbV10();
 
-          for (const [k, a] of Object.entries(proj.cgAssets || {})) {
-            if (k !== "__fastIndex" && a && a.lazyFile) { cgFiles[k] = a.lazyFile; hasFolderFiles = true; }
+        const cleanProj = JSON.parse(JSON.stringify(proj, (key, val) => {
+          if (key === "zipEntry" || key === "lazyFile" || key === "oggFile" || key === "m4aFile" || key === "oggEntry" || key === "m4aEntry" || key === "rawBytes" || key === "blobUrl" || key === "_ceEffectCache" || key === "_directLocKeys" || key === "rawList") return undefined;
+          return val;
+        }));
+
+        // Step 1: Commit `projects` metadata & extracted scripts in its own dedicated transaction!
+        await new Promise((resolve) => {
+          try {
+            const txProj = db.transaction(["projects"], "readwrite");
+            txProj.objectStore("projects").put(cleanProj);
+            txProj.oncomplete = resolve;
+            txProj.onerror = resolve;
+          } catch (err) {
+            resolve();
           }
-          for (const [k, a] of Object.entries(proj.faceAssets || {})) {
-            if (k !== "__fastIndex" && a && a.lazyFile) { faceFiles[k] = a.lazyFile; hasFolderFiles = true; }
-          }
-          for (const [k, a] of Object.entries(proj.enemyAssets || {})) {
-            if (k !== "__fastIndex" && a && a.lazyFile) { enemyFiles[k] = a.lazyFile; hasFolderFiles = true; }
-          }
-          for (const [k, a] of Object.entries(proj.audioAssets || {})) {
-            if (k !== "__fastIndex" && a) {
-              if (a.oggFile) { audioOggFiles[k] = a.oggFile; hasFolderFiles = true; }
-              if (a.m4aFile) { audioM4aFiles[k] = a.m4aFile; hasFolderFiles = true; }
+        });
+
+        // Step 2: Separately try to persist `zipBlob` / folder File handles in `zipFiles`
+        setTimeout(async () => {
+          try {
+            const cgFiles = {};
+            const faceFiles = {};
+            const enemyFiles = {};
+            const audioOggFiles = {};
+            const audioM4aFiles = {};
+            let hasFolderFiles = false;
+
+            for (const [k, a] of Object.entries(proj.cgAssets || {})) {
+              if (k !== "__fastIndex" && a && a.lazyFile) { cgFiles[k] = a.lazyFile; hasFolderFiles = true; }
             }
-          }
+            for (const [k, a] of Object.entries(proj.faceAssets || {})) {
+              if (k !== "__fastIndex" && a && a.lazyFile) { faceFiles[k] = a.lazyFile; hasFolderFiles = true; }
+            }
+            for (const [k, a] of Object.entries(proj.enemyAssets || {})) {
+              if (k !== "__fastIndex" && a && a.lazyFile) { enemyFiles[k] = a.lazyFile; hasFolderFiles = true; }
+            }
+            for (const [k, a] of Object.entries(proj.audioAssets || {})) {
+              if (k !== "__fastIndex" && a) {
+                if (a.oggFile) { audioOggFiles[k] = a.oggFile; hasFolderFiles = true; }
+                if (a.m4aFile) { audioM4aFiles[k] = a.m4aFile; hasFolderFiles = true; }
+              }
+            }
 
-          const cleanProj = JSON.parse(JSON.stringify(proj, (key, val) => {
-            if (key === "zipEntry" || key === "lazyFile" || key === "oggFile" || key === "m4aFile" || key === "oggEntry" || key === "m4aEntry" || key === "rawBytes" || key === "blobUrl" || key === "_ceEffectCache" || key === "_directLocKeys") return undefined;
-            return val;
-          }));
-
-          const tx = db.transaction(["projects", "zipFiles"], "readwrite");
-          tx.objectStore("projects").put(cleanProj);
-          if (rawZipFile || hasFolderFiles) {
-            tx.objectStore("zipFiles").put({
-              id: proj.id,
-              zipBlob: rawZipFile || null,
-              cgFiles: hasFolderFiles ? cgFiles : null,
-              faceFiles: hasFolderFiles ? faceFiles : null,
-              enemyFiles: hasFolderFiles ? enemyFiles : null,
-              audioOggFiles: hasFolderFiles ? audioOggFiles : null,
-              audioM4aFiles: hasFolderFiles ? audioM4aFiles : null
-            });
-          }
-        } catch (e) {}
-      }, 300);
+            if (rawZipFile || hasFolderFiles) {
+              const txZip = db.transaction(["zipFiles"], "readwrite");
+              txZip.objectStore("zipFiles").put({
+                id: proj.id,
+                zipBlob: rawZipFile || null,
+                cgFiles: hasFolderFiles ? cgFiles : null,
+                faceFiles: hasFolderFiles ? faceFiles : null,
+                enemyFiles: hasFolderFiles ? enemyFiles : null,
+                audioOggFiles: hasFolderFiles ? audioOggFiles : null,
+                audioM4aFiles: hasFolderFiles ? audioM4aFiles : null
+              });
+            }
+          } catch (e) {}
+        }, 120);
+      } catch (e) {}
     }
 
     function getDeletedGameIdsSet() {
@@ -1998,11 +2041,26 @@
         // Iterate newest first so duplicate titles keep only the latest copy and purge older copies from IndexedDB!
         const sortedProjs = [...projects].sort((a, b) => String(b.id || "").localeCompare(String(a.id || "")));
 
+        let purgedStaleVersionCount = 0;
+        const zipToAutoReextract = [];
+
         for (const p of sortedProjs) {
           if (!p || !p.id) continue;
           const cleanTitle = String(p.title || "").trim();
           if (deletedSet.has(p.id) || deletedSet.has("title:" + cleanTitle) || (cleanTitle && seenTitles.has(cleanTitle))) {
             toPurgeIds.push(p.id);
+            continue;
+          }
+          // Version-Aware Extraction Invalidation (v17):
+          // If a cached game in IndexedDB was extracted by an older version (`extractorVersion !== CURRENT_EXTRACTOR_VERSION`),
+          // do NOT load stale buggy extraction results! Either re-extract automatically from `zipBlob` or purge the stale cache!
+          if (p.extractorVersion !== CURRENT_EXTRACTOR_VERSION) {
+            const oldMedia = mediaMap.get(p.id);
+            if (oldMedia && oldMedia.zipBlob) {
+              zipToAutoReextract.push(oldMedia.zipBlob);
+            }
+            toPurgeIds.push(p.id);
+            purgedStaleVersionCount++;
             continue;
           }
           if (cleanTitle) seenTitles.add(cleanTitle);
@@ -2047,14 +2105,25 @@
           if (!state.library.some(x => x.id === p.id)) state.library.unshift(p);
         }
 
-        // Purge deleted or duplicate records from IndexedDB permanently
         for (const oldId of toPurgeIds) {
           deleteGameFromIndexedDb(oldId);
+        }
+
+        if (zipToAutoReextract.length > 0) {
+          showToast(`🔄 추출 엔진 업데이트(${CURRENT_EXTRACTOR_VERSION}) 감지! 저장된 ZIP 원본으로 최신 추출 엔진을 다시 적용합니다...`);
+          for (const zBlob of zipToAutoReextract) {
+            try { await handleZipFileLoad(zBlob); } catch (e) {}
+          }
+          return;
+        } else if (purgedStaleVersionCount > 0) {
+          showToast(`✨ 추출 엔진이 ${CURRENT_EXTRACTOR_VERSION}으로 업데이트되어 구버전 추출 캐시(${purgedStaleVersionCount}개)를 초기화했습니다. 게임을 새로 불러오면 개선된 추출 기능이 적용됩니다!`);
         }
 
         if (state.library.length > 0) {
           switchActiveGame(state.library[0].id);
         }
+        renderLibraryHeaderSelect();
+        renderLibraryTab();
       } catch (e) {}
     }
 
@@ -2488,9 +2557,14 @@
         if (ignoreDeleted || !state.deletedCgKeys.has(cached.name)) return cached;
       }
 
+      // CRITICAL FIX IN v17 (`image_c19887.jpg` & Universal Random CG Overlap Fix!):
+      // Only allow prefix-matching when `rawName` explicitly contains a dynamic variable placeholder (`\V[n]` or `${...}`),
+      // OR when `cleanK` only differs from `prefixTarget` by a 1-2 digit variant suffix (`01`, `02`, `_1`) and `prefixTarget.length >= 5`!
+      // Never allow short words like `"actor"`, `"name"`, `"line"`, `"set"` to prefix-match unrelated images!
+      const hasVarPlaceholder = /\\[vV]\[\d+\]|\$\{[^}]+\}/.test(rawName);
       const prefixTarget = cleanTarget.replace(/\\v\[\d+\]|\$\{[^}]+\}|_?\d+$/gi, "");
       let found = null;
-      if (prefixTarget.length >= 2) {
+      if (hasVarPlaceholder && prefixTarget.length >= 2) {
         const exactPfx = dict.__fastIndex.exactMap.get(prefixTarget);
         if (exactPfx && (ignoreDeleted || !state.deletedCgKeys.has(exactPfx.name))) {
           found = exactPfx;
@@ -2502,6 +2576,11 @@
               break;
             }
           }
+        }
+      } else if (prefixTarget.length >= 5 && /_?\d+$/.test(cleanTarget)) {
+        const exactPfx = dict.__fastIndex.exactMap.get(prefixTarget);
+        if (exactPfx && (ignoreDeleted || !state.deletedCgKeys.has(exactPfx.name))) {
+          found = exactPfx;
         }
       }
       if (cacheMap && cacheMap.size < 20000) cacheMap.set(relTarget, found);
@@ -3008,17 +3087,26 @@
         const img = await loadCachedImage(url);
         if (img && img.width > 0 && img.height > 0) {
           const partInfo = getPartCategoryAndPrefix(effectiveKey);
-          const sx = Math.abs((spec.scaleX ?? 100) / 100) || 1;
-          const sy = Math.abs((spec.scaleY ?? 100) / 100) || 1;
+          const rawScaleX = Number(spec.scaleX ?? 100);
+          const rawScaleY = Number(spec.scaleY ?? 100);
+          const flipX = rawScaleX < 0;
+          const flipY = rawScaleY < 0;
+          const sx = Math.abs(rawScaleX / 100) || 1;
+          const sy = Math.abs(rawScaleY / 100) || 1;
           const lw = img.width * sx;
           const lh = img.height * sy;
           const rawX = Number(spec.x) || 0;
           const rawY = Number(spec.y) || 0;
           if (rawX < -2500 || rawX > 4500 || rawY < -2500 || rawY > 4500) continue;
 
-          const lx = spec.origin === 1 ? (rawX - lw / 2) : rawX;
-          const ly = spec.origin === 1 ? (rawY - lh / 2) : rawY;
+          // In PIXI / RPG Maker MV & MZ, when `origin === 0` (top-left anchor) and `scaleX < 0`, the image flips to the LEFT of `rawX` (`[rawX - lw, rawX]`)!
+          const lx = spec.origin === 1 ? (rawX - lw / 2) : (flipX ? (rawX - lw) : rawX);
+          const ly = spec.origin === 1 ? (rawY - lh / 2) : (flipY ? (rawY - lh) : rawY);
           const ob = state.trimTransparentBounds ? getImageOpaqueBounds(img) : { rx0: 0, ry0: 0, rx1: 1, ry1: 1 };
+          const effRx0 = flipX ? (1 - ob.rx1) : ob.rx0;
+          const effRx1 = flipX ? (1 - ob.rx0) : ob.rx1;
+          const effRy0 = flipY ? (1 - ob.ry1) : ob.ry0;
+          const effRy1 = flipY ? (1 - ob.ry0) : ob.ry1;
 
           loadedLayers.push({
             slotNum,
@@ -3029,14 +3117,16 @@
             partCategory: partInfo.category,
             sx,
             sy,
+            flipX,
+            flipY,
             lx,
             ly,
             lw,
             lh,
-            visMinX: lx + ob.rx0 * lw,
-            visMinY: ly + ob.ry0 * lh,
-            visMaxX: lx + ob.rx1 * lw,
-            visMaxY: ly + ob.ry1 * lh
+            visMinX: lx + effRx0 * lw,
+            visMinY: ly + effRy0 * lh,
+            visMaxX: lx + effRx1 * lw,
+            visMaxY: ly + effRy1 * lh
           });
         }
       }
@@ -3079,7 +3169,7 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       for (const item of loadedLayers) {
-        const { img, spec, lx, ly, lw, lh, isTextPicture } = item;
+        const { img, spec, lx, ly, lw, lh, flipX, flipY, isTextPicture } = item;
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, (spec.opacity ?? 255) / 255));
         const dx = offsetX + (lx - minX) * finalScale;
@@ -3089,7 +3179,13 @@
         } else if (img) {
           const dw = lw * finalScale;
           const dh = lh * finalScale;
-          ctx.drawImage(img, dx, dy, dw, dh);
+          if (flipX || flipY) {
+            ctx.translate(dx + (flipX ? dw : 0), dy + (flipY ? dh : 0));
+            ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+            ctx.drawImage(img, 0, 0, dw, dh);
+          } else {
+            ctx.drawImage(img, dx, dy, dw, dh);
+          }
         }
         ctx.restore();
       }
@@ -4423,18 +4519,41 @@
       modal.classList.remove("hidden");
     }
 
+    function isAssetEffectivelyUnused(a) {
+      if (!a || !a.name) return false;
+      if (a.isProtectedSystemCg || a.systemUsage) return false;
+      const usedList = getEffectiveUsedListForAsset(a);
+      return usedList.length === 0;
+    }
+
+    function updateGalleryCategoryCounts() {
+      const allValid = Object.values(state.project?.cgAssets || {}).filter(a => a && a.name && !state.deletedCgKeys.has(a.name) && !isDummyBlackOrSystemPicture(a.name));
+      let imgCount = 0, movCount = 0, unusedCount = 0;
+      for (const a of allValid) {
+        if (a.mediaType === "video") movCount++;
+        else imgCount++;
+        if (isAssetEffectivelyUnused(a)) unusedCount++;
+      }
+      const bAll = document.getElementById("galCatAll");
+      const bImg = document.getElementById("galCatImages");
+      const bMov = document.getElementById("galCatMovies");
+      const bUnu = document.getElementById("galCatUnused");
+      if (bAll) bAll.textContent = `📦 전체 표시 (${allValid.length})`;
+      if (bImg) bImg.textContent = `🖼️ 이미지만 (${imgCount})`;
+      if (bMov) bMov.textContent = `🎬 동영상만 (${movCount})`;
+      if (bUnu) bUnu.textContent = `🔍 미사용 (${unusedCount})`;
+    }
+
     function getFilteredGalleryAssets() {
+      updateGalleryCategoryCounts();
       const q = (document.getElementById("gallerySearchInput")?.value || "").trim().toLowerCase();
-      const cat = state.galleryCategory;
+      const cat = state.galleryCategory || "all";
       return Object.values(state.project.cgAssets || {}).filter(a => {
         if (!a || !a.name || state.deletedCgKeys.has(a.name) || isDummyBlackOrSystemPicture(a.name)) return false;
-        const isPart = isDetachedSubPartFile(a.name);
-        const isBaseStanding = /(?:_base|_zenshin|sifuku|seifuku|stand|tatie|tachie)/i.test(a.name) && !isPart;
 
-        if (cat === "event_cg" && (isPart || a.mediaType === "video")) return false;
-        if (cat === "standing" && !isBaseStanding && a.systemUsage?.badge?.indexOf("스탠딩") === -1) return false;
-        if (cat === "system" && !a.isProtectedSystemCg) return false;
+        if (cat === "images" && a.mediaType === "video") return false;
         if (cat === "movies" && a.mediaType !== "video") return false;
+        if (cat === "unused" && !isAssetEffectivelyUnused(a)) return false;
 
         if (!q) return true;
         const koName = translateJpName(a.name).toLowerCase();
@@ -4558,10 +4677,10 @@
 
     // Renders DTextPicture (`Code 357 DTextPicture` / `Code 356 D_TEXT`) strings with \V[n], \N[n], \c[n], \oc[n], \{, \}
     function drawDTextLayerOnCanvas(ctx, spec, dx, dy, scale) {
-      if (!spec || !spec.dText) return;
-      let raw = replaceActorAndVarCodes(String(spec.dText || ""));
-      let fillColor = "#ffffff";
-      let strokeColor = "rgba(0, 0, 0, 0.92)";
+      if (!spec || spec.dText === undefined || spec.dText === null) return;
+      let raw = replaceActorAndVarCodes(String(spec.dText));
+      let fillColor = spec.textColor || "#ffffff";
+      let strokeColor = spec.outlineColor || "rgba(0, 0, 0, 0.92)";
       const cMatch = raw.match(/\\[cC]\[(\d+)\]/);
       if (cMatch) {
         const cIdx = Number(cMatch[1]);
@@ -4573,7 +4692,8 @@
         if (RPG_COLORS[ocIdx]) strokeColor = RPG_COLORS[ocIdx];
       }
       let baseFontSize = Number(spec.fontSize) || 24;
-      if (/\\\{/.test(raw)) baseFontSize += 4;
+      const braceGrowCount = (raw.match(/\\\{/g) || []).length;
+      if (braceGrowCount > 0) baseFontSize += braceGrowCount * 6;
       if (/\\\}/.test(raw)) baseFontSize = Math.max(12, baseFontSize - 3);
 
       const cleanText = raw
@@ -4582,11 +4702,11 @@
 
       const lines = cleanText.split(/\r?\n/);
       const scaledFontPx = Math.max(10, Math.round(baseFontSize * scale));
-      ctx.font = `700 ${scaledFontPx}px 'Noto Sans KR', sans-serif`;
-      ctx.textBaseline = "top";
-      ctx.textAlign = "left";
+      ctx.font = `800 ${scaledFontPx}px 'Noto Sans KR', sans-serif`;
+      ctx.textBaseline = spec.textBaseline || "top";
+      ctx.textAlign = spec.textAlign || "left";
       ctx.lineJoin = "round";
-      ctx.lineWidth = Math.max(2.5, scaledFontPx * 0.16);
+      ctx.lineWidth = spec.outlineWidth ? Math.max(2.5, spec.outlineWidth * scale) : Math.max(2.5, scaledFontPx * 0.16);
       ctx.strokeStyle = strokeColor;
       ctx.fillStyle = fillColor;
 
@@ -4958,6 +5078,24 @@
       const ce = state.project?.commonEventsMap?.[ceId];
       if (!ce || !Array.isArray(ce.list)) return { snapshot: {}, referencedVars: [], referencedSwitches: [] };
 
+      // Pre-scan `ce.list` for internal one-shot render latch switches (checked for OFF `[0, s, 1]` and set ON `[s, s, 0]` inside the status CE,
+      // such as `Sw#8 エロステ数字読み込み`, `Sw#12 エリク紋章エロステ用`, `Sw#14 ビル紋章エロステ用`, `Sw#16 ジム紋章エロステ用` in `image_c19508.jpg`!).
+      const latchSwitches = new Set();
+      const checkedOffSw = new Set();
+      const turnedOnSw = new Set();
+      for (const c of ce.list) {
+        if (!c) continue;
+        if (c.code === 111 && c.parameters?.[0] === 0 && c.parameters?.[2] === 1) checkedOffSw.add(Number(c.parameters[1]));
+        if (c.code === 121 && c.parameters?.[2] === 0) {
+          for (let s = Number(c.parameters[0]); s <= Number(c.parameters[1]); s++) turnedOnSw.add(s);
+        }
+      }
+      for (const s of checkedOffSw) {
+        if (turnedOnSw.has(s)) latchSwitches.add(s);
+      }
+
+      let customTextSlotCounter = 300;
+
       function runList(list, depth = 0) {
         if (!Array.isArray(list) || depth > 5) return;
         const branchStack = [];
@@ -4973,11 +5111,19 @@
           if (cmd.code === 111) {
             const parentActive = branchStack.every(b => b.active);
             const p = cmd.parameters || [];
-            if (p[0] === 0 && Number(p[1]) > 0) refSwitches.add(Number(p[1]));
-            if (p[0] === 1 && Number(p[1]) > 0) refVars.add(Number(p[1]));
             let cond = false;
-            if (parentActive) {
-              cond = evaluateBranchInSimState(p, simVars, simSwitches);
+            if (p[0] === 11 || (p[0] === 12 && /isCancelled|isTriggered/i.test(String(p[1] || "")))) {
+              // Never enter "If Cancel Button Pressed" cleanup blocks during status rendering!
+              cond = false;
+            } else if (p[0] === 0 && latchSwitches.has(Number(p[1]))) {
+              // Internal one-shot render latch switch (`#8, #12, #14, #16`) -> always pass and do NOT expose in toggle UI!
+              cond = true;
+            } else {
+              if (p[0] === 0 && Number(p[1]) > 0) refSwitches.add(Number(p[1]));
+              if (p[0] === 1 && Number(p[1]) > 0) refVars.add(Number(p[1]));
+              if (parentActive) {
+                cond = evaluateBranchInSimState(p, simVars, simSwitches);
+              }
             }
             branchStack.push({ indent, active: parentActive && cond, condMet: cond, parentActive });
             continue;
@@ -5009,7 +5155,9 @@
             }
           } else if (cmd.code === 121) {
             const s1 = Number(p[0]) || 0, s2 = Number(p[1]) || s1, isOn = (p[2] === 0);
-            for (let s = s1; s <= s2; s++) simSwitches[s] = isOn;
+            for (let s = s1; s <= s2; s++) {
+              if (!latchSwitches.has(s)) simSwitches[s] = isOn;
+            }
           } else if (cmd.code === 122) {
             const v1 = Number(p[0]) || 0, v2 = Number(p[1]) || v1, op = Number(p[2]) || 0, opType = Number(p[3]) || 0;
             if (opType === 0 || opType === 1 || opType === 2 || opType === 4) {
@@ -5023,6 +5171,103 @@
                 if (op === 0 || typeof rhs === "string") simVars[v] = rhs;
                 else if (op === 1) simVars[v] = (Number(simVars[v]) || 0) + Number(rhs);
                 else if (op === 2) simVars[v] = (Number(simVars[v]) || 0) - Number(rhs);
+              }
+            }
+          } else if (cmd.code === 355) {
+            const scriptLines = [String(p[0] || "")];
+            while (i + 1 < list.length && list[i + 1] && list[i + 1].code === 655) {
+              i++;
+              scriptLines.push(String(list[i].parameters?.[0] || ""));
+            }
+            const scriptBlock = scriptLines.join("\n");
+
+            // 1) Support `const variableIds = [ { id: 109, x: 63, y: 168, fontSize: 40, color: '#FF0000', outlineColor: '#FFFF00', outlineWidth: 25, align: 'center' }, ... ]` (`image_c19508.jpg` Magic Village Fix!)
+            if (scriptBlock.includes("variableIds")) {
+              const varObjMatches = [...scriptBlock.matchAll(/\{\s*id:\s*(\d+)\s*,\s*x:\s*(-?\d+)\s*,\s*y:\s*(-?\d+)\s*,\s*fontSize:\s*(\d+)\s*,\s*color:\s*['"]([^'"]+)['"]\s*,\s*outlineColor:\s*['"]([^'"]+)['"]\s*,\s*outlineWidth:\s*(\d+)\s*,\s*align:\s*['"]([^'"]+)['"]\s*\}/g)];
+              for (const m of varObjMatches) {
+                const vId = Number(m[1]);
+                const vx = Number(m[2]);
+                const vy = Number(m[3]);
+                const fSize = Number(m[4]) || 36;
+                const color = m[5];
+                const outlineColor = m[6];
+                const outW = Number(m[7]) || 15;
+                const align = String(m[8] || "left").toLowerCase();
+
+                refVars.add(vId);
+                if (simVars[vId] === undefined || simVars[vId] === null || (simVars[vId] === 0 && (vId === 108 || vId === 109))) {
+                  if (vId === 109) simVars[vId] = "처녀";
+                  else if (vId === 108) simVars[vId] = "천재 마법 소녀";
+                  else simVars[vId] = 0;
+                }
+                const boxX = vx + outW * 0.5;
+                const boxY = vy + outW * 0.5;
+                const boxW = fSize * 7.5;
+                const drawX = align === "center" ? (boxX + boxW * 0.5) : (align === "right" ? (boxX + boxW) : boxX);
+                const drawY = boxY;
+
+                slots[customTextSlotCounter++] = {
+                  key: "__dtext__",
+                  isTextPicture: true,
+                  dText: String(simVars[vId] ?? 0),
+                  fontSize: fSize,
+                  origin: 0,
+                  x: drawX,
+                  y: drawY,
+                  scaleX: 100,
+                  scaleY: 100,
+                  opacity: 255,
+                  textColor: color,
+                  outlineColor: outlineColor,
+                  outlineWidth: Math.max(2.5, outW * 0.35),
+                  textAlign: align
+                };
+              }
+            }
+            // 2) Support `CBR-エロステータス` (`CE#9: マリーエロステ` & CBR_EroStatus plugin!)
+            else if (scriptBlock.includes("CBR-エロステータス")) {
+              const imgMatch = scriptBlock.match(/画像-(.+)/);
+              const txtMatch = scriptBlock.match(/テキスト-(.+)/);
+              const xMatch = scriptBlock.match(/x-(-?\d+)/i);
+              const yMatch = scriptBlock.match(/y-(-?\d+)/i);
+              const sizeMatch = scriptBlock.match(/サイズ-(\d+)/);
+              const alignMatch = scriptBlock.match(/左右-(右|中|左)/);
+              const cx = xMatch ? Number(xMatch[1]) : 0;
+              const cy = yMatch ? Number(yMatch[1]) : 0;
+              const cSize = sizeMatch ? Number(sizeMatch[1]) : 28;
+              const cAlign = alignMatch ? (alignMatch[1] === "右" ? "right" : (alignMatch[1] === "中" ? "center" : "left")) : "left";
+
+              if (imgMatch) {
+                let rawImg = imgMatch[1].trim().replace(/\.png$/i, "");
+                rawImg = rawImg.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => String(simVars[Number(vId)] || "erostatus_main"));
+                const asset = resolveCgAssetSmart(rawImg);
+                if (asset) {
+                  slots[customTextSlotCounter++] = { key: asset.name, origin: 0, x: cx, y: cy, scaleX: 100, scaleY: 100, opacity: 255 };
+                }
+              } else if (txtMatch) {
+                const rawTxt = txtMatch[1].trim();
+                for (const vm of rawTxt.matchAll(/\\[vV]\[(\d+)\]/g)) {
+                  const vId = Number(vm[1]);
+                  refVars.add(vId);
+                  if (simVars[vId] === undefined || simVars[vId] === null || (simVars[vId] === 0 && (vId === 108 || vId === 109))) {
+                    if (vId === 109) simVars[vId] = "처녀";
+                    else if (vId === 108) simVars[vId] = "천재 마법 소녀";
+                  }
+                }
+                const resolvedTxt = rawTxt.replace(/\\[vV]\[(\d+)\]/g, (_, vId) => String(simVars[Number(vId)] ?? 0));
+                slots[customTextSlotCounter++] = {
+                  key: "__dtext__",
+                  isTextPicture: true,
+                  dText: resolvedTxt,
+                  fontSize: cSize,
+                  origin: 0,
+                  x: cx,
+                  y: cy,
+                  scaleX: 100,
+                  scaleY: 100,
+                  opacity: 255,
+                  textAlign: cAlign
+                };
               }
             }
           } else if (cmd.code === 357 && (p[0] === "DTextPicture" || p[1] === "dText" || p[1] === "set")) {
@@ -5073,6 +5318,17 @@
               const asset = resolveCgAssetSmart(resolvedName);
               if (asset) resolvedName = asset.name;
               slots[slot] = { key: resolvedName, origin, x, y, scaleX, scaleY, opacity };
+            }
+          } else if (cmd.code === 232) {
+            const slot = Number(p[0]) || 1;
+            if (slots[slot]) {
+              const coordMode = Number(p[3]) || 0;
+              slots[slot].origin = Number(p[2] ?? slots[slot].origin ?? 0);
+              slots[slot].x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simVars[p[4]]) || 0);
+              slots[slot].y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simVars[p[5]]) || 0);
+              slots[slot].scaleX = Number(p[6] ?? 100);
+              slots[slot].scaleY = Number(p[7] ?? 100);
+              slots[slot].opacity = (p[8] !== undefined && p[8] !== null) ? Number(p[8]) : 255;
             }
           } else if (cmd.code === 235) {
             delete slots[Number(p[0]) || 1];
@@ -5249,7 +5505,7 @@
           });
         });
 
-        const pageVars = execResult.referencedVars.filter(vId => !isJunkSystemVariableName(state.project.variableNames?.[vId] || `변수#${vId}`));
+        const pageVars = execResult.referencedVars;
         const pageSwitches = execResult.referencedSwitches;
         const extraWindows = state.project.extraWindowConfigs || [];
 
@@ -5387,13 +5643,21 @@
         });
 
         boardBox.querySelectorAll("[data-native-var-inp]").forEach(inp => {
-          inp.addEventListener("change", (e) => {
+          const applyVal = async (reRenderFull) => {
             const vId = Number(inp.getAttribute("data-native-var-inp"));
-            const raw = e.target.value.trim();
-            state.project.variables[vId] = isNaN(Number(raw)) ? raw : Number(raw);
+            const raw = inp.value.trim();
+            state.project.variables[vId] = (raw !== "" && !isNaN(Number(raw))) ? Number(raw) : raw;
             reEvaluateCurrentEventWithUpdatedState();
-            renderStatusViewerTab();
-          });
+            if (reRenderFull) {
+              renderStatusViewerTab();
+            } else {
+              const updatedExec = executeNativeStatusCeSnapshot(activePage.ceId, activePage);
+              const cEl = document.getElementById("gameNativeStatusCanvas");
+              if (cEl) await drawSnapshotOnCanvas(cEl, updatedExec.snapshot, null, true);
+            }
+          };
+          inp.addEventListener("input", () => applyVal(false));
+          inp.addEventListener("change", () => applyVal(true));
         });
 
         renderConditionVariablesTopGrid();
@@ -6546,7 +6810,35 @@
       };
 
       const buildCleanStepSnapshot = () => {
-        const snap = clonePicMapFast(pendingPictures);
+        const rawSnap = clonePicMapFast(pendingPictures);
+        const snap = {};
+        // 1) Filter out any slot whose current opacity is <= 0 (preloaded invisible layers or faded-out layers!)
+        for (const [sNum, sp] of Object.entries(rawSnap)) {
+          if (sp && (sp.isTextPicture || sp.key) && (sp.opacity === undefined || Number(sp.opacity) > 0)) {
+            snap[sNum] = sp;
+          }
+        }
+
+        // 2) Opaque Background Occlusion (`CE#83`, `CE#111` in Magic Village & universal multi-angle H-scenes):
+        // When a higher slot (`n >= 10`) has a visible opaque background (`haikei`, `bg_`, `background`, `背景` with `opacity >= 240`),
+        // any lower slot (`m < n`) belongs to the previous background/camera angle behind it and is completely occluded!
+        let highestOpaqueBgSlot = -1;
+        for (const [sNum, sp] of Object.entries(snap)) {
+          const n = Number(sNum);
+          if (n >= 10 && n <= 180 && sp && sp.key && !sp.isTextPicture && (Number(sp.opacity ?? 255) >= 240)) {
+            if (/(?:haikei|^bg_|_bg\d*$|background|背景)/i.test(sp.key)) {
+              if (n > highestOpaqueBgSlot) highestOpaqueBgSlot = n;
+            }
+          }
+        }
+        if (highestOpaqueBgSlot > 1) {
+          for (const sNum of Object.keys(snap)) {
+            if (Number(sNum) < highestOpaqueBgSlot) {
+              delete snap[sNum];
+            }
+          }
+        }
+
         const lowSlotEventCg = Object.entries(snap).find(([sNum, sp]) => {
           const n = Number(sNum);
           return n >= 1 && n <= 9 && sp && sp.key && !sp.isTextPicture && !isDummyBlackOrSystemPicture(sp.key) && !isStandingOrTachieFileName(sp.key) && !/^300background\//i.test(sp.key) && /(?:200eventcg|ev|cg|h_|scene|\d{2}_\d)/i.test(sp.key);
@@ -6554,15 +6846,13 @@
         if (lowSlotEventCg) {
           for (const [sNum, sp] of Object.entries(snap)) {
             const n = Number(sNum);
-            if (((n > Number(lowSlotEventCg[0]) && isStandingOrTachieFileName(sp?.key)) || (n >= 101 && n <= 116)) && !slotsUpdatedInCurrentStep.has(n)) {
+            if (((n > Number(lowSlotEventCg[0]) && isStandingOrTachieFileName(sp?.key)) || (n >= 101 && n <= 116) || (n >= 191 && n <= 193)) && !slotsUpdatedInCurrentStep.has(n)) {
               delete snap[sNum];
               if (n < 101) delete pendingPictures[sNum];
             }
           }
         }
         // High-Slot Full-Screen Event CG Occlusion (`16d91933.jpeg` & `Map256 EV#6` Fix!):
-        // When a full-screen Event CG is active on Slot #10..#96 at (0,0) (e.g. `#20 E共通01触手用A1` or `Fドニ02A2` or `#80 CGevent_`),
-        // any lower-slot standing character (`slot < cgSlot` with `x !== 0` or standing naming like `ABA04_`, `AAA02_`) is covered behind the full-screen CG!
         const highSlotEventCg = Object.entries(snap).find(([sNum, sp]) => {
           const n = Number(sNum);
           return n >= 10 && n <= 96 && sp && sp.key && !sp.isTextPicture && (Number(sp.x) || 0) === 0 && (Number(sp.y) || 0) === 0 &&
@@ -6572,7 +6862,7 @@
           const cgSlotNum = Number(highSlotEventCg[0]);
           for (const [sNum, sp] of Object.entries(snap)) {
             const n = Number(sNum);
-            if (n < cgSlotNum && sp && sp.key && ((Number(sp.x) || 0) !== 0 || isStandingOrTachieFileName(sp.key) || /^A[A-Z]{2}\d{2}_/.test(sp.key))) {
+            if ((n < cgSlotNum || (n >= 191 && n <= 193)) && sp && sp.key && ((Number(sp.x) || 0) !== 0 || isStandingOrTachieFileName(sp.key) || /^A[A-Z]{2}\d{2}_/.test(sp.key))) {
               delete snap[sNum];
             }
           }
@@ -6732,8 +7022,10 @@
           const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
           const scaleX = Number(p[6] ?? 100);
           const scaleY = Number(p[7] ?? 100);
-          const rawOpacity = Number(p[8] ?? 255);
-          const opacity = rawOpacity > 0 ? rawOpacity : 255;
+          // CRITICAL FIX IN v17 (`image_c19887.jpg` & Universal Preload Opacity=0 Fix!):
+          // Honor `p[8] === 0` (`opacity = 0`)! In RPG Maker MV/MZ, games preload 10-30 CG/expression layers using `Code 231` with `opacity = 0`
+          // and also hide active layers using `Code 231` with `opacity = 0`!
+          const opacity = (p[8] !== undefined && p[8] !== null) ? Number(p[8]) : 255;
 
           if (!rawPicParam && pendingDText) {
             const isHudOverlaySlot = slotNum >= 50 && (ceDepth > 0 || x >= 600);
@@ -6743,7 +7035,7 @@
                 isTextPicture: true,
                 dText: substituteSimVarsInText(pendingDText.text, simState.vars),
                 fontSize: pendingDText.fontSize,
-                origin, x, y, scaleX, scaleY, opacity
+                origin, x, y, scaleX, scaleY, opacity: opacity > 0 ? opacity : 255
               };
               slotsUpdatedInCurrentStep.add(slotNum);
               updateLastNonEmptyPictures();
@@ -6778,11 +7070,16 @@
           }
 
           if (picName && !isDummyBlackOrSystemPicture(picName)) {
+            if (opacity <= 0 && pendingPictures[slotNum] && (pendingPictures[slotNum].opacity ?? 255) > 0) {
+              updateLastNonEmptyPictures();
+            }
             if (
+              opacity > 0 &&
               ceDepth === 0 &&
               hadWaitSinceLastCgFlush &&
               !hadDialogueSinceLastPic &&
               pendingPictures[slotNum] &&
+              (pendingPictures[slotNum].opacity ?? 255) > 0 &&
               pendingPictures[slotNum].key &&
               pendingPictures[slotNum].key !== picName &&
               !isDetachedSubPartFile(picName)
@@ -6810,41 +7107,42 @@
             for (const dv of dynamicVariants) {
               if (!prevVariants.includes(dv)) prevVariants.push(dv);
             }
-            // Cross-Fade Slot & Same-Position Standing Anti-Overlap (v16):
-            // 1) When a full-frame Event CG (`slotNum >= 10 && x === 0 && y === 0`) is shown, replace earlier cross-fade Event CG slots (`10 <= exSlot < 100` at `x=0, y=0`) and carry over their `.variants`!
-            // 2) When a non-subpart standing character (`2 <= slotNum <= 15`) is placed at `(x, y)` where another different character's `기본 이미지` is already at `|x1 - x2| <= 60 && |y1 - y2| <= 60`, replace the old standing slot!
-            const newPartCat = getPartCategoryAndPrefix(picName).category;
-            const newSeriesKey = getNormalizedSeriesKey(picName);
-            const isExOverlay = /(?:_ex\d*|onomatope)$/i.test(picName);
-            if (newPartCat === "기본 이미지" && !isExOverlay) {
-              for (const [exSlotStr, exSpec] of Object.entries(pendingPictures)) {
-                const exSlot = Number(exSlotStr);
-                if (exSlot === slotNum || !exSpec || !exSpec.key || exSpec.isTextPicture) continue;
-                if (/(?:_ex\d*|onomatope)$/i.test(exSpec.key)) continue;
-                const exCat = getPartCategoryAndPrefix(exSpec.key).category;
-                if (exCat !== "기본 이미지") continue;
-                const exSeries = getNormalizedSeriesKey(exSpec.key);
-                const isSameSeries = Boolean(newSeriesKey && exSeries === newSeriesKey);
-                const isHighSlotEventCgCrossfade = (
-                  slotNum >= 10 && slotNum <= 96 && exSlot >= 10 && exSlot <= 96 &&
-                  x === 0 && y === 0 && (Number(exSpec.x) || 0) === 0 && (Number(exSpec.y) || 0) === 0 &&
-                  !isStandingOrTachieFileName(picName) && !isStandingOrTachieFileName(exSpec.key) &&
-                  !slotsUpdatedInCurrentStep.has(exSlot)
-                );
-                const isSamePositionStandingReplace = (
-                  slotNum >= 2 && slotNum <= 15 && exSlot >= 2 && exSlot <= 15 &&
-                  Math.abs((Number(exSpec.x) || 0) - x) <= 60 && Math.abs((Number(exSpec.y) || 0) - y) <= 60 &&
-                  extractCharacterStem(exSpec.key) !== extractCharacterStem(picName) &&
-                  !slotsUpdatedInCurrentStep.has(exSlot)
-                );
-                if (isSameSeries || isHighSlotEventCgCrossfade || isSamePositionStandingReplace) {
-                  if ((isSameSeries || isHighSlotEventCgCrossfade) && Array.isArray(exSpec.variants)) {
-                    for (const v of exSpec.variants) {
-                      if (!prevVariants.includes(v)) prevVariants.push(v);
+
+            // Cross-Fade Slot & Same-Position Standing Anti-Overlap (ONLY when the new picture is actually visible `opacity > 0`!):
+            if (opacity > 0) {
+              const newPartCat = getPartCategoryAndPrefix(picName).category;
+              const newSeriesKey = getNormalizedSeriesKey(picName);
+              const isExOverlay = /(?:_ex\d*|onomatope)$/i.test(picName);
+              if (newPartCat === "기본 이미지" && !isExOverlay) {
+                for (const [exSlotStr, exSpec] of Object.entries(pendingPictures)) {
+                  const exSlot = Number(exSlotStr);
+                  if (exSlot === slotNum || !exSpec || !exSpec.key || exSpec.isTextPicture || (exSpec.opacity ?? 255) <= 0) continue;
+                  if (/(?:_ex\d*|onomatope)$/i.test(exSpec.key)) continue;
+                  const exCat = getPartCategoryAndPrefix(exSpec.key).category;
+                  if (exCat !== "기본 이미지") continue;
+                  const exSeries = getNormalizedSeriesKey(exSpec.key);
+                  const isSameSeries = Boolean(newSeriesKey && exSeries === newSeriesKey);
+                  const isHighSlotEventCgCrossfade = (
+                    slotNum >= 10 && slotNum <= 96 && exSlot >= 10 && exSlot <= 96 &&
+                    x === 0 && y === 0 && (Number(exSpec.x) || 0) === 0 && (Number(exSpec.y) || 0) === 0 &&
+                    !isStandingOrTachieFileName(picName) && !isStandingOrTachieFileName(exSpec.key) &&
+                    !slotsUpdatedInCurrentStep.has(exSlot)
+                  );
+                  const isSamePositionStandingReplace = (
+                    slotNum >= 2 && slotNum <= 15 && exSlot >= 2 && exSlot <= 15 &&
+                    Math.abs((Number(exSpec.x) || 0) - x) <= 60 && Math.abs((Number(exSpec.y) || 0) - y) <= 60 &&
+                    extractCharacterStem(exSpec.key) !== extractCharacterStem(picName) &&
+                    !slotsUpdatedInCurrentStep.has(exSlot)
+                  );
+                  if (isSameSeries || isHighSlotEventCgCrossfade || isSamePositionStandingReplace) {
+                    if ((isSameSeries || isHighSlotEventCgCrossfade) && Array.isArray(exSpec.variants)) {
+                      for (const v of exSpec.variants) {
+                        if (!prevVariants.includes(v)) prevVariants.push(v);
+                      }
                     }
+                    exSpec.opacity = 0;
+                    slotsUpdatedInCurrentStep.delete(exSlot);
                   }
-                  pendingPictures[exSlot] = null;
-                  slotsUpdatedInCurrentStep.delete(exSlot);
                 }
               }
             }
@@ -6854,9 +7152,13 @@
               isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
               variants: prevVariants
             };
-            slotsUpdatedInCurrentStep.add(slotNum);
-            hadDialogueSinceLastPic = false;
-            updateLastNonEmptyPictures();
+            if (opacity > 0) {
+              slotsUpdatedInCurrentStep.add(slotNum);
+              hadDialogueSinceLastPic = false;
+              updateLastNonEmptyPictures();
+            } else {
+              slotsUpdatedInCurrentStep.delete(slotNum);
+            }
           } else {
             pendingPictures[slotNum] = null;
             slotsUpdatedInCurrentStep.delete(slotNum);
@@ -6867,21 +7169,45 @@
 
         if (code === 232) {
           const slotNum = Number(p[0]) || 1;
-          const newOp = Number(p[8] ?? 255);
-          // CRITICAL FIX IN v16 (`bd2a5f6c.jpeg`, `16d91933.jpeg`, `d4b0ad9d.jpeg` Fix!):
-          // When `Code 232 (Move Picture)` sets `opacity = 0` (`newOp <= 0`), the game is fading out / hiding that character or CG!
-          if (newOp <= 0) {
-            updateLastNonEmptyPictures();
-            pendingPictures[slotNum] = null;
-            slotsUpdatedInCurrentStep.delete(slotNum);
-          } else if (pendingPictures[slotNum]) {
+          const newOp = (p[8] !== undefined && p[8] !== null) ? Number(p[8]) : 255;
+          // CRITICAL FIX IN v17:
+          // Keep `pendingPictures[slotNum]` in memory with `opacity = newOp` (`0` when faded out, `> 0` when faded in)
+          // so slots preloaded at `opacity = 0` or faded out and faded back in (`CE#83` in Magic Village) work identically to RPG Maker's Game_Screen!
+          if (pendingPictures[slotNum]) {
+            const wasVisible = (pendingPictures[slotNum].opacity ?? 255) > 0;
+            if (wasVisible && newOp <= 0) {
+              updateLastNonEmptyPictures();
+            }
             const coordMode = Number(p[3]) || 0;
+            pendingPictures[slotNum].origin = Number(p[2] ?? pendingPictures[slotNum].origin ?? 0);
             pendingPictures[slotNum].x = coordMode === 0 ? (Number(p[4]) || 0) : (Number(simState.vars[p[4]]) || 0);
             pendingPictures[slotNum].y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
             pendingPictures[slotNum].scaleX = Number(p[6] ?? 100);
             pendingPictures[slotNum].scaleY = Number(p[7] ?? 100);
             pendingPictures[slotNum].opacity = newOp;
-            updateLastNonEmptyPictures();
+
+            if (!wasVisible && newOp > 0) {
+              // When fading a preloaded slot IN (`0 -> 255`, like `Opning_digest_scene01..08` in CE#25), hide earlier cross-faded slots of the same series!
+              const picName = pendingPictures[slotNum].key;
+              const newPartCat = getPartCategoryAndPrefix(picName).category;
+              const newSeriesKey = getNormalizedSeriesKey(picName);
+              if (newPartCat === "기본 이미지" && newSeriesKey) {
+                for (const [exSlotStr, exSpec] of Object.entries(pendingPictures)) {
+                  const exSlot = Number(exSlotStr);
+                  if (exSlot < slotNum && exSpec && exSpec.key && (exSpec.opacity ?? 255) > 0) {
+                    if (getNormalizedSeriesKey(exSpec.key) === newSeriesKey && getPartCategoryAndPrefix(exSpec.key).category === "기본 이미지") {
+                      exSpec.opacity = 0;
+                    }
+                  }
+                }
+              }
+              slotsUpdatedInCurrentStep.add(slotNum);
+              updateLastNonEmptyPictures();
+            } else if (newOp <= 0) {
+              slotsUpdatedInCurrentStep.delete(slotNum);
+            } else {
+              updateLastNonEmptyPictures();
+            }
           }
           i++;
           continue;
@@ -6966,9 +7292,50 @@
         }
 
         if (code === 101) {
-          const faceName = String(p[0] || "").trim();
+          let faceName = String(p[0] || "").trim();
           const faceIndex = Number(p[1] || 0);
-          const speakerFromParam = p[4] || "";
+          let speakerFromParam = String(p[4] || "");
+
+          // Support `PictureMessage.js` + `ActorPictures.js` (`\AP[n左/中/右]` in speaker field!)
+          const apMatch = speakerFromParam.match(/\\AP\[(\d+)\s*([^\]]*)\]/i);
+          if (apMatch) {
+            const apActorId = Number(apMatch[1]);
+            const posStr = String(apMatch[2] || "").trim().toLowerCase();
+            const posIdx = (posStr === "l" || posStr === "left" || posStr === "左") ? 0 : ((posStr === "r" || posStr === "right" || posStr === "右") ? 2 : 1);
+            const actorName = simState.actorNamesMap?.[apActorId] || (apActorId === 1 ? state.protagonistName : `Actor#${apActorId}`);
+            speakerFromParam = speakerFromParam.replace(/\\AP\[(\d+)\s*([^\]]*)\]/gi, actorName);
+
+            const normals = simState.actorPicturesMap?.[apActorId];
+            if (Array.isArray(normals) && normals.length > 0) {
+              let picIdx = simState.actorPicIndices?.[apActorId] ?? 0;
+              if (faceName) {
+                const sheetOffset = /_b$/i.test(faceName) ? 8 : (/_c$/i.test(faceName) ? 16 : (/_d$/i.test(faceName) ? 24 : 0));
+                picIdx = sheetOffset + faceIndex;
+                // `PictureMessage.js` clears `this._faceName = ""` so the dummy editor index grid isn't drawn in the message box!
+                faceName = "";
+              }
+              const rawStandName = normals[picIdx] || normals[faceIndex] || normals[0];
+              if (rawStandName && !isDummyBlackOrSystemPicture(rawStandName)) {
+                const resolvedStand = cgAssetsDict ? resolveAssetInDict(rawStandName, cgAssetsDict, true) : null;
+                const finalStandKey = resolvedStand ? resolvedStand.name : rawStandName;
+                const pmSlot = 191 + posIdx;
+                const pmX = posIdx === 0 ? 40 : (posIdx === 2 ? 620 : 330);
+                pendingPictures[pmSlot] = {
+                  key: finalStandKey,
+                  origin: 0,
+                  x: pmX,
+                  y: 0,
+                  scaleX: 100,
+                  scaleY: 100,
+                  opacity: 255,
+                  variants: Array.from(new Set(normals.filter(Boolean)))
+                };
+                slotsUpdatedInCurrentStep.add(pmSlot);
+                updateLastNonEmptyPictures();
+              }
+            }
+          }
+
           const lines = [];
           i++;
           while (i < list.length && list[i] && list[i].code === 401) {
@@ -7018,11 +7385,15 @@
           const options = [];
           let currentChoiceLabel = "";
           let currentChoiceCmds = [];
+          // CRITICAL FIX IN v17 (`image_c19887.jpg` Choice Isolation Fix!):
+          // Clone `pendingPictures` BEFORE evaluating choices so Choice 1 (`줄거리만 보기`) never leaks its pictures into Choice 2 (`오프닝을 건너뛰기`)!
+          const basePendingBeforeChoices = clonePicMapFast(pendingPictures);
+          let firstValidChoicePending = null;
           i++;
 
           const flushChoice = () => {
             if (!currentChoiceCmds.length || opsBudget.count > opsBudget.max) return;
-            const subPending = clonePicMapFast(pendingPictures);
+            const subPending = clonePicMapFast(basePendingBeforeChoices);
             const subSteps = parseMvEventCommandsV10(currentChoiceCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
               ...simState,
               vars: { ...simState.vars },
@@ -7037,9 +7408,10 @@
                 preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
                 steps: subSteps
               });
+              if (!firstValidChoicePending) firstValidChoicePending = subPending;
+            } else if (!firstValidChoicePending) {
+              firstValidChoicePending = subPending;
             }
-            mergePictureSnapshotsV10(pendingPictures, subPending, false, false);
-            updateLastNonEmptyPictures();
           };
 
           while (i < list.length) {
@@ -7069,6 +7441,10 @@
             i++;
           }
 
+          if (firstValidChoicePending) {
+            mergePictureSnapshotsV10(pendingPictures, firstValidChoicePending, true, true);
+            updateLastNonEmptyPictures();
+          }
           if (options.length === 1) steps.push(...options[0].steps);
           else if (options.length > 1) {
             steps.push({
@@ -7231,42 +7607,106 @@
           const thenSt = analyzeStepsStats(thenSteps);
           const elseSt = analyzeStepsStats(elseSteps);
 
-          // FIXED IN v13 (`image_5c0939.jpg` & `image_5baf1f.jpg`):
-          // Winning branch (`condMet` for `then`, `!condMet` for `else`) MUST be merged FIRST with `allowErase = true`,
-          // and non-winning branch merged second with `allowErase = false`!
+          // Helper: Harvest only `.variants` from the losing branch into already-active matching slots in `pendingPictures`,
+          // WITHOUT adding mutually exclusive losing-branch slots as active visible layers!
+          const harvestVariantsOnlyFromLosingBranch = (losingPending) => {
+            if (!losingPending) return;
+            for (const [sKey, lSpec] of Object.entries(losingPending)) {
+              if (!lSpec || !lSpec.key || lSpec.isTextPicture || (lSpec.opacity ?? 255) <= 0) continue;
+              const sNum = Number(sKey);
+              if (pendingPictures[sNum] && pendingPictures[sNum].key) {
+                pendingPictures[sNum].variants = pendingPictures[sNum].variants || [pendingPictures[sNum].key];
+                const toAdd = lSpec.variants || [lSpec.key];
+                for (const v of toAdd) {
+                  if (!pendingPictures[sNum].variants.includes(v)) pendingPictures[sNum].variants.push(v);
+                }
+              }
+            }
+          };
+
+          // CRITICAL FIX IN v17 (`image_c1fe09.png` Dragon Conquista `EV001: 미믹` 28-Title Dump & Shortened Block Fix!):
+          // 1) If `thenCmds[0]` is a Label (`Code 118`) for `"短縮版"` (Shortened Skip Digest) and the full event follows (`list.length > 100`), skip it!
+          // 2) If `thenCmds[0]` is a Label (`Code 118`) for `"一回目"`, `"二回目"`, `"三回目以降"`, insert a clear stage divider banner!
+          // 3) If `!condMet` and `elseSt.dialogueCount === 0`, and `thenSteps` is an unsatisfied Title/Achievement unlock (`칭호 「...」를 얻었다.`) or inside a multi-branch checker CE (`ceDepth > 0`), skip `thenSteps`!
+          const firstThenLabel = (thenCmds[0]?.code === 118) ? String(thenCmds[0].parameters?.[0] || "").trim() : "";
+          if (firstThenLabel && /短縮|단축|스킵|skip/i.test(firstThenLabel) && list.length > 100) {
+            continue;
+          }
+
           if (thenSt.dialogueCount === 0 && elseSt.dialogueCount === 0) {
-            if (condMet) {
-              mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
-              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+            if (elseCmds.length > 0) {
+              if (condMet) {
+                mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+                harvestVariantsOnlyFromLosingBranch(elsePending);
+              } else {
+                mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+                harvestVariantsOnlyFromLosingBranch(thenPending);
+              }
             } else {
-              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+              if (condMet) {
+                mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+              } else {
+                const hasActiveVisual = Object.values(pendingPictures).some(sp => sp && sp.key && (sp.opacity ?? 255) > 0);
+                if (!hasActiveVisual || ceDepth > 0) {
+                  mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+                } else {
+                  harvestVariantsOnlyFromLosingBranch(thenPending);
+                }
+              }
             }
             for (const [k, v] of Object.entries(pendingPictures)) {
-              if (v && v.key) slotsUpdatedInCurrentStep.add(Number(k));
+              if (v && v.key && (v.opacity ?? 255) > 0) slotsUpdatedInCurrentStep.add(Number(k));
             }
             updateLastNonEmptyPictures();
             continue;
           }
           if (elseSt.dialogueCount === 0) {
+            const isUnsatisfiedTitleUnlock = !condMet && thenSteps.every(s =>
+              s.type !== "dialogue" || /칭호\s*「[^」]+」(?:을|를)\s*얻었다|称号\s*「[^」]+」\s*を(?:手に入れた|獲得)|업적\s*「[^」]+」/i.test(s.rawText || "")
+            );
+            if (isUnsatisfiedTitleUnlock) {
+              continue;
+            }
             if (condMet) {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
-              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+              if (elseCmds.length > 0) harvestVariantsOnlyFromLosingBranch(elsePending);
             } else {
-              if (elseCmds.length > 0) mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+              if (elseCmds.length > 0) {
+                mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
+                harvestVariantsOnlyFromLosingBranch(thenPending);
+              } else {
+                mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
+              }
             }
             updateLastNonEmptyPictures();
+            if (firstThenLabel && /一回目|二回目|三回目|1회차|2회차|3회차/i.test(firstThenLabel)) {
+              steps.push({
+                type: "dialogue",
+                speaker: "📌 시나리오 단계 전환",
+                faceName: "",
+                faceIndex: 0,
+                faceColor: "#10b981",
+                rawText: `─── 【 ${translateJpName(firstThenLabel)} 시나리오 구간 】 ───`,
+                source: "Stage Label",
+                pictureSnapshot: buildCleanStepSnapshot()
+              });
+            }
             steps.push(...thenSteps);
             continue;
           }
           if (thenSt.dialogueCount === 0) {
+            const isUnsatisfiedElseTitleUnlock = condMet && elseSteps.every(s =>
+              s.type !== "dialogue" || /칭호\s*「[^」]+」(?:을|를)\s*얻었다|称号\s*「[^」]+」\s*を(?:手に入れた|獲得)|업적\s*「[^」]+」/i.test(s.rawText || "")
+            );
+            if (isUnsatisfiedElseTitleUnlock) {
+              continue;
+            }
             if (!condMet) {
               mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-              mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+              harvestVariantsOnlyFromLosingBranch(thenPending);
             } else {
               mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
-              mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+              harvestVariantsOnlyFromLosingBranch(elsePending);
             }
             updateLastNonEmptyPictures();
             steps.push(...elseSteps);
@@ -7275,10 +7715,10 @@
 
           if (condMet) {
             mergePictureSnapshotsV10(pendingPictures, thenPending, true, true);
-            mergePictureSnapshotsV10(pendingPictures, elsePending, false, false);
+            harvestVariantsOnlyFromLosingBranch(elsePending);
           } else {
             mergePictureSnapshotsV10(pendingPictures, elsePending, true, true);
-            mergePictureSnapshotsV10(pendingPictures, thenPending, false, false);
+            harvestVariantsOnlyFromLosingBranch(thenPending);
           }
           updateLastNonEmptyPictures();
 
@@ -7778,6 +8218,37 @@
             }
           }
 
+          // CRITICAL FIX IN v17 (`image_c19887.jpg` & Universal Slot #50/#51 Overlap Fix!):
+          // Handle `$gameScreen.clearPictures()`, `for(...) $gameScreen.erasePicture(i)`, `PictureMessage clearPictures`, and `ActorPictures setPictureIndex`!
+          // And NEVER inject arbitrary plugin parameter words as fake image layers onto Slot #50/#51!
+          if (/clearPictures\s*\(\)|for\s*\([^)]*\)\s*\{?\s*\$gameScreen\.erasePicture/i.test(scriptText)) {
+            updateLastNonEmptyPictures();
+            for (const k of Object.keys(pendingPictures)) {
+              pendingPictures[k] = null;
+            }
+            slotsUpdatedInCurrentStep.clear();
+          }
+          if (code === 357 && p[0] === "PictureMessage" && p[1] === "clearPictures") {
+            updateLastNonEmptyPictures();
+            const tPos = Number(p[3]?.targetPosition ?? -1);
+            if (tPos === -1) {
+              delete pendingPictures[191];
+              delete pendingPictures[192];
+              delete pendingPictures[193];
+            } else if (tPos >= 0 && tPos <= 2) {
+              delete pendingPictures[191 + tPos];
+            }
+          }
+          if (code === 357 && p[0] === "ActorPictures" && p[1] === "setPictureIndex") {
+            const acId = Number(p[3]?.actorId || 0);
+            const pIdx = Number(p[3]?.pictureIndex || 0);
+            if (acId > 0) {
+              if (!simState.actorPicIndices) simState.actorPicIndices = {};
+              simState.actorPicIndices[acId] = pIdx;
+            }
+          }
+
+          // Only scan quoted strings / explicit parameters for VIDEO files (`mediaType === "video"`), NEVER injecting random images onto Slot #50/#51!
           if (cgAssetsDict && cgAssetsDict.__fastIndex && scriptText.length < 600) {
             const candidateTokens = new Set();
             const quotedRegex = /["'「]([^"'」\n]{2,80})["'」]/g;
@@ -7785,21 +8256,11 @@
             while ((qm = quotedRegex.exec(scriptText)) !== null) {
               candidateTokens.add(qm[1].trim());
             }
-            const wordTokens = scriptText.match(/[A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff_\-\u3000 ]{3,}/g) || [];
-            for (const wt of wordTokens) {
-              candidateTokens.add(wt.trim());
-              for (const sub of wt.split(/[\s\u3000]+/)) {
-                if (sub.length >= 3) candidateTokens.add(sub);
-              }
-            }
-
-            let pluginSlotCounter = 50;
             for (const tk of candidateTokens) {
-              const hit = resolveAssetInDict(tk, cgAssetsDict, true);
-              if (hit && !isDummyBlackOrSystemPicture(hit.name)) {
+              const hit = cgAssetsDict.__fastIndex.exactMap.get(normalizeAssetLookupKey(tk)) || cgAssetsDict.__fastIndex.exactMap.get(normalizeAssetRelativeKey(tk));
+              if (hit && hit.mediaType === "video") {
                 const sKey = getNormalizedSeriesKey(hit.name);
                 const seriesSibs = cgAssetsDict.__fastIndex.seriesMap?.get(sKey) || [hit];
-
                 if (usageTracker) {
                   usageTracker(hit.name, steps.length);
                   for (const sib of seriesSibs) {
@@ -7812,34 +8273,17 @@
                     if (sib && sib.mediaType === "video") metaTracker.usedCgs.add(sib.name);
                   }
                 }
-
-                if (hit.mediaType === "video") {
-                  const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
-                  if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
-                  steps.push({
-                    type: "movie",
-                    slot: 1,
-                    cgKey: hit.name,
-                    pictureSnapshot: {
-                      1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
-                    },
-                    source: "Plugin/Script Video"
-                  });
-                } else {
-                  const slotToUse = pluginSlotCounter++;
-                  pendingPictures[slotToUse] = {
-                    key: hit.name,
-                    origin: 0,
-                    x: 0,
-                    y: 0,
-                    scaleX: 100,
-                    scaleY: 100,
-                    opacity: 255,
-                    variants: [hit.name]
-                  };
-                  slotsUpdatedInCurrentStep.add(slotToUse);
-                  updateLastNonEmptyPictures();
-                }
+                const vVariants = seriesSibs.filter(s => s && s.mediaType === "video").map(s => s.name);
+                if (!vVariants.includes(hit.name)) vVariants.unshift(hit.name);
+                steps.push({
+                  type: "movie",
+                  slot: 1,
+                  cgKey: hit.name,
+                  pictureSnapshot: {
+                    1: { key: hit.name, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255, variants: vVariants }
+                  },
+                  source: "Plugin/Script Video"
+                });
               }
             }
           }
@@ -8267,6 +8711,7 @@
       const menuCharacterLayers = {};
       const extraWindowConfigs = [];
       const advCharactersConfig = {};
+      const actorPicturesMap = {};
       let sceneLewdStatusConfig = null;
       let hasUnholyOriStatus = false;
       let templateMapId = 0;
@@ -8378,6 +8823,16 @@
                   const wObj = JSON.parse(rawW);
                   if (wObj && wObj.Text) {
                     extraWindowConfigs.push({ scene: wObj.SceneName || "", text: String(wObj.Text) });
+                  }
+                }
+              } else if (pl.name === "ActorPictures" && pl.parameters.actorPictures) {
+                const rawApList = JSON.parse(pl.parameters.actorPictures);
+                for (const rawAp of rawApList) {
+                  const apObj = JSON.parse(rawAp);
+                  const acId = Number(apObj.actorId || 0);
+                  if (acId > 0 && apObj.normalPictures) {
+                    const normals = JSON.parse(apObj.normalPictures).filter(Boolean);
+                    if (normals.length > 0) actorPicturesMap[acId] = normals;
                   }
                 }
               }
@@ -8714,6 +9169,9 @@
                   lockedVarBranches: {},
                   textResources: textResourcesMap,
                   advConfig: advCharactersConfig,
+                  actorPicturesMap,
+                  actorNamesMap: actorsMap,
+                  actorPicIndices: {},
                   cpmLayers: menuCharacterLayers[1] || null
                 },
                 false,
@@ -8845,9 +9303,9 @@
             }
             const rootFolderName = ancestorNames[0] || "";
             const chapterFolder = ancestorNames.find(n => /プロローグ|프롤로그|(?:第|제)?\s*[0-9１-９一二三四五六七八九十]+\s*(?:章|장|막|부|話|화|層|층)|最終章|최종장|エンディング|엔딩/i.test(n)) || "";
-            const cleanChapTag = chapterFolder.replace(/^[◇▽◆■\s]+/, "").trim();
-            const enrichedTitle = (cleanChapTag && !mapTitle.includes(cleanChapTag))
-              ? `[${cleanChapTag}] ${mapTitle}`
+            const routeOrChapTag = (chapterFolder || rootFolderName || "").replace(/^[◇▽◆■\s]+/, "").trim();
+            const enrichedTitle = (routeOrChapTag && !mapTitle.includes(routeOrChapTag) && !/^(?:ストーリー用|스토리용)$/i.test(routeOrChapTag))
+              ? `[${routeOrChapTag}] ${mapTitle}`
               : mapTitle;
 
             rawMapRecords.set(mapId, {
@@ -8897,7 +9355,7 @@
       for (const ce of Object.values(commonEventsMap)) {
         if (!ce || !ce.name || !Array.isArray(ce.list)) continue;
         const ceName = String(ce.name).trim();
-        if (/소거|消去|초기\s*설정|初期設定|취득|取得|첫\s*상대|최근\s*상대|한마디|칭호\s*표시/i.test(ceName)) continue;
+        if (/소거|消去|초기\s*설정|初期設定|취득|取得|첫\s*상대|최근\s*상대|한마디|칭호\s*표시|ボツ|보츠|実験|실험|トリガー|트리거|ダミー|더미/i.test(ceName)) continue;
         if (/스테이터스\s*표시\d+|스테이터스\s*화면|에로\s*스테|ステータス\s*表示\d+|ステータス\s*画面|エロステ画面|status\s*screen/i.test(ceName)) {
           const showPicCount = ce.list.filter(c => c && c.code === 231).length;
           if (showPicCount >= 3) {
@@ -8909,11 +9367,12 @@
         for (const ce of Object.values(commonEventsMap)) {
           if (!ce || !ce.name || !Array.isArray(ce.list)) continue;
           const ceName = String(ce.name).trim();
-          if (/소거|消去|초기\s*설정|初期設定|취득|取得/i.test(ceName)) continue;
+          if (/소거|消去|초기\s*설정|初期設定|취득|取得|ボツ|보츠|実験|실험|トリガー|트리거|ダミー|더미/i.test(ceName)) continue;
           if (/스테이터스|프로필|에로스테|ステータス|プロフィール|エロステ/i.test(ceName)) {
             const showPicCount = ce.list.filter(c => c && c.code === 231).length;
-            if (showPicCount >= 4) {
-              nativeStatusPages.push({ ceId: ce.id, title: ceName, showPicCount });
+            const hasCbrOrVarIds = ce.list.some(c => c && (c.code === 355 || c.code === 655) && /variableIds|CBR-エロステータス/.test(String(c.parameters?.[0] || "")));
+            if (showPicCount >= 3 || hasCbrOrVarIds) {
+              nativeStatusPages.push({ ceId: ce.id, title: ceName, showPicCount: Math.max(showPicCount, 4) });
             }
           }
         }
@@ -8967,6 +9426,9 @@
             lockedVarBranches: {},
             textResources: textResourcesMap,
             advConfig: advCharactersConfig,
+            actorPicturesMap,
+            actorNamesMap: actorsMap,
+            actorPicIndices: {},
             cpmLayers: menuCharacterLayers[1] || null
           },
           false,
@@ -9418,12 +9880,12 @@
           if (voChild) return 960;
         }
 
-        // 2) Test / Debug / Template maps
-        if (/テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(treePath)) return 950;
+        // 2) Test / Debug / Template / Scrapped (`ボツ`, `メニュースキン`) maps
+        if (/メニュースキン|ボツ|보츠|実験|실험|テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(treePath)) return 950;
 
-        // 3) Recollection / CG Gallery Room (Only when rootFolder or rawTitle is a Recollection Room, NOT a mid-chapter flashback inside `ストーリー用 / 第６章`!)
-        const isUnderMainStoryRoot = /ストーリー|스토리|메인|本編|main|story/i.test(rootName);
-        if (!isUnderMainStoryRoot && /回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(treePath)) {
+        // 3) Recollection / CG Gallery Room (Only when rootFolder or top-level rawTitle is a Recollection Room, NOT a mid-route story flashback like `ビル探索イベント / ビルルート（マリー回想）`!)
+        const isUnderMainOrRouteRoot = /ストーリー|스토리|메인|本編|メイン|探索|ルート|イベント|루트|이벤트|main|story|route/i.test(rootName) && !/^回想|^회상/i.test(rootName);
+        if (!isUnderMainOrRouteRoot && /回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(rootName || rawTitle)) {
           return 850;
         }
 
@@ -9460,6 +9922,9 @@
         return 350;
       }
 
+      // Detect whether this game uses hierarchical folders in `MapInfos.json` (`parentId > 0` or `rootFolderName`)
+      const hasHierarchicalMapFolders = Array.from(rawMapRecords.values()).filter(m => m.parentId > 0).length >= 5;
+
       const sortedMaps = Array.from(rawMapRecords.values()).sort((a, b) => {
         if (a.id === startMapId) return -1;
         if (b.id === startMapId) return 1;
@@ -9467,8 +9932,9 @@
         const tA = computeMapProgressionTier(a);
         const tB = computeMapProgressionTier(b);
         if (tA !== tB) return tA - tB;
-        // Within the same Chapter/Tier, preserve MapInfos editor tree order (`editorOrder`) combined with BFS transfer rank
-        if (a.chapterFolder && a.chapterFolder === b.chapterFolder) {
+        // When the developer structured the game using `MapInfos.json` folders (e.g. `魔法の里メイン -> ビル探索イベント -> エリクルート -> ジムルート -> エーゲスルート` or `第１章..第６章`),
+        // `editorOrder` IS the exact pre-order folder tree progression!
+        if (hasHierarchicalMapFolders || (a.chapterFolder && a.chapterFolder === b.chapterFolder)) {
           return (a.editorOrder || a.id) - (b.editorOrder || b.id);
         }
         const rA = mapVisitRank.get(a.id) || (500 + (a.editorOrder || a.id));
@@ -9538,17 +10004,8 @@
         maps: sortedMaps
       };
 
-      const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
-      await deduplicateAndInsertGame(newGame, rawZipFile, !isMobileDevice || !isLargeMobileGame);
-      if (isMobileDevice && isLargeMobileGame && rawZipFile) {
-        setTimeout(async () => {
-          try {
-            const db = await openGameDbV10();
-            const tx = db.transaction(["zipFiles"], "readwrite");
-            tx.objectStore("zipFiles").put({ id: newGame.id, zipBlob: rawZipFile });
-          } catch (e) {}
-        }, 300);
-      }
+      // Always save to IndexedDB on ALL devices (including iOS Safari!) using our two-phase transaction
+      await deduplicateAndInsertGame(newGame, rawZipFile, true);
       showToast(`⚡ '${newGame.title}' 로드 완료! (${loadMs ? (loadMs / 1000).toFixed(1) + "초 · " : ""}맵 ${sortedMaps.length}개 · 미디어 ${allCgKeys.length}개)`);
     }
 
@@ -10056,42 +10513,62 @@
       const setGalleryCat = (cat) => {
         state.galleryCategory = cat;
         const catBtns = {
-          event_cg: "galCatEventCg",
-          standing: "galCatStanding",
-          system: "galCatSystem",
+          all: "galCatAll",
+          images: "galCatImages",
           movies: "galCatMovies",
-          all: "galCatAll"
+          unused: "galCatUnused"
         };
         for (const [k, bId] of Object.entries(catBtns)) {
           const b = document.getElementById(bId);
           if (!b) continue;
           b.className = k === cat
-            ? "px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white"
-            : "px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white";
+            ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow"
+            : (k === "unused"
+              ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30"
+              : "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white");
         }
         renderGalleryView(true);
       };
-      document.getElementById("galCatEventCg").addEventListener("click", () => setGalleryCat("event_cg"));
-      document.getElementById("galCatStanding").addEventListener("click", () => setGalleryCat("standing"));
-      document.getElementById("galCatSystem")?.addEventListener("click", () => setGalleryCat("system"));
-      document.getElementById("galCatMovies").addEventListener("click", () => setGalleryCat("movies"));
-      document.getElementById("galCatAll").addEventListener("click", () => setGalleryCat("all"));
+      document.getElementById("galCatAll")?.addEventListener("click", () => setGalleryCat("all"));
+      document.getElementById("galCatImages")?.addEventListener("click", () => setGalleryCat("images"));
+      document.getElementById("galCatMovies")?.addEventListener("click", () => setGalleryCat("movies"));
+      document.getElementById("galCatUnused")?.addEventListener("click", () => setGalleryCat("unused"));
 
       // =====================================================================
       // v16 MOBILE FULLSCREEN, LANDSCAPE SPLIT, QUICK DRAWER & TOUCH GESTURES
       // =====================================================================
+      // Sync `--app-vvh` with `window.visualViewport.height` so iOS Safari's address/tab bar in landscape NEVER clips the bottom of the viewer!
+      function syncVisualViewportHeight() {
+        const vvh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        if (vvh > 100) {
+          document.documentElement.style.setProperty("--app-vvh", `${Math.round(vvh)}px`);
+        }
+      }
+      syncVisualViewportHeight();
+      window.addEventListener("resize", syncVisualViewportHeight);
+      window.addEventListener("orientationchange", () => setTimeout(syncVisualViewportHeight, 120));
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", syncVisualViewportHeight);
+        window.visualViewport.addEventListener("scroll", syncVisualViewportHeight);
+      }
+
       function toggleAppImmersiveFullscreen() {
         const isImmersive = document.body.classList.contains("immersive-fullscreen-mode");
         const docEl = document.documentElement;
         if (!isImmersive) {
           document.body.classList.add("immersive-fullscreen-mode");
+          document.body.classList.remove("show-fs-tools");
           if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
           else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-          showToast("⛶ 전체화면 몰입 모드 활성화! (상단 플로팅 바에서 장소 전환·파츠·대사창 제어 가능)");
+          window.scrollTo(0, 1);
+          syncVisualViewportHeight();
+          showToast("⛶ 전체화면 몰입 모드! (모든 상단 도구줄을 숨겨 가림 현상을 제거했습니다. [🛠️ 도구]로 언제든 호출 가능)");
         } else {
           document.body.classList.remove("immersive-fullscreen-mode");
+          document.body.classList.remove("show-fs-tools");
           if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
           else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+          syncVisualViewportHeight();
           showToast("일반 화면 모드로 복귀했습니다.");
         }
         setTimeout(() => renderActiveCgStage(), 80);
@@ -10310,10 +10787,22 @@
         }
       }, { passive: true });
 
-      // Long-Press on Next Step Button for Rapid Fast-Forward (`고속 스킵`)
+      document.getElementById("btnFsToggleTools")?.addEventListener("click", () => {
+        document.body.classList.toggle("show-fs-tools");
+        const row = document.getElementById("viewerCollapsibleToolsRow");
+        if (row && document.body.classList.contains("show-fs-tools")) {
+          row.classList.remove("hidden");
+          row.classList.add("flex");
+        }
+        setTimeout(() => renderActiveCgStage(), 60);
+      });
+
+      // Long-Press on Next Step Button for Rapid Fast-Forward (`고속 스킵`) WITHOUT iOS Safari Text Selection Callout (`IMG_4194.jpg` Fix!)
       const btnNextEl = document.getElementById("btnNextStep");
       let fastSkipTimer = null;
+      let didTriggerFastSkip = false;
       const startFastSkip = () => {
+        didTriggerFastSkip = true;
         clearInterval(fastSkipTimer);
         fastSkipTimer = setInterval(() => {
           if (state.currentStepIndex < (state.activeSteps || []).length - 1) {
@@ -10323,18 +10812,45 @@
           } else {
             clearInterval(fastSkipTimer);
           }
-        }, 110);
+        }, 105);
       };
       const stopFastSkip = () => { clearInterval(fastSkipTimer); fastSkipTimer = null; };
       let holdTimeout = null;
-      btnNextEl?.addEventListener("touchstart", () => {
-        holdTimeout = setTimeout(startFastSkip, 380);
-      }, { passive: true });
-      btnNextEl?.addEventListener("touchend", () => {
+
+      // Suppress native contextmenu & text selection callout on Next/Prev buttons and Dialogue Box
+      [btnNextEl, document.getElementById("btnPrevStep"), document.getElementById("btnFirstStep"), document.getElementById("dialogueBottomControls")].forEach(el => {
+        if (!el) return;
+        el.addEventListener("contextmenu", (e) => e.preventDefault());
+        el.addEventListener("selectstart", (e) => e.preventDefault());
+      });
+
+      btnNextEl?.addEventListener("touchstart", (e) => {
+        // Calling preventDefault() on touchstart 100% blocks iOS Safari's magnifier/selection callout (`복사하기 | 찾아보기 | 번역`)!
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        didTriggerFastSkip = false;
+        clearTimeout(holdTimeout);
+        holdTimeout = setTimeout(startFastSkip, 350);
+      }, { passive: false });
+      btnNextEl?.addEventListener("touchend", (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        clearTimeout(holdTimeout);
+        const wasSkipping = didTriggerFastSkip;
+        stopFastSkip();
+        didTriggerFastSkip = false;
+        if (!wasSkipping) {
+          stepForward();
+        }
+      }, { passive: false });
+      btnNextEl?.addEventListener("touchcancel", () => {
         clearTimeout(holdTimeout);
         stopFastSkip();
-      }, { passive: true });
+        didTriggerFastSkip = false;
+      });
       btnNextEl?.addEventListener("mousedown", () => {
+        didTriggerFastSkip = false;
+        clearTimeout(holdTimeout);
         holdTimeout = setTimeout(startFastSkip, 380);
       });
       window.addEventListener("mouseup", () => {
