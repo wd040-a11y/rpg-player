@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0b0f17" />
   <link rel="manifest" href="manifest.json" />
-  <title>RPG Story Player &amp; Extractor Pro v18</title>
+  <title>RPG Story Player &amp; Extractor Pro v19</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -91,15 +91,46 @@
       user-select: none !important;
     }
 
-    /* v18 Mobile Fullscreen, VisualViewport Exact Locking & Dynamic Island Safe-Area (`IMG_4195.jpg` Fix!)
-       1) Locks body to exact `visualViewport` (`--app-vv-top`, `--app-vv-left`, `--app-vvw`, `--app-vvh`) so iOS Safari's address/tab bar never pushes content off-screen.
-       2) Reserves `--island-safe-left` / `--island-safe-right` (default 54px in mobile landscape) so iPhone's Dynamic Island never covers `#fullscreenFloatingHud` or the Dialogue Box.
-       3) Enforces `min-width: 0 !important` on flex items so `<canvas id="cgCanvas">` never pushes `#vnRightDialogueColumn` off the right edge! */
+    /* v19 Widescreen RPG Maker Cinema Engine (`1d42c30f.jpeg` Overhaul!)
+       1) Default in Mobile Landscape & Fullscreen = `🎬 와이드 자막형 (100% Full-Width CG Stage + Ultra-Slim Translucent Bottom Subtitle Bar)`
+          so 16:9 / 4:3 RPG Maker CGs fill the entire horizontal screen without being crushed into a 56% square!
+       2) Optional `📐 72:28 와이드 분할` (`body.force-landscape-split`): 72% wide CG stage + 28% compact right strip.
+       3) `🔄 90° 세로고정 가로회전` (`body.portrait-rotated-landscape`): Rotates the entire viewer 90 deg inside Portrait Lock,
+          completely bypassing iOS Safari's 2-row landscape Tab Bar + Address Bar!
+       4) Real-Time Screen Shake (`Code 225` / `P_SHAKE`) & Screen Flash (`Code 224`) animations! */
     :root {
-      --island-safe-left: 54px;
-      --island-safe-right: 54px;
+      --island-safe-left: 44px;
+      --island-safe-right: 44px;
     }
-    body.immersive-fullscreen-mode {
+
+    @keyframes rpgStageShakeSm {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      20% { transform: translate3d(-4px, 2px, 0); }
+      40% { transform: translate3d(4px, -2px, 0); }
+      60% { transform: translate3d(-3px, -1px, 0); }
+      80% { transform: translate3d(3px, 1px, 0); }
+    }
+    @keyframes rpgStageShakeMd {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      15% { transform: translate3d(-8px, 3px, 0); }
+      35% { transform: translate3d(8px, -4px, 0); }
+      55% { transform: translate3d(-6px, 2px, 0); }
+      75% { transform: translate3d(6px, -2px, 0); }
+    }
+    @keyframes rpgStageShakeLg {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      12% { transform: translate3d(-13px, 5px, 0); }
+      28% { transform: translate3d(13px, -5px, 0); }
+      45% { transform: translate3d(-10px, -4px, 0); }
+      65% { transform: translate3d(10px, 4px, 0); }
+      82% { transform: translate3d(-6px, 2px, 0); }
+    }
+    .stage-shake-sm { animation: rpgStageShakeSm 0.34s ease-in-out; }
+    .stage-shake-md { animation: rpgStageShakeMd 0.44s ease-in-out; }
+    .stage-shake-lg { animation: rpgStageShakeLg 0.56s ease-in-out; }
+
+    /* Fullscreen & Mobile Landscape Base Reset: 0px outer border/padding so CG stage is 100% full-bleed! */
+    body.immersive-fullscreen-mode:not(.ios-scroll-runway) {
       position: fixed !important;
       top: var(--app-vv-top, 0px) !important;
       left: var(--app-vv-left, 0px) !important;
@@ -108,6 +139,21 @@
       max-height: var(--app-vvh, 100dvh) !important;
       overflow: hidden !important;
     }
+    /* iOS Safari Scroll-to-Collapse Runway Mode (`[🔼 주소창 숨김]`): unlocks vertical page scroll so Safari collapses the URL/Tab bar! */
+    body.ios-scroll-runway {
+      position: relative !important;
+      min-height: calc(100vh + 160px) !important;
+      height: auto !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    body.ios-scroll-runway > main {
+      position: sticky !important;
+      top: 0 !important;
+      height: var(--app-vvh, 100dvh) !important;
+      max-height: var(--app-vvh, 100dvh) !important;
+    }
+
     body.immersive-fullscreen-mode > header,
     body.immersive-fullscreen-mode > nav#mobileBottomNav,
     body.immersive-fullscreen-mode #viewerTopHeaderBar,
@@ -116,28 +162,94 @@
     body.immersive-fullscreen-mode:not(.show-fs-tools) #viewerLiveConditionBar {
       display: none !important;
     }
-    body.immersive-fullscreen-mode > main {
-      padding-top: max(2px, env(safe-area-inset-top, 0px)) !important;
-      padding-bottom: max(2px, env(safe-area-inset-bottom, 0px)) !important;
-      padding-left: max(4px, env(safe-area-inset-left, 0px)) !important;
-      padding-right: max(4px, env(safe-area-inset-right, 0px)) !important;
+    body.immersive-fullscreen-mode > main,
+    body.immersive-fullscreen-mode #panelMainViewer,
+    body.immersive-fullscreen-mode #viewVnContainer {
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
       max-width: 100% !important;
       width: 100% !important;
       height: var(--app-vvh, 100dvh) !important;
     }
-    @media (orientation: landscape) and (max-width: 1024px) {
-      body.immersive-fullscreen-mode > main {
-        padding-left: max(var(--island-safe-left, 54px), env(safe-area-inset-left, 0px)) !important;
-        padding-right: max(var(--island-safe-right, 54px), env(safe-area-inset-right, 0px)) !important;
-      }
-    }
     body.immersive-fullscreen-mode #fullscreenFloatingHud {
       display: flex !important;
     }
+    body.immersive-fullscreen-mode #stageCornerQuickBtns {
+      display: none !important;
+    }
 
-    /* Landscape Split-View Cinema Mode (auto on mobile landscape or manual toggle) */
+    /* Default Widescreen Cinema Subtitle Overlay Mode (Active in Fullscreen & Mobile Landscape when NOT in 72:28 Split) */
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #vnStageAndDialogueWrapper,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #vnStageAndDialogueWrapper {
+      position: relative !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      gap: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #cgStageContainer,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #cgStageContainer {
+      width: 100% !important;
+      height: 100% !important;
+      flex: 1 1 100% !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #vnRightDialogueColumn,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #vnRightDialogueColumn {
+      position: absolute !important;
+      bottom: max(4px, env(safe-area-inset-bottom, 2px)) !important;
+      left: max(var(--island-safe-left, 44px), env(safe-area-inset-left, 8px)) !important;
+      right: max(var(--island-safe-right, 44px), env(safe-area-inset-right, 8px)) !important;
+      z-index: 25 !important;
+      width: auto !important;
+      max-width: none !important;
+      height: auto !important;
+      gap: 3px !important;
+      pointer-events: none !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #vnRightDialogueColumn > *,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #vnRightDialogueColumn > * {
+      pointer-events: auto !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.show-fs-tools) #sceneKeyframeBar,
+    body.widescreen-subtitle-mode:not(.force-landscape-split):not(.show-fs-tools) #sceneKeyframeBar {
+      display: none !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #dialogueBoxPro,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #dialogueBoxPro {
+      height: auto !important;
+      min-height: 54px !important;
+      max-height: 88px !important;
+      padding: 4px 10px !important;
+      background: linear-gradient(180deg, rgba(9, 13, 22, 0.78) 0%, rgba(5, 8, 15, 0.88) 100%) !important;
+      backdrop-filter: blur(6px) !important;
+      border: 1px solid rgba(99, 102, 241, 0.35) !important;
+      border-radius: 12px !important;
+      gap: 2px !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #faceBox,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #faceBox {
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 8px !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #dialogueBottomControls,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #dialogueBottomControls {
+      padding-top: 2px !important;
+    }
+    body.immersive-fullscreen-mode:not(.force-landscape-split):not(.force-portrait-stack) #dialogueBottomControls button,
+    body.widescreen-subtitle-mode:not(.force-landscape-split) #dialogueBottomControls button {
+      padding: 2px 7px !important;
+      font-size: 10.5px !important;
+    }
+
+    /* Mobile Physical Landscape Media Query: Automatically uses Full-Width Widescreen Subtitle Overlay (unless user toggled 72:28 Split) */
     @media (max-height: 580px) and (orientation: landscape) {
-      body:not(.force-portrait-stack) {
+      body:not(.force-portrait-stack):not(.ios-scroll-runway) {
         position: fixed !important;
         top: var(--app-vv-top, 0px) !important;
         left: var(--app-vv-left, 0px) !important;
@@ -151,86 +263,172 @@
       body:not(.force-portrait-stack) #viewerTopHeaderBar,
       body:not(.force-portrait-stack):not(.show-fs-tools) #viewerCollapsibleToolsRow,
       body:not(.force-portrait-stack):not(.show-fs-tools) #inlineLayerQuickBar,
-      body:not(.force-portrait-stack):not(.show-fs-tools) #viewerLiveConditionBar {
+      body:not(.force-portrait-stack):not(.show-fs-tools) #viewerLiveConditionBar,
+      body:not(.force-portrait-stack):not(.show-fs-tools) #sceneKeyframeBar,
+      body:not(.force-portrait-stack) #stageCornerQuickBtns {
         display: none !important;
       }
-      body:not(.force-portrait-stack) > main {
-        padding-top: 2px !important;
-        padding-bottom: max(2px, env(safe-area-inset-bottom, 0px)) !important;
-        padding-left: max(var(--island-safe-left, 54px), env(safe-area-inset-left, 0px)) !important;
-        padding-right: max(var(--island-safe-right, 54px), env(safe-area-inset-right, 0px)) !important;
+      body:not(.force-portrait-stack) > main,
+      body:not(.force-portrait-stack) #panelMainViewer,
+      body:not(.force-portrait-stack) #viewVnContainer {
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
         height: var(--app-vvh, 100dvh) !important;
       }
-      body:not(.force-portrait-stack) #vnStageAndDialogueWrapper {
-        flex-direction: row !important;
-        align-items: stretch !important;
-        padding: 2px !important;
-        gap: 6px !important;
-        width: 100% !important;
-        min-width: 0 !important;
-      }
-      body:not(.force-portrait-stack) #cgStageContainer {
-        flex: 1 1 56% !important;
-        min-width: 0 !important;
-        min-height: 0 !important;
-        height: 100% !important;
-      }
-      body:not(.force-portrait-stack) #vnRightDialogueColumn {
-        flex: 0 0 44% !important;
-        width: 44% !important;
-        max-width: 420px !important;
-        min-width: 0 !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-end !important;
-        gap: 3px !important;
-      }
-      body:not(.force-portrait-stack) #sceneEndBanner {
-        padding: 3px 8px !important;
-      }
-      body:not(.force-portrait-stack) #dialogueBoxPro {
-        height: auto !important;
-        min-height: 0 !important;
-        flex: 1 1 0% !important;
-        padding: 6px 8px !important;
-      }
-      body:not(.force-portrait-stack) #dialogueBottomControls button {
-        padding: 4px 6px !important;
-        font-size: 11px !important;
-      }
       body:not(.force-portrait-stack) #fullscreenFloatingHud {
         display: flex !important;
+        padding-left: max(var(--island-safe-left, 44px), env(safe-area-inset-left, 6px)) !important;
+        padding-right: max(var(--island-safe-right, 44px), env(safe-area-inset-right, 6px)) !important;
+      }
+      /* Default in Mobile Landscape: 100% Full-Width CG + Slim Translucent Bottom Subtitle Bar */
+      body:not(.force-portrait-stack):not(.force-landscape-split) #vnStageAndDialogueWrapper {
+        position: relative !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 0 !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #cgStageContainer {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #vnRightDialogueColumn {
+        position: absolute !important;
+        bottom: max(3px, env(safe-area-inset-bottom, 2px)) !important;
+        left: max(var(--island-safe-left, 44px), env(safe-area-inset-left, 8px)) !important;
+        right: max(var(--island-safe-right, 44px), env(safe-area-inset-right, 8px)) !important;
+        z-index: 25 !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        gap: 2px !important;
+        pointer-events: none !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #vnRightDialogueColumn > * {
+        pointer-events: auto !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #dialogueBoxPro {
+        height: auto !important;
+        min-height: 50px !important;
+        max-height: 78px !important;
+        padding: 4px 10px !important;
+        background: linear-gradient(180deg, rgba(9, 13, 22, 0.76) 0%, rgba(5, 8, 15, 0.88) 100%) !important;
+        backdrop-filter: blur(6px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.35) !important;
+        border-radius: 11px !important;
+        gap: 2px !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #faceBox {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 8px !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #dialogueBottomControls {
+        padding-top: 1px !important;
+      }
+      body:not(.force-portrait-stack):not(.force-landscape-split) #dialogueBottomControls button {
+        padding: 2px 6px !important;
+        font-size: 10px !important;
       }
     }
 
+    /* Asymmetric 72:28 Widescreen Split Mode (`📐 72:28분할` - preserves 4:3 / 16:9 CG width on the left + slim 28% dialogue strip on the right!) */
     body.force-landscape-split #vnStageAndDialogueWrapper {
+      position: relative !important;
       flex-direction: row !important;
       align-items: stretch !important;
+      padding: 0 !important;
+      gap: 4px !important;
+      width: 100% !important;
+      height: 100% !important;
       min-width: 0 !important;
+      padding-left: max(4px, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(var(--island-safe-right, 44px), env(safe-area-inset-right, 4px)) !important;
     }
     body.force-landscape-split #cgStageContainer {
-      flex: 1 1 58% !important;
+      flex: 1 1 70% !important;
+      width: 70% !important;
       min-width: 0 !important;
       min-height: 0 !important;
       height: 100% !important;
+      border-radius: 8px !important;
     }
     body.force-landscape-split #vnRightDialogueColumn {
-      flex: 0 0 42% !important;
-      width: 42% !important;
-      max-width: 450px !important;
-      min-width: 0 !important;
+      position: relative !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      flex: 0 0 30% !important;
+      width: 30% !important;
+      max-width: 340px !important;
+      min-width: 200px !important;
       height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: flex-end !important;
+      gap: 3px !important;
     }
     body.force-landscape-split #dialogueBoxPro {
       height: auto !important;
+      max-height: none !important;
       min-height: 0 !important;
       flex: 1 1 0% !important;
+      padding: 6px 8px !important;
+    }
+
+    /* 90-Degree Portrait-Lock Forced Landscape Mode (`🔄 90°회전`):
+       Rotates the entire app 90 degrees while the iPhone is held in Portrait mode,
+       completely eliminating iOS Safari's Landscape 2-Row Tab Bar + URL Bar! */
+    body.portrait-rotated-landscape {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: var(--app-vvh, 100dvh) !important;
+      height: var(--app-vvw, 100vw) !important;
+      max-width: var(--app-vvh, 100dvh) !important;
+      max-height: var(--app-vvw, 100vw) !important;
+      transform-origin: top left !important;
+      transform: rotate(90deg) translateY(-100%) !important;
+      overflow: hidden !important;
+      z-index: 999 !important;
+    }
+    body.portrait-rotated-landscape > header,
+    body.portrait-rotated-landscape > nav#mobileBottomNav,
+    body.portrait-rotated-landscape #viewerTopHeaderBar,
+    body.portrait-rotated-landscape:not(.show-fs-tools) #viewerCollapsibleToolsRow,
+    body.portrait-rotated-landscape:not(.show-fs-tools) #inlineLayerQuickBar,
+    body.portrait-rotated-landscape:not(.show-fs-tools) #viewerLiveConditionBar,
+    body.portrait-rotated-landscape:not(.show-fs-tools) #sceneKeyframeBar,
+    body.portrait-rotated-landscape #stageCornerQuickBtns {
+      display: none !important;
+    }
+    body.portrait-rotated-landscape > main,
+    body.portrait-rotated-landscape #panelMainViewer,
+    body.portrait-rotated-landscape #viewVnContainer {
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      width: var(--app-vvh, 100dvh) !important;
+      max-width: var(--app-vvh, 100dvh) !important;
+      height: var(--app-vvw, 100vw) !important;
+      max-height: var(--app-vvw, 100vw) !important;
+    }
+    body.portrait-rotated-landscape #fullscreenFloatingHud {
+      display: flex !important;
+      padding-left: max(var(--island-safe-left, 44px), 12px) !important;
+      padding-right: max(var(--island-safe-right, 44px), 12px) !important;
     }
 
     /* Hidden / Transparent Dialogue Overlay Mode for Unobstructed CG Viewing */
@@ -252,7 +450,7 @@
   <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
     <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-1 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v18</span>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v19</span>
         <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[105px] sm:max-w-[220px] truncate"></select>
         <button id="btnToggleFullscreenHeader" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-[11px] text-emerald-200 hover:text-white border border-emerald-500/40 font-bold flex-shrink-0" title="전체화면 / 몰입 모드 전환 (모바일 주소창·탭바 가림 해결)">
           ⛶ 전체화면
@@ -270,8 +468,8 @@
         <button id="tabVnMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow">💬 스토리 뷰어</button>
         <button id="tabOrderMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🧭 진행 순서 (인과위상)</button>
         <button id="tabScriptMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📜 전체 대본</button>
+        <button id="tabMapBoardMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-emerald-300 hover:text-white">🗺️ 거점·맵 보드 (라이트 플레이)</button>
         <button id="tabGalleryMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🖼 CG·영상 갤러리</button>
-        <button id="tabBattleMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">⚔️ 전투 시뮬레이터</button>
         <button id="tabStatusMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📊 인게임 상태창</button>
         <button id="tabLibraryMode" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📂 게임관리 (<span id="libCountText">1</span>)</button>
       </div>
@@ -554,14 +752,20 @@
 
             <div class="flex items-center gap-1 flex-shrink-0">
               <div id="pageTabsContainer" class="flex flex-wrap items-center gap-1"></div>
+              <button id="btnViewerOpenMapBoard" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/50 text-[11px] font-bold transition shadow" title="현재 장소의 포인트 앤 클릭 거점 맵 보드 열기">
+                🗺️ 거점맵
+              </button>
+              <button id="btnViewerFreePassUnlock" type="button" class="px-2 py-1 rounded-lg bg-fuchsia-600/30 hover:bg-fuchsia-600 text-fuchsia-200 hover:text-white border border-fuchsia-500/50 text-[11px] font-bold transition shadow" title="이 이벤트의 잠긴 스위치/변수 조건을 즉시 달성(프리패스)하고 해금합니다">
+                ⚡ 프리패스
+              </button>
               <button id="btnOpenPartsModal" type="button" class="px-2 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-500/50 text-[11px] font-bold transition shadow">
-                🎨 의상·파츠 (0)
+                🎨 파츠 (0)
               </button>
               <button id="btnToggleMobileViewerTools" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold" title="확대/축소·복장·레이어 도구 펼치기/접기">
                 🛠️ 도구 ▾
               </button>
-              <button id="btnToggleLandscapeSplit" type="button" class="px-2 py-1 rounded-lg bg-sky-600/25 hover:bg-sky-600 text-sky-200 hover:text-white border border-sky-500/40 text-[11px] font-semibold" title="가로 좌우 분할 시네마 레이아웃 전환">
-                🔄 가로분할
+              <button id="btnToggleLandscapeSplit" type="button" class="px-2 py-1 rounded-lg bg-sky-600/25 hover:bg-sky-600 text-sky-200 hover:text-white border border-sky-500/40 text-[11px] font-semibold" title="화면 레이아웃 전환 (와이드자막 / 72:28분할 / 90°회전)">
+                📐 화면모드
               </button>
               <button id="btnJumpNextStoryEvent" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-semibold border border-emerald-500/40 transition">
                 다음씬 →
@@ -606,23 +810,39 @@
               <canvas id="cgCanvas" width="1632" height="1248" class="w-full h-full object-contain cursor-grab active:cursor-grabbing" title="좌/우 가장자리 터치: 이전/다음 대사 · 마우스 휠/핀치: 확대/축소 · 더블클릭: 라이트박스 확대"></canvas>
               <video id="moviePlayer" controls playsinline class="hidden w-full h-full object-contain rounded-lg"></video>
 
-              <!-- Floating Micro-HUD for Fullscreen & Landscape Mode (Single-line non-wrapping pills!) -->
-              <div id="fullscreenFloatingHud" class="hidden absolute top-1.5 left-1.5 right-1.5 z-30 flex items-center justify-between gap-1 pointer-events-none overflow-x-auto no-scrollbar">
-                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
-                  <button id="btnFsQuickDrawer" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white whitespace-nowrap">☰ 씬</button>
-                  <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[10px] font-bold text-amber-200 whitespace-nowrap">🎨 파츠</button>
-                  <button id="btnFsToggleTools" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300 font-semibold whitespace-nowrap">🛠️ 도구</button>
-                  <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-sky-300 font-semibold whitespace-nowrap">🔄 분할</button>
-                  <button id="btnFsIslandMargin" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-amber-300 font-semibold whitespace-nowrap" title="다이나믹 아일랜드·노치 안전 여백 조절 (양쪽/좌측/우측/최소)">🏝️ 여백:양쪽</button>
+              <!-- Real-Time In-Game Screen Flash Overlay (`Code 224` & Climax Effects) -->
+              <div id="stageFlashOverlay" class="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-300"></div>
+
+              <!-- Live Progression / Reward Floating Badge -->
+              <div id="liveProgressionFloatingBadge" class="hidden pointer-events-none absolute top-11 left-1/2 -translate-x-1/2 z-30 bg-emerald-950/90 border border-emerald-400/60 text-emerald-200 px-3 py-1 rounded-full text-[11px] font-bold shadow-xl whitespace-nowrap"></div>
+
+              <!-- Non-Intrusive Corner Micro-HUD for Fullscreen & Mobile Landscape (`1d42c30f.jpeg` Fix!) -->
+              <div id="fullscreenFloatingHud" class="hidden absolute top-1 left-1.5 right-1.5 z-30 flex items-center justify-between gap-1 pointer-events-none overflow-x-auto no-scrollbar opacity-80 hover:opacity-100 transition-opacity">
+                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/75 backdrop-blur-md border border-slate-700/70 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
+                  <button id="btnFsCollapseHud" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-200 whitespace-nowrap" title="상단 미니 버튼바 접기/펼치기">▾</button>
+                  <div id="fsHudLeftCollapsible" class="flex items-center gap-1">
+                    <button id="btnFsQuickDrawer" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white whitespace-nowrap">☰ 씬</button>
+                    <button id="btnFsMapBoard" type="button" class="px-2 py-0.5 rounded bg-emerald-600/80 hover:bg-emerald-500 text-[10px] font-bold text-white whitespace-nowrap" title="포인트 앤 클릭 거점 맵 보드 열기">🗺️ 맵</button>
+                    <button id="btnFsFreePass" type="button" class="px-2 py-0.5 rounded bg-fuchsia-600/75 hover:bg-fuchsia-500 text-[10px] font-bold text-white whitespace-nowrap" title="현재 이벤트 조건 즉시 프리패스 해금">⚡ 프리패스</button>
+                    <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[10px] font-bold text-amber-200 whitespace-nowrap">🎨 파츠</button>
+                    <button id="btnFsToggleTools" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300 font-semibold whitespace-nowrap">🛠️ 도구</button>
+                  </div>
                 </div>
-                <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
-                  <button id="btnFsToggleDialogueVis" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-indigo-200 font-semibold whitespace-nowrap">👁 대사</button>
-                  <button id="btnFsExitFullscreen" type="button" class="px-2 py-0.5 rounded bg-rose-700/85 hover:bg-rose-600 text-[10px] font-bold text-white whitespace-nowrap">✕ 복귀</button>
+                <div id="fsHudRightCollapsible" class="flex items-center gap-1 pointer-events-auto bg-slate-950/75 backdrop-blur-md border border-slate-700/70 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
+                  <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-sky-600/40 hover:bg-sky-600 text-[10px] text-sky-200 font-bold whitespace-nowrap" title="와이드 자막형(100% CG) ↔ 72:28 와이드 분할 전환">🎬 와이드자막</button>
+                  <button id="btnFsRotate90" type="button" class="px-2 py-0.5 rounded bg-purple-600/50 hover:bg-purple-600 text-[10px] text-purple-100 font-bold whitespace-nowrap" title="세로잠금 상태에서 화면만 90° 가로 회전 (사파리 가로 탭바·주소창 100% 우회!)">🔄 90°회전</button>
+                  <button id="btnFsHideSafariBar" type="button" class="px-2 py-0.5 rounded bg-amber-600/50 hover:bg-amber-600 text-[10px] text-amber-100 font-bold whitespace-nowrap" title="모바일 사파리 주소창·탭바 숨기기">🔼 주소창숨김</button>
+                  <button id="btnFsIslandMargin" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-amber-300 font-semibold whitespace-nowrap" title="다이나믹 아일랜드·노치 안전 여백 조절">🏝️ 여백</button>
+                  <button id="btnFsToggleDialogueVis" type="button" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-indigo-200 font-semibold whitespace-nowrap">👁 대사</button>
+                  <button id="btnFsExitFullscreen" type="button" class="px-2 py-0.5 rounded bg-rose-700/85 hover:bg-rose-600 text-[10px] font-bold text-white whitespace-nowrap">✕</button>
                 </div>
               </div>
 
-              <!-- Quick Corner Floating Buttons (Always accessible on mobile portrait too) -->
-              <div class="absolute bottom-2 right-2 z-10 flex items-center gap-1 opacity-85 hover:opacity-100">
+              <!-- Quick Corner Floating Buttons (Hidden automatically when Fullscreen/Landscape HUD is active!) -->
+              <div id="stageCornerQuickBtns" class="absolute bottom-2 right-2 z-10 flex items-center gap-1 opacity-85 hover:opacity-100">
+                <button id="btnStageRotate90" type="button" class="sm:hidden px-2 py-1 rounded-lg bg-purple-950/90 border border-purple-500/50 text-[10px] font-bold text-purple-200 shadow" title="세로 화면에서 90° 가로 와이드 회전 (주소창 가림 제로)">
+                  🔄 90°가로
+                </button>
                 <button id="btnStageToggleDialogueVis" type="button" class="px-2 py-1 rounded-lg bg-slate-950/85 border border-slate-700 text-[10px] font-semibold text-slate-200 shadow" title="대사창 숨기기/반투명 전환">
                   👁 대사창
                 </button>
@@ -786,46 +1006,84 @@
         </div>
 
         <!-- =============================================================== -->
-        <!-- VIEW 5: Multi-Layer Heroine & Cut-In Battle Simulator           -->
+        <!-- VIEW 5: Point & Click Tactical Map Board (Light Play / Director Mode) -->
         <!-- =============================================================== -->
-        <div id="viewBattleContainer" class="hidden flex-1 flex flex-col p-3 gap-2.5 overflow-y-auto">
-          <div class="bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="text-xs font-bold text-rose-400 flex-shrink-0">⚔️ 전투 그룹 / 보스:</span>
-              <select id="battleEnemySelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-white flex-1 max-w-xs truncate"></select>
+        <div id="viewMapBoardContainer" class="hidden flex-1 flex flex-col p-2.5 sm:p-3 gap-2.5 overflow-y-auto">
+          <!-- Top Bar: Map Selector + Director Mode Free-Pass Controls + Story Course Playlists -->
+          <div class="bg-slate-950/95 border border-emerald-500/40 rounded-xl p-2.5 space-y-2 flex-shrink-0 shadow-lg">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex-shrink-0">🗺️ 포인트 앤 클릭 거점 보드</span>
+                <select id="mapBoardSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white flex-1 max-w-md truncate"></select>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button id="btnMapBoardUnlockAll" type="button" class="px-2.5 py-1 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold shadow transition" title="이 게임의 모든 잠긴 스위치·진행도·음란도 조건을 한 번에 달성 상태로 해금합니다">
+                  🔓 전 지역·전 조건 일괄 프리패스 해금
+                </button>
+                <button id="btnMapBoardBackToVn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">
+                  💬 스토리 뷰어로
+                </button>
+              </div>
             </div>
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs font-bold text-indigo-300 flex-shrink-0">🎨 아군 스탠딩/컷인 선택:</span>
-              <select id="battleHeroineCutinSelect" class="bg-slate-900 border border-indigo-500/40 rounded-lg px-2 py-1 text-xs font-bold text-indigo-200 max-w-xs truncate"></select>
+
+            <!-- Curated Zero-Grind Playlists & Pin Legend -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-slate-400 font-semibold">🚀 원클릭 직행 코스:</span>
+                <button id="btnCourseMainStory" type="button" class="px-2 py-0.5 rounded-md bg-emerald-600/25 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/40 font-bold">❗ 메인 스토리 직행</button>
+                <button id="btnCourseHScenes" type="button" class="px-2 py-0.5 rounded-md bg-rose-600/25 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 font-bold">🔞 H·CG 하이라이트 직행</button>
+                <button id="btnCourseBossDefeat" type="button" class="px-2 py-0.5 rounded-md bg-amber-600/25 hover:bg-amber-600 text-amber-200 hover:text-white border border-amber-500/40 font-bold">⚔️ 보스·패배 분기 직행</button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-300">
+                <span><strong class="text-emerald-400">❗</strong> 메인/진행</span>
+                <span><strong class="text-rose-400">🔞</strong> H·CG 이벤트</span>
+                <span><strong class="text-indigo-400">💬</strong> 인물/서브 대화</span>
+                <span><strong class="text-amber-400">⚔️</strong> 보스/패배</span>
+                <span><strong class="text-cyan-300">🚪</strong> 다음 맵 이동</span>
+              </div>
             </div>
           </div>
 
-          <div class="cg-stage-pure min-h-[240px] grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 relative flex-shrink-0">
-            <div class="flex flex-col items-center justify-center border-r border-slate-800/60 pr-2">
-              <div class="text-xs font-bold text-rose-300 mb-1" id="battleStageEnemyName">적 몬스터 / 보스</div>
-              <img id="battleStageEnemyImg" src="" alt="Enemy" class="max-h-[195px] object-contain" />
+          <!-- Interactive 2D Spatial Map Stage + Selected Pin Inspector -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 flex-shrink-0">
+            <!-- 2D Tactical Room/Map Radar (Widescreen 16:9 / 4:3) -->
+            <div class="lg:col-span-8 bg-slate-950 border border-slate-800 rounded-2xl p-2 relative overflow-hidden min-h-[290px] sm:min-h-[360px] flex flex-col justify-between shadow-xl" id="mapBoardVisualWrapper">
+              <div class="flex items-center justify-between gap-2 px-2 py-1 bg-slate-900/90 border border-slate-800/80 rounded-lg z-10 text-xs">
+                <div class="font-bold text-emerald-300 truncate" id="mapBoardCurrentTitle">현재 거점 맵</div>
+                <div class="text-[11px] text-slate-400 font-mono flex-shrink-0" id="mapBoardCoordBadge">크기: 17×13 · 핀 0개</div>
+              </div>
+
+              <!-- 2D Coordinate Pin Stage -->
+              <div id="mapBoardPinStage" class="relative flex-1 my-1.5 rounded-xl overflow-hidden border border-slate-800/90 bg-[#090e1a]" style="min-height: 250px;"></div>
+
+              <!-- Connected Exits Quick-Teleport Bar (`Code 201` Portals) -->
+              <div class="flex items-center gap-1.5 overflow-x-auto py-1 px-2 bg-slate-900/90 border border-slate-800/80 rounded-lg z-10 text-[11px]" id="mapBoardPortalsBar"></div>
             </div>
-            <div class="flex flex-col items-center justify-center pl-2">
-              <div class="text-xs font-bold text-indigo-300 mb-1" id="battleStageHeroineState">아군 멀티레이어 스탠딩 / 전투 컷인 CG</div>
-              <canvas id="battleHeroineCanvas" width="600" height="450" class="max-h-[195px] w-full object-contain"></canvas>
+
+            <!-- Right Column: Selected Pin Inspector & Instant Free-Pass Launcher -->
+            <div class="lg:col-span-4 bg-slate-950/95 border border-indigo-500/40 rounded-2xl p-3 flex flex-col justify-between gap-2.5 shadow-xl" id="mapBoardPinInspector">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                  <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[11px] font-bold" id="pinInspTypeBadge">📍 핀 선택됨</span>
+                  <span class="text-[11px] font-mono text-slate-400" id="pinInspCoordText">좌표 (0, 0)</span>
+                </div>
+                <h5 class="text-sm font-bold text-white leading-snug" id="pinInspTitle">맵 위의 핀(❗/🔞/💬/🚪)을 터치하세요</h5>
+                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 min-h-[64px]" id="pinInspPreview">
+                  직접 방향키로 걸어 다닐 필요 없이, 미니맵 위의 이벤트 핀을 클릭하면 즉시 대화가 시작되며 잠긴 조건도 [⚡ 프리패스]로 1초 만에 뚫고 감상할 수 있습니다.
+                </p>
+                <div class="space-y-1 text-[11px]" id="pinInspConditionsBox"></div>
+              </div>
+              <div class="space-y-1.5 pt-2 border-t border-slate-800" id="pinInspActionButtons"></div>
             </div>
           </div>
 
-          <div class="bg-slate-950/95 border border-indigo-500/40 rounded-xl p-3 space-y-2.5 flex-shrink-0">
-            <div id="battleLogMessage" class="text-xs sm:text-sm text-slate-100 min-h-[42px] leading-relaxed bg-slate-900/80 rounded-lg p-2.5 border border-slate-800">
-              하단 버튼을 누르거나 아래 목록에서 [전투 패배 씬 / 구속 스킬 이벤트 / 보스전 대화]를 클릭하면 즉시 재생됩니다.
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button id="btnBattleNextTurn" type="button" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow">⚔️ 이 전투 대사 재생</button>
-              <button id="btnBattleEnemySkill" type="button" class="py-2 px-3 rounded-xl bg-rose-700 hover:bg-rose-600 text-xs font-bold text-white shadow">💥 적 특수스킬 발동</button>
-              <button id="btnBattleStateChange" type="button" class="py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-600 text-xs font-bold text-white shadow">💫 컷인/복장 파손 전환</button>
-              <button id="btnBattleDefeatScene" type="button" class="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white shadow">💔 패배 루트 직행</button>
-            </div>
-          </div>
-
+          <!-- All Events & Quests in Current Map (List + 1-Click Free-Pass) -->
           <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 space-y-2">
-            <h5 class="text-xs font-bold text-rose-300">🔥 이 게임에서 추출된 모든 전투 · 패배(Lose) · 구속 스킬 이벤트 목록 (원클릭 재생)</h5>
-            <div id="battleAllScenesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            <div class="flex items-center justify-between">
+              <h5 class="text-xs font-bold text-emerald-300">📋 이 거점(맵)의 전체 상호작용 · 퀘스트 · 이벤트 목록 (클릭 시 즉시 진입)</h5>
+              <span class="text-[11px] text-slate-400" id="mapBoardEventCountText">0개</span>
+            </div>
+            <div id="mapBoardEventsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
           </div>
         </div>
 
@@ -913,11 +1171,38 @@
   <nav id="mobileBottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/98 border-t border-slate-800 grid grid-cols-6 py-1 px-0.5 text-[10px]">
     <button id="mobNavMaps" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🗺 장소/씬</span></button>
     <button id="mobNavVn" type="button" class="flex flex-col items-center py-1 text-indigo-400 font-bold"><span>💬 뷰어</span></button>
+    <button id="mobNavMapBoard" type="button" class="flex flex-col items-center py-1 text-emerald-400 font-semibold"><span>🗺️ 맵보드</span></button>
     <button id="mobNavGallery" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>🖼 갤러리</span></button>
-    <button id="mobNavBattle" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>⚔️ 전투</span></button>
     <button id="mobNavStatus" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>📊 상태창</span></button>
     <button id="mobNavLibrary" type="button" class="flex flex-col items-center py-1 text-slate-400"><span>📂 관리</span></button>
   </nav>
+
+  <!-- MODAL: iOS Safari Landscape Toolbar & Widescreen Helper -->
+  <div id="iosToolbarHelperModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl text-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h4 class="text-sm font-bold text-amber-300">📱 모바일 가로화면 주소창·탭바 완벽 제거 3가지 방법</h4>
+        <button id="btnCloseIosHelperModal" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">닫기</button>
+      </div>
+      <div class="space-y-2.5 text-xs leading-relaxed">
+        <div class="p-3 rounded-xl bg-purple-950/60 border border-purple-500/50 space-y-1.5">
+          <div class="font-bold text-purple-200">방법 1. 🔄 세로잠금 90° 가로회전 모드 (가장 빠름 · 탭바 0%)</div>
+          <p class="text-slate-300">폰을 <strong>세로 방향(회전 잠금 ON)</strong>으로 든 상태에서 아래 버튼을 누르면, 사파리의 두꺼운 가로 탭바가 아예 생기지 않고 게임 화면만 <strong>16:9 와이드 가로 화면</strong>으로 꽉 차게 회전합니다!</p>
+          <button id="btnModalActivateRotate90" type="button" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow">
+            🔄 지금 바로 90° 가로회전 와이드 모드 켜기
+          </button>
+        </div>
+        <div class="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 space-y-1">
+          <div class="font-bold text-emerald-200">방법 2. 사파리 주소창 좌측 [🧩/목록] 아이콘 → [도구 모음 가리기]</div>
+          <p class="text-slate-300">현재 가로 화면의 상단 주소창(`wd040-a11y.github.io`) 왼쪽 끝에 있는 <strong>퍼즐/목록 아이콘</strong>을 누른 뒤 <strong>「도구 모음 가리기」</strong>를 누르면 상단 주소창과 탭바가 1초 만에 사라집니다.</p>
+        </div>
+        <div class="p-3 rounded-xl bg-indigo-950/50 border border-indigo-500/40 space-y-1">
+          <div class="font-bold text-indigo-200">방법 3. 사파리 [공유 ↑] → [홈 화면에 추가] (영구 전체화면 앱)</div>
+          <p class="text-slate-300">사파리 공유 버튼에서 <strong>「홈 화면에 추가」</strong>로 실행하면 주소창·탭바가 영구적으로 없는 네이티브 앱 모드로 작동합니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     // =========================================================================
@@ -1407,7 +1692,7 @@
       renderPageTabs();
       if (state.activeTab === "gallery") renderGalleryView(false);
       if (state.activeTab === "status") renderStatusViewerTab();
-      if (state.activeTab === "battle") renderBattleSimulatorTab();
+      if (state.activeTab === "mapboard") renderMapBoardTab();
     }
 
     // =========================================================================
@@ -1923,7 +2208,7 @@
     // Upgraded in v13: Persists lightweight project metadata AND native Structured-Clone File/Blob handles
     // (`zipBlob` for ZIPs, plus `cgFiles`, `faceFiles`, `enemyFiles`, `audioOggFiles`, `audioM4aFiles` for Folder loads)
     // so closing and reopening the Windows EXE or browser retains 100% of images without reloading!
-    const CURRENT_EXTRACTOR_VERSION = "v17.0";
+    const CURRENT_EXTRACTOR_VERSION = "v19.0";
 
     // Upgraded in v17:
     // 1) Saves `cleanProj` (stamped with `extractorVersion: "v18.0"`) in its own dedicated transaction FIRST on ALL devices (including iPhone/iPad Safari!)
@@ -2111,10 +2396,12 @@
             const oldMedia = mediaMap.get(p.id);
             if (oldMedia && oldMedia.zipBlob) {
               zipToAutoReextract.push(oldMedia.zipBlob);
+              toPurgeIds.push(p.id);
+              purgedStaleVersionCount++;
+              continue;
             }
-            toPurgeIds.push(p.id);
-            purgedStaleVersionCount++;
-            continue;
+            // On iOS Safari where large ZIP Blobs may not be stored in `zipFiles`, NEVER delete `p` from `projects`!
+            p.extractorVersion = CURRENT_EXTRACTOR_VERSION;
           }
           if (cleanTitle) seenTitles.add(cleanTitle);
 
@@ -2276,7 +2563,7 @@
       renderCurrentStep();
       if (state.activeTab === "gallery") renderGalleryView(false);
       if (state.activeTab === "status") renderStatusViewerTab();
-      if (state.activeTab === "battle") renderBattleSimulatorTab();
+      if (state.activeTab === "battle") renderMapBoardTab();
       showToast(`✅ 총 ${linkedCount}개의 미디어 파일을 즉시 복구했습니다!`);
     }
 
@@ -3817,7 +4104,7 @@
       state.protagonistName = firstActor;
       document.getElementById("protagonistNameInput").value = firstActor;
 
-      const firstMap = (found.maps || [])[0];
+      const firstMap = (found.maps || []).find(m => getFilteredAndMergedEvents(m).length > 0) || (found.maps || [])[0];
       state.selectedMapId = firstMap ? firstMap.id : 1;
       const firstEvs = firstMap ? getFilteredAndMergedEvents(firstMap) : [];
       state.selectedEventId = firstEvs[0] ? firstEvs[0].id : 1;
@@ -3831,7 +4118,7 @@
         renderCurrentStep();
       }
       renderGalleryView(true);
-      renderBattleSimulatorTab();
+      renderMapBoardTab();
       renderStatusViewerTab();
       renderLibraryTab();
       renderStoryOrderTimeline();
@@ -4514,9 +4801,14 @@
       }
       dialogueEl.scrollTop = 0;
 
+      // Real-Time In-Game Visual Effects (`Code 224 Flash` & `Code 225 Shake` & Climax Auto-Sense)
+      triggerStepVisualEffects(step);
+
+      // Live Auto-Progression: when reaching the final step of an event, apply its switch/variable rewards automatically!
       if (isLastStep && step.type !== "branch") {
         sceneEndBanner.classList.remove("hidden");
         dialogueBox.classList.add("scene-ended");
+        applyEventCompletionLiveProgression();
       } else {
         sceneEndBanner.classList.add("hidden");
         dialogueBox.classList.remove("scene-ended");
@@ -4857,7 +5149,7 @@
                   </button>
                 ` : (a.systemUsage && (a.systemUsage.targetTab === "status" || a.systemUsage.targetTab === "battle")) ? `
                   <button type="button" data-jump-sys-tab="${escapeHtml(a.systemUsage.targetTab)}" data-jump-sys-key="${escapeHtml(a.name)}" class="flex-1 py-1 rounded bg-sky-600/25 hover:bg-sky-600 text-sky-200 hover:text-white text-[10px] font-semibold border border-sky-500/30">
-                    ${a.systemUsage.targetTab === "status" ? "📊 상태창에서 보기" : "⚔️ 전투 시뮬에서 보기"}
+                    ${a.systemUsage.targetTab === "status" ? "📊 상태창에서 보기" : "🖼 뷰어 무대에서 보기"}
                   </button>
                 ` : ""}
               </div>
@@ -4923,8 +5215,9 @@
           const tab = btn.getAttribute("data-jump-sys-tab");
           const key = btn.getAttribute("data-jump-sys-key");
           if (tab === "battle") {
-            state.selectedBattleCutinKey = key;
-            switchMainTab("battle");
+            state.activePictureSlots = { 1: { key, x: 0, y: 0, origin: 0, scaleX: 100, scaleY: 100, opacity: 255 } };
+            switchMainTab("vn");
+            renderActiveCgStage();
           } else {
             state.selectedStatusBgKey = key;
             switchMainTab("status");
@@ -5069,89 +5362,501 @@
       }
     }
 
-    // Upgraded Battle Simulator with Multi-Layer Heroine Canvas & Cut-in Selector!
-    async function renderBattleSimulatorTab() {
-      const troops = state.project.battleTroops || [];
-      const enemyAssets = state.project.enemyAssets || {};
-      const sel = document.getElementById("battleEnemySelect");
-      const cutinSel = document.getElementById("battleHeroineCutinSelect");
-      const heroineCanvas = document.getElementById("battleHeroineCanvas");
+    // =========================================================================
+    // v19 LIGHT PLAY ENGINE: REAL-TIME SHAKE/FLASH, FREE-PASS UNLOCKER & 2D POINT-AND-CLICK MAP BOARD
+    // =========================================================================
+    function triggerStepVisualEffects(step) {
+      if (!step) return;
+      const stageEl = document.getElementById("cgStageContainer");
+      const flashEl = document.getElementById("stageFlashOverlay");
+      if (!stageEl || !flashEl) return;
 
-      if (troops.length === 0 && Object.keys(enemyAssets).length > 0) {
-        Object.keys(enemyAssets).slice(0, 30).forEach((eKey, idx) => {
-          troops.push({ id: idx + 1, name: `전투: ${translateJpName(eKey)}`, enemyKey: eKey, pages: [] });
-        });
-      }
+      let flash = step.flashEffect || null;
+      let shake = step.shakeEffect || null;
 
-      sel.innerHTML = troops.map((tr, idx) => `
-        <option value="${idx}" ${idx === state.selectedBattleTroopIdx ? "selected" : ""}>
-          ${escapeHtml(translateJpName(tr.name))}
-        </option>
-      `).join("");
-
-      const activeTroop = troops[state.selectedBattleTroopIdx] || troops[0];
-      const enemyNameEl = document.getElementById("battleStageEnemyName");
-      const enemyImgEl = document.getElementById("battleStageEnemyImg");
-
-      if (activeTroop) {
-        enemyNameEl.textContent = translateJpName(activeTroop.name);
-        const eKey = activeTroop.enemyKey || Object.keys(enemyAssets)[0];
-        const eAsset = enemyAssets[eKey];
-        if (eAsset) {
-          const url = await ensureAssetBlobUrl(eAsset);
-          if (url) enemyImgEl.src = url;
+      // Auto-sense climax / impact dialogue lines when explicit Code 224/225 is absent
+      if (!flash && !shake && step.type === "dialogue" && step.rawText) {
+        const txt = String(step.rawText);
+        if (/뷰릇|뷰르릇|절정|가버렷|가버려|イッちゃう|絶頂|ビクッ|ドクン|びゅる/i.test(txt)) {
+          flash = { r: 255, g: 185, b: 220, a: 0.42, duration: 280 };
+          shake = { power: 4, speed: 5, duration: 320 };
+        } else if (/콰앙|퍼억|쿠구궁|비명|으아악|ドゴォ|ガシャ|キャァ/i.test(txt)) {
+          shake = { power: 6, speed: 6, duration: 360 };
         }
       }
 
-      // Collect Battle Cut-in / Damage / Defeat CGs & Heroine Standing Snapshots (includes `<CutIn:...>` / `CC用` skill cut-ins!)
-      const cutinKeys = Object.keys(state.project.cgAssets || {}).filter(k => {
-        if (k === "__fastIndex" || state.deletedCgKeys.has(k) || isDummyBlackOrSystemPicture(k)) return false;
-        if (isDetachedSubPartFile(k)) return false;
-        const a = state.project.cgAssets[k];
-        if (a?.systemUsage?.targetTab === "battle") return true;
-        return /cc用|cutin|battle|damage|break|pinch|bind|defeat|lose|敗北|カットイン|拘束|破損|ev|cg|h/i.test(k);
-      }).slice(0, 60);
-
-      if (cutinSel) {
-        cutinSel.innerHTML = `<option value="__standing__">🧍 주인공 기본 멀티레이어 스탠딩</option>` +
-          cutinKeys.map(k => `<option value="${escapeHtml(k)}" ${state.selectedBattleCutinKey === k ? "selected" : ""}>💥 ${escapeHtml(translateJpName(k))}</option>`).join("");
-      }
-
-      const firstProf = (state.project.actorProfiles || [])[0];
-      if (state.selectedBattleCutinKey && state.selectedBattleCutinKey !== "__standing__" && state.project.cgAssets[state.selectedBattleCutinKey]) {
-        await drawSnapshotOnCanvas(heroineCanvas, null, state.selectedBattleCutinKey);
-      } else if (firstProf && firstProf.standingSnapshot) {
-        await drawSnapshotOnCanvas(heroineCanvas, firstProf.standingSnapshot, firstProf.portraitCg);
+      if (flash) {
+        flashEl.style.backgroundColor = `rgba(${flash.r}, ${flash.g}, ${flash.b}, ${flash.a})`;
+        flashEl.style.opacity = "1";
+        clearTimeout(window.__flashFadeTimer);
+        window.__flashFadeTimer = setTimeout(() => {
+          flashEl.style.opacity = "0";
+        }, Math.min(600, Math.max(160, flash.duration || 260)));
       } else {
-        const bestKey = (firstProf && firstProf.portraitCg) || cutinKeys[0] || Object.keys(state.project.cgAssets || {}).find(k => k !== "__fastIndex" && !isDummyBlackOrSystemPicture(k));
-        await drawSnapshotOnCanvas(heroineCanvas, null, bestKey);
+        flashEl.style.opacity = "0";
       }
 
-      const battleList = state.project.battleScenesList || [];
-      const grid = document.getElementById("battleAllScenesGrid");
-      if (grid) {
-        grid.innerHTML = battleList.length > 0 ? battleList.slice(0, 40).map((bItem, idx) => `
-          <button type="button" data-battle-scene-idx="${idx}" class="text-left p-2.5 rounded-xl bg-slate-900 hover:bg-rose-950/50 border border-slate-800 hover:border-rose-500/40 transition flex items-center justify-between gap-2">
-            <div class="min-w-0 flex-1">
-              <span class="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">${escapeHtml(bItem.badge || "전투 이벤트")}</span>
-              <div class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(translateJpName(bItem.title))}</div>
+      stageEl.classList.remove("stage-shake-sm", "stage-shake-md", "stage-shake-lg");
+      if (shake && shake.power > 0) {
+        void stageEl.offsetWidth; // Reflow to restart CSS keyframe animation
+        const cls = shake.power >= 7 ? "stage-shake-lg" : (shake.power >= 4 ? "stage-shake-md" : "stage-shake-sm");
+        stageEl.classList.add(cls);
+        clearTimeout(window.__shakeClearTimer);
+        window.__shakeClearTimer = setTimeout(() => {
+          stageEl.classList.remove("stage-shake-sm", "stage-shake-md", "stage-shake-lg");
+        }, 600);
+      }
+    }
+
+    function showLiveProgressionBadge(text) {
+      const badge = document.getElementById("liveProgressionFloatingBadge");
+      if (!badge) return;
+      badge.textContent = text;
+      badge.classList.remove("hidden");
+      clearTimeout(window.__liveProgTimer);
+      window.__liveProgTimer = setTimeout(() => badge.classList.add("hidden"), 3400);
+    }
+
+    function applyEventCompletionLiveProgression() {
+      const ev = getCurrentEvent();
+      if (!ev || !state.project) return;
+      const doneKey = `${state.activeGameId}_${ev.mapId}_${ev.id}_${state.selectedPageIdx}`;
+      if (!state.completedEventKeys) state.completedEventKeys = new Set();
+      if (state.completedEventKeys.has(doneKey)) return;
+      state.completedEventKeys.add(doneKey);
+
+      const rewards = [];
+      if (Array.isArray(ev.turnsOnSwitches) && ev.turnsOnSwitches.length > 0) {
+        if (!state.project.switches) state.project.switches = {};
+        for (const swId of ev.turnsOnSwitches) {
+          if (!state.project.switches[swId]) {
+            state.project.switches[swId] = true;
+            const swName = translateJpName(state.project.switchNames?.[swId] || `스위치 #${swId}`);
+            rewards.push(`🔘 ${swName} ON`);
+          }
+        }
+      }
+      if (ev.setsVarValues && typeof ev.setsVarValues === "object") {
+        if (!state.project.variables) state.project.variables = {};
+        for (const [vIdStr, mod] of Object.entries(ev.setsVarValues)) {
+          const vId = Number(vIdStr);
+          if (vId > 0 && mod && typeof mod.result === "number") {
+            const prev = Number(state.project.variables[vId] || 0);
+            if (prev !== mod.result) {
+              state.project.variables[vId] = mod.result;
+              const vName = translateJpName(state.project.variableNames?.[vId] || `변수 #${vId}`);
+              rewards.push(`📈 ${vName} → ${mod.result}`);
+            }
+          }
+        }
+      }
+      if (rewards.length > 0) {
+        showLiveProgressionBadge(`🎉 진행 반영: ${rewards.slice(0, 2).join(" · ")}${rewards.length > 2 ? ` 외 ${rewards.length - 2}개` : ""}`);
+      }
+    }
+
+    function isEventUnlockedInLiveState(ev) {
+      if (!ev || !state.project) return true;
+      const sw = state.project.switches || {};
+      const vars = state.project.variables || {};
+      if (ev.entryPageSwitchReq > 0 && !sw[ev.entryPageSwitchReq]) return false;
+      if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0 && Number(vars[ev.entryPageVarId] || 0) < ev.entryPageVarVal) return false;
+      return true;
+    }
+
+    function getEventLockRequirementSummary(ev) {
+      if (!ev || !state.project) return "";
+      const parts = [];
+      if (ev.entryPageSwitchReq > 0) {
+        const sName = translateJpName(state.project.switchNames?.[ev.entryPageSwitchReq] || `스위치 #${ev.entryPageSwitchReq}`);
+        const isOn = Boolean(state.project.switches?.[ev.entryPageSwitchReq]);
+        parts.push(`${isOn ? "✅" : "🔒"} ${sName} ON`);
+      }
+      if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0) {
+        const vName = translateJpName(state.project.variableNames?.[ev.entryPageVarId] || `변수 #${ev.entryPageVarId}`);
+        const curV = Number(state.project.variables?.[ev.entryPageVarId] || 0);
+        parts.push(`${curV >= ev.entryPageVarVal ? "✅" : "🔒"} ${vName} ≥ ${ev.entryPageVarVal} (현재 ${curV})`);
+      }
+      return parts.join(" · ");
+    }
+
+    function executeFreePassForEvent(ev, targetPageIdx = null) {
+      if (!ev || !state.project) return;
+      if (!state.project.switches) state.project.switches = {};
+      if (!state.project.variables) state.project.variables = {};
+      const unlockedList = [];
+
+      if (ev.entryPageSwitchReq > 0) {
+        state.project.switches[ev.entryPageSwitchReq] = true;
+        unlockedList.push(`스위치 #${ev.entryPageSwitchReq} ON`);
+      }
+      if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0) {
+        state.project.variables[ev.entryPageVarId] = Math.max(Number(state.project.variables[ev.entryPageVarId] || 0), ev.entryPageVarVal);
+        unlockedList.push(`변수 #${ev.entryPageVarId} = ${state.project.variables[ev.entryPageVarId]}`);
+      }
+
+      const validPages = getValidPages(ev, ev.mapId);
+      const chosenIdx = targetPageIdx !== null ? targetPageIdx : Math.min(validPages.length - 1, state.selectedPageIdx);
+      const page = validPages[chosenIdx] || validPages[0];
+      if (page) {
+        if (page.reqMeta) {
+          if (page.reqMeta.switch1Id > 0) {
+            state.project.switches[page.reqMeta.switch1Id] = true;
+            unlockedList.push(`스위치 #${page.reqMeta.switch1Id} ON`);
+          }
+          if (page.reqMeta.switch2Id > 0) {
+            state.project.switches[page.reqMeta.switch2Id] = true;
+            unlockedList.push(`스위치 #${page.reqMeta.switch2Id} ON`);
+          }
+          if (page.reqMeta.varId > 0 && page.reqMeta.varVal > 0) {
+            state.project.variables[page.reqMeta.varId] = Math.max(Number(state.project.variables[page.reqMeta.varId] || 0), page.reqMeta.varVal);
+            unlockedList.push(`변수 #${page.reqMeta.varId} = ${state.project.variables[page.reqMeta.varId]}`);
+          }
+        }
+        for (const cmd of (page.rawList || [])) {
+          if (!cmd || cmd.code !== 111 || !Array.isArray(cmd.parameters)) continue;
+          const p = cmd.parameters;
+          if (p[0] === 0 && Number(p[1]) > 0 && Number(p[2] || 0) === 0) {
+            state.project.switches[Number(p[1])] = true;
+            unlockedList.push(`분기 스위치 #${p[1]} ON`);
+          } else if (p[0] === 1 && Number(p[1]) > 0 && p[2] === 0) {
+            const vId = Number(p[1]);
+            const vVal = Number(p[3] || 0);
+            if (vVal > 0 && !isNonStoryTempOrPoseVarName(state.project.variableNames?.[vId] || "")) {
+              state.project.variables[vId] = Math.max(Number(state.project.variables[vId] || 0), vVal);
+              unlockedList.push(`분기 변수 #${vId} = ${state.project.variables[vId]}`);
+            }
+          }
+        }
+      }
+
+      reEvaluateCurrentEventWithUpdatedState();
+      showToast(unlockedList.length > 0
+        ? `⚡ 프리패스 해금 완료! (${Array.from(new Set(unlockedList)).slice(0, 3).join(", ")})`
+        : `⚡ 프리패스 적용 완료! 현재 이벤트의 모든 조건 분기가 해금되었습니다.`);
+    }
+
+    function unlockAllGameConditionsFreePass() {
+      if (!state.project) return;
+      if (!state.project.switches) state.project.switches = {};
+      if (!state.project.variables) state.project.variables = {};
+      let swCount = 0, varCount = 0;
+
+      for (const m of (state.project.maps || [])) {
+        for (const ev of (m.events || [])) {
+          if (ev.entryPageSwitchReq > 0 && !state.project.switches[ev.entryPageSwitchReq]) {
+            state.project.switches[ev.entryPageSwitchReq] = true;
+            swCount++;
+          }
+          if (ev.entryPageVarId > 0 && ev.entryPageVarVal > 0) {
+            const cur = Number(state.project.variables[ev.entryPageVarId] || 0);
+            if (cur < ev.entryPageVarVal) {
+              state.project.variables[ev.entryPageVarId] = ev.entryPageVarVal;
+              varCount++;
+            }
+          }
+          for (const pg of (ev.pages || [])) {
+            if (pg.reqMeta) {
+              if (pg.reqMeta.switch1Id > 0) { state.project.switches[pg.reqMeta.switch1Id] = true; swCount++; }
+              if (pg.reqMeta.switch2Id > 0) { state.project.switches[pg.reqMeta.switch2Id] = true; swCount++; }
+              if (pg.reqMeta.varId > 0 && pg.reqMeta.varVal > 0) {
+                state.project.variables[pg.reqMeta.varId] = Math.max(Number(state.project.variables[pg.reqMeta.varId] || 0), pg.reqMeta.varVal);
+                varCount++;
+              }
+            }
+          }
+        }
+      }
+      reEvaluateCurrentEventWithUpdatedState();
+      if (state.activeTab === "mapboard") renderMapBoardTab();
+      showToast(`🔓 감독 모드 전체 프리패스 해금 완료! (스위치 ${swCount}개 · 진행도/조건 변수 ${varCount}개 즉시 달성)`);
+    }
+
+    function classifyMapBoardPin(ev) {
+      if (!ev) return { type: "npc", icon: "💬", badge: "인물/대화", colorClass: "bg-indigo-600 border-indigo-300 text-white" };
+      if ((ev.totalCg || 0) > 0) {
+        return { type: "hscene", icon: "🔞", badge: `H·CG (${ev.totalCg})`, colorClass: "bg-rose-600 border-rose-300 text-white shadow-rose-500/50" };
+      }
+      if (ev.hasBattleProcessing || ev.hasDefeatBranch || /敗北|戦闘|ボス|패배|전투|보스|lose|defeat/i.test(ev.name || "")) {
+        return { type: "battle", icon: "⚔️", badge: ev.hasDefeatBranch ? "보스·패배분기" : "전투 이벤트", colorClass: "bg-amber-600 border-amber-300 text-white" };
+      }
+      if ((ev.turnsOnSwitches && ev.turnsOnSwitches.length > 0) || (ev.setsVarValues && Object.keys(ev.setsVarValues).length > 0) || ev.entryPageAutorun) {
+        return { type: "main", icon: "❗", badge: "메인·진행", colorClass: "bg-emerald-600 border-emerald-300 text-white shadow-emerald-500/50" };
+      }
+      return { type: "npc", icon: "💬", badge: "대화·서브", colorClass: "bg-indigo-600 border-indigo-300 text-white" };
+    }
+
+    async function renderMapBoardTab() {
+      const maps = (state.project?.maps || []).filter(m => !state.hiddenMaps.has(`${state.activeGameId}_m_${m.id}`));
+      const sel = document.getElementById("mapBoardSelect");
+      if (!sel) return;
+
+      const dialogueMaps = maps.filter(m => getFilteredAndMergedEvents(m).length > 0 || m.id === state.selectedMapId);
+      const listToUse = dialogueMaps.length > 0 ? dialogueMaps : maps;
+
+      sel.innerHTML = listToUse.map(m => `
+        <option value="${m.id}" ${m.id === state.selectedMapId ? "selected" : ""}>
+          ${escapeHtml(getDisplayMapName(m))} (이벤트 ${getFilteredAndMergedEvents(m).length}개)
+        </option>
+      `).join("");
+
+      const curMap = getCurrentMap() || listToUse[0];
+      if (!curMap) return;
+
+      const mapW = Math.max(12, Number(curMap.width) || 17);
+      const mapH = Math.max(9, Number(curMap.height) || 13);
+      const evs = getFilteredAndMergedEvents(curMap);
+
+      // Collect portal/door transfer targets (`Code 201`) from all events on this map
+      const portalMapIds = new Set();
+      const portalPins = [];
+      for (const rawEv of (curMap.events || [])) {
+        if (!rawEv || !Array.isArray(rawEv.transfersToMaps)) continue;
+        for (const tMapId of rawEv.transfersToMaps) {
+          if (tMapId > 0 && tMapId !== curMap.id && maps.some(m => m.id === tMapId)) {
+            portalMapIds.add(tMapId);
+            if (portalPins.length < 12) {
+              const destMap = maps.find(m => m.id === tMapId);
+              if (destMap && !portalPins.some(p => p.targetMapId === tMapId)) {
+                portalPins.push({
+                  id: `portal_${rawEv.id}_${tMapId}`,
+                  x: Number(rawEv.x ?? 0),
+                  y: Number(rawEv.y ?? 0),
+                  targetMapId: tMapId,
+                  destName: getDisplayMapName(destMap)
+                });
+              }
+            }
+          }
+        }
+      }
+
+      document.getElementById("mapBoardCurrentTitle").textContent = `🗺️ ${getDisplayMapName(curMap)}`;
+      document.getElementById("mapBoardCoordBadge").textContent = `맵 격자: ${mapW}×${mapH} · 핀 ${evs.length + portalPins.length}개`;
+      document.getElementById("mapBoardEventCountText").textContent = `총 ${evs.length}개 상호작용`;
+
+      const stage = document.getElementById("mapBoardPinStage");
+      let bgStyle = `background-image: radial-gradient(rgba(99,102,241,0.16) 1px, transparent 1px), linear-gradient(to right, rgba(30,41,59,0.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(30,41,59,0.55) 1px, transparent 1px); background-size: 20px 20px, calc(100% / ${Math.min(20, mapW)}) 100%, 100% calc(100% / ${Math.min(15, mapH)});`;
+      if (curMap.parallaxName) {
+        const pAsset = resolveAssetInDict(curMap.parallaxName, state.project.cgAssets, true);
+        if (pAsset) {
+          const bUrl = await ensureAssetBlobUrl(pAsset);
+          if (bUrl) {
+            bgStyle = `background-image: linear-gradient(rgba(9,14,26,0.55), rgba(9,14,26,0.72)), url('${bUrl}'); background-size: cover; background-position: center;`;
+          }
+        }
+      }
+      stage.setAttribute("style", `min-height: 260px; ${bgStyle}`);
+
+      // Compute non-overlapping normalized `(pctX, pctY)` positions for every event pin and portal pin
+      const usedSpots = [];
+      const allocSpot = (rawX, rawY, idx, total) => {
+        let px = (rawX > 0 || rawY > 0)
+          ? Math.min(92, Math.max(8, ((rawX + 0.5) / mapW) * 100))
+          : (15 + ((idx * 19) % 70));
+        let py = (rawX > 0 || rawY > 0)
+          ? Math.min(88, Math.max(12, ((rawY + 0.5) / mapH) * 100))
+          : (20 + Math.floor(idx / 4) * 22);
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const collision = usedSpots.some(s => Math.abs(s.px - px) < 9.5 && Math.abs(s.py - py) < 13);
+          if (!collision) break;
+          const angle = (attempt + 1) * 1.15 + idx;
+          px = Math.min(93, Math.max(7, px + Math.cos(angle) * 10));
+          py = Math.min(89, Math.max(11, py + Math.sin(angle) * 12));
+        }
+        usedSpots.push({ px, py });
+        return { px: Number(px.toFixed(1)), py: Number(py.toFixed(1)) };
+      };
+
+      const selectedEvId = state.selectedMapBoardEvId || state.selectedEventId || (evs[0] && evs[0].id);
+
+      const evPinsHtml = evs.map((ev, idx) => {
+        const spot = allocSpot(Number(ev.x || 0), Number(ev.y || 0), idx, evs.length);
+        const meta = classifyMapBoardPin(ev);
+        const unlocked = isEventUnlockedInLiveState(ev);
+        const isSel = ev.id === selectedEvId;
+        const shortTitle = getDisplayEventName(curMap.id, ev).replace(/^EV\d+:\s*/i, "").slice(0, 12);
+        return `
+          <button type="button" data-mb-pin-ev="${ev.id}" style="left:${spot.px}%; top:${spot.py}%;" class=" -translate-x-1/2 -translate-y-1/2 absolute z-10 group transition transform hover:scale-110 hover:z-30 flex flex-col items-center">
+            <div class="px-2 py-0.5 rounded-full border text-[11px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap ${meta.colorClass} ${isSel ? "ring-2 ring-white scale-110" : "opacity-95"}">
+              <span>${meta.icon}</span>
+              <span>${escapeHtml(shortTitle)}</span>
+              ${!unlocked ? `<span class="text-[10px]" title="조건 잠김 (프리패스 가능)">🔒</span>` : ""}
             </div>
-            <span class="text-xs text-rose-300 font-bold flex-shrink-0">실행 →</span>
           </button>
-        `).join("") : `<div class="text-xs text-slate-400 p-2 col-span-full">추출된 별도 전투/패배 분기 이벤트가 없습니다. 상단 전투 행동 버튼을 눌러보세요.</div>`;
+        `;
+      }).join("");
 
-        grid.querySelectorAll("[data-battle-scene-idx]").forEach(btn => {
-          btn.addEventListener("click", () => {
-            const bItem = battleList[Number(btn.getAttribute("data-battle-scene-idx"))];
-            if (!bItem) return;
-            state.selectedMapId = bItem.mapId;
-            renderMapsList();
-            selectEvent(bItem.eventId, bItem.pageIdx || 0, bItem.stepIdx || 0);
-            switchMainTab("vn");
-            showToast(`전투/패배 이벤트 '${translateJpName(bItem.title)}'을(를) 실행했습니다!`);
-          });
-        });
+      const portalPinsHtml = portalPins.map((pt, idx) => {
+        const spot = allocSpot(pt.x, pt.y, evs.length + idx, evs.length + portalPins.length);
+        const shortDest = pt.destName.replace(/^\d+:\s*/, "").slice(0, 11);
+        return `
+          <button type="button" data-mb-portal="${pt.targetMapId}" style="left:${spot.px}%; top:${spot.py}%;" class="-translate-x-1/2 -translate-y-1/2 absolute z-10 transition transform hover:scale-110 hover:z-30 flex flex-col items-center" title="클릭 시 '${escapeHtml(pt.destName)}' 맵으로 즉시 이동">
+            <div class="px-2 py-0.5 rounded-lg border border-cyan-400/80 bg-cyan-950/90 text-cyan-200 text-[10px] font-bold shadow flex items-center gap-1 whitespace-nowrap">
+              <span>🚪</span>
+              <span>${escapeHtml(shortDest)} →</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      stage.innerHTML = evPinsHtml + portalPinsHtml + (evs.length === 0 && portalPins.length === 0
+        ? `<div class="absolute inset-0 flex items-center justify-center text-xs text-slate-400">이 맵에는 표시할 이벤트 핀이 없습니다.</div>`
+        : "");
+
+      // Render Connected Portals Quick Bar
+      const portalsBar = document.getElementById("mapBoardPortalsBar");
+      const connectedIds = Array.from(portalMapIds);
+      if (connectedIds.length > 0) {
+        portalsBar.innerHTML = `<span class="text-cyan-300 font-bold flex-shrink-0">🚪 연결된 이동 출구:</span>` +
+          connectedIds.map(tid => {
+            const dm = maps.find(m => m.id === tid);
+            return dm ? `
+              <button type="button" data-mb-portal="${tid}" class="px-2.5 py-0.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-700 text-cyan-200 hover:text-white border border-cyan-500/40 font-semibold flex-shrink-0 transition">
+                ${escapeHtml(getDisplayMapName(dm))} →
+              </button>
+            ` : "";
+          }).join("");
+      } else {
+        portalsBar.innerHTML = `<span class="text-slate-400">🚪 연결된 인접 이동 출구 없음 (상단 드롭다운에서 다른 거점을 선택하세요)</span>`;
       }
+
+      // Render Pin Inspector for Selected Event
+      const inspectEv = evs.find(e => e.id === selectedEvId) || evs[0];
+      renderMapBoardPinInspector(curMap, inspectEv);
+
+      // Render Bottom Event Cards Grid
+      const grid = document.getElementById("mapBoardEventsGrid");
+      grid.innerHTML = evs.map((ev, idx) => {
+        const meta = classifyMapBoardPin(ev);
+        const unlocked = isEventUnlockedInLiveState(ev);
+        const reqText = getEventLockRequirementSummary(ev);
+        const firstLine = (getEventAllDialogueLines(ev, curMap.id)[0] || "").slice(0, 52);
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-900/90 border ${ev.id === (inspectEv && inspectEv.id) ? "border-emerald-400" : "border-slate-800"} flex flex-col justify-between gap-2">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between gap-1.5">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${meta.colorClass}">${meta.icon} ${meta.badge}</span>
+                <span class="text-[10px] font-mono text-slate-400">좌표 (${ev.x || 0}, ${ev.y || 0}) · 대사 ${ev.totalDialogue}줄</span>
+              </div>
+              <div class="text-xs font-bold text-white truncate">${escapeHtml(getDisplayEventName(curMap.id, ev))}</div>
+              ${firstLine ? `<p class="text-[11px] text-slate-400 truncate">"${escapeHtml(firstLine)}"</p>` : ""}
+              ${reqText ? `<div class="text-[10px] ${unlocked ? "text-emerald-300" : "text-amber-300"} font-medium">${escapeHtml(reqText)}</div>` : ""}
+            </div>
+            <div class="flex items-center gap-1.5 pt-1 border-t border-slate-800/80">
+              <button type="button" data-mb-play-ev="${ev.id}" class="flex-1 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">
+                ▶ 바로 대화 시작
+              </button>
+              ${!unlocked ? `
+                <button type="button" data-mb-freepass-ev="${ev.id}" class="px-2.5 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold shadow transition" title="잠긴 조건을 즉시 달성하고 실행">
+                  ⚡ 프리패스
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      stage.querySelectorAll("[data-mb-pin-ev]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const evId = Number(btn.getAttribute("data-mb-pin-ev"));
+          if (state.selectedMapBoardEvId === evId) {
+            selectEvent(evId);
+            switchMainTab("vn");
+            return;
+          }
+          state.selectedMapBoardEvId = evId;
+          renderMapBoardTab();
+        });
+      });
+
+      document.querySelectorAll("[data-mb-portal]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetMapId = Number(btn.getAttribute("data-mb-portal"));
+          state.selectedMapId = targetMapId;
+          state.selectedMapBoardEvId = null;
+          renderMapsList();
+          const destMap = getCurrentMap();
+          const firstEvs = getFilteredAndMergedEvents(destMap);
+          if (firstEvs[0]) selectEvent(firstEvs[0].id);
+          renderMapBoardTab();
+          showToast(`🚪 '${getDisplayMapName(destMap)}' 거점으로 이동했습니다!`);
+        });
+      });
+
+      grid.querySelectorAll("[data-mb-play-ev]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const evId = Number(btn.getAttribute("data-mb-play-ev"));
+          selectEvent(evId);
+          switchMainTab("vn");
+        });
+      });
+
+      grid.querySelectorAll("[data-mb-freepass-ev]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const evId = Number(btn.getAttribute("data-mb-freepass-ev"));
+          const targetEv = evs.find(e => e.id === evId);
+          selectEvent(evId);
+          if (targetEv) executeFreePassForEvent(targetEv);
+          switchMainTab("vn");
+        });
+      });
+    }
+
+    function renderMapBoardPinInspector(curMap, ev) {
+      const badgeEl = document.getElementById("pinInspTypeBadge");
+      const coordEl = document.getElementById("pinInspCoordText");
+      const titleEl = document.getElementById("pinInspTitle");
+      const prevEl = document.getElementById("pinInspPreview");
+      const condBox = document.getElementById("pinInspConditionsBox");
+      const actBox = document.getElementById("pinInspActionButtons");
+      if (!badgeEl || !ev) return;
+
+      const meta = classifyMapBoardPin(ev);
+      const unlocked = isEventUnlockedInLiveState(ev);
+      const reqText = getEventLockRequirementSummary(ev);
+      const lines = getEventAllDialogueLines(ev, curMap.id);
+
+      badgeEl.textContent = `${meta.icon} ${meta.badge}`;
+      coordEl.textContent = `맵 좌표 (${ev.x || 0}, ${ev.y || 0}) · 단계 ${(ev.pages || []).length}개`;
+      titleEl.textContent = getDisplayEventName(curMap.id, ev);
+      prevEl.textContent = lines.length > 0
+        ? lines.slice(0, 3).join(" / ").slice(0, 140)
+        : (ev.totalCg > 0 ? `[CG·미디어 ${ev.totalCg}장 포함 이벤트]` : "상호작용 이벤트");
+
+      const rewardParts = [];
+      if (Array.isArray(ev.turnsOnSwitches) && ev.turnsOnSwitches.length > 0) {
+        rewardParts.push(`스위치 #${ev.turnsOnSwitches.slice(0, 3).join(", #")} ON`);
+      }
+      if (Array.isArray(ev.transfersToMaps) && ev.transfersToMaps.length > 0) {
+        rewardParts.push(`맵 #${ev.transfersToMaps.join(", #")} 이동 연결`);
+      }
+
+      condBox.innerHTML = `
+        <div class="p-2 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+          <div><strong class="text-slate-400">해금 조건:</strong> <span class="${unlocked ? "text-emerald-300" : "text-amber-300 font-bold"}">${escapeHtml(reqText || "✅ 조건 없음 (즉시 진행 가능)")}</span></div>
+          ${rewardParts.length > 0 ? `<div><strong class="text-slate-400">진행 효과:</strong> <span class="text-indigo-300">${escapeHtml(rewardParts.join(" · "))}</span></div>` : ""}
+        </div>
+      `;
+
+      actBox.innerHTML = `
+        <button type="button" id="btnPinInspPlayNow" class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">
+          ▶ 이 핀 이벤트 지금 바로 시작하기 (핀 한 번 더 탭해도 시작)
+        </button>
+        <button type="button" id="btnPinInspFreePass" class="w-full py-2 px-3 rounded-xl bg-fuchsia-600/80 hover:bg-fuchsia-500 text-white text-xs font-bold shadow transition">
+          ⚡ 조건 즉시 달성(프리패스)하고 모든 분기 열기
+        </button>
+      `;
+
+      document.getElementById("btnPinInspPlayNow")?.addEventListener("click", () => {
+        selectEvent(ev.id);
+        switchMainTab("vn");
+      });
+      document.getElementById("btnPinInspFreePass")?.addEventListener("click", () => {
+        selectEvent(ev.id);
+        executeFreePassForEvent(ev);
+        switchMainTab("vn");
+      });
     }
 
     function isEroOrBodyVariableName(name) {
@@ -7059,6 +7764,10 @@
       const steps = [];
       let i = 0;
       let pendingAudioKey = null;
+      let pendingBgmKey = null;
+      let pendingBgsKey = null;
+      let pendingFlashEffect = null;
+      let pendingShakeEffect = null;
       let pendingTransferMapId = null;
       let pendingDText = null;
       let lastNonEmptyPictures = {};
@@ -7326,10 +8035,50 @@
           continue;
         }
 
+        // Code 224: Flash Screen (`[ [r, g, b, intensity], duration, wait ]`)
+        if (code === 224) {
+          const col = Array.isArray(p[0]) ? p[0] : [255, 255, 255, 170];
+          const intensity = Number(col[3] ?? 170);
+          if (intensity > 15) {
+            pendingFlashEffect = {
+              r: Math.min(255, Math.max(0, Number(col[0] ?? 255))),
+              g: Math.min(255, Math.max(0, Number(col[1] ?? 255))),
+              b: Math.min(255, Math.max(0, Number(col[2] ?? 255))),
+              a: Math.min(0.88, Math.max(0.18, intensity / 255)),
+              duration: Math.max(180, Number(p[1] || 20) * 16)
+            };
+            if (steps.length > 0 && !steps[steps.length - 1].flashEffect) {
+              steps[steps.length - 1].flashEffect = pendingFlashEffect;
+            }
+          }
+          i++;
+          continue;
+        }
+
+        // Code 225: Shake Screen (`[ power, speed, duration, wait ]`)
+        if (code === 225) {
+          const power = Number(p[0] ?? 5);
+          if (power > 0) {
+            pendingShakeEffect = {
+              power,
+              speed: Number(p[1] ?? 5),
+              duration: Math.max(220, Number(p[2] || 20) * 16)
+            };
+            if (steps.length > 0 && !steps[steps.length - 1].shakeEffect) {
+              steps[steps.length - 1].shakeEffect = pendingShakeEffect;
+            }
+          }
+          i++;
+          continue;
+        }
+
         if (code === 250 || code === 249 || code === 241 || code === 245) {
           const audioObj = p[0];
-          if (audioObj && audioObj.name && (code === 250 || code === 249)) {
-            pendingAudioKey = String(audioObj.name).trim();
+          if (audioObj && audioObj.name) {
+            const aName = String(audioObj.name).trim();
+            if (code === 250 || code === 249) pendingAudioKey = aName;
+            else if (code === 241) pendingBgmKey = aName;
+            else if (code === 245) pendingBgsKey = aName;
           }
           i++;
           continue;
@@ -7705,12 +8454,18 @@
             faceIndex,
             faceColor: "#6366f1",
             audioKey: pendingAudioKey,
+            bgmKey: pendingBgmKey,
+            bgsKey: pendingBgsKey,
+            flashEffect: pendingFlashEffect,
+            shakeEffect: pendingShakeEffect,
             transferMapId: pendingTransferMapId,
             rawText: resolvedText,
             source: "Code 101/401",
             pictureSnapshot: snapshotCopy
           });
           pendingAudioKey = null;
+          pendingFlashEffect = null;
+          pendingShakeEffect = null;
           pendingTransferMapId = null;
           hadDialogueSinceLastPic = true;
           slotsUpdatedInCurrentStep.clear();
@@ -7801,34 +8556,38 @@
           const options = [];
           let curBattleLabel = "";
           let curBattleCmds = [];
+          const baseBattlePending = clonePicMapFast(pendingPictures);
+          let winPending = null;
           i++;
 
           const flushBattle = () => {
             if (!curBattleCmds.length || opsBudget.count > opsBudget.max) return;
-            const subPending = clonePicMapFast(pendingPictures);
+            const subPending = clonePicMapFast(baseBattlePending);
             const subSteps = parseMvEventCommandsV10(curBattleCmds, commonEventsMap, cgAssetsDict, usageTracker, metaTracker, ceDepth, subPending, {
-              vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {}
+              ...simState,
+              vars: { ...simState.vars },
+              switches: { ...simState.switches },
+              lockedVarBranches: {}
             }, true, ceEffectCache, activeCeStack, opsBudget);
             const st = analyzeStepsStats(subSteps);
             if (st.dialogueCount > 0 || st.cgCount > 0) {
               options.push({
                 label: curBattleLabel,
-                preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 45),
+                preview: (subSteps.find(s => s.type === "dialogue")?.rawText || "").slice(0, 48),
                 steps: subSteps
               });
+              if (!winPending) winPending = subPending;
             }
-            mergePictureSnapshotsV10(pendingPictures, subPending, false, false);
-            updateLastNonEmptyPictures();
           };
 
           while (i < list.length) {
             const cur = list[i];
             if (!cur) { i++; continue; }
-            if (cur.indent === indent && cur.code === 601) { flushBattle(); curBattleLabel = "⚔️ 전투 승리 시"; curBattleCmds = []; i++; continue; }
-            if (cur.indent === indent && cur.code === 602) { flushBattle(); curBattleLabel = "🏃 전투 도주 시"; curBattleCmds = []; i++; continue; }
+            if (cur.indent === indent && cur.code === 601) { flushBattle(); curBattleLabel = "🏆 [승리 프리패스] 전투 생략 · 승리 스토리 진행"; curBattleCmds = []; i++; continue; }
+            if (cur.indent === indent && cur.code === 602) { flushBattle(); curBattleLabel = "🏃 [도주 프리패스] 전투 회피 · 도주 분기 보기"; curBattleCmds = []; i++; continue; }
             if (cur.indent === indent && cur.code === 603) {
               flushBattle();
-              curBattleLabel = "💔 전투 패배 시 이벤트";
+              curBattleLabel = "💔 [패배(H) 프리패스] 패배·구속 이벤트 즉시 감상";
               curBattleCmds = [];
               if (metaTracker && ceDepth === 0) metaTracker.hasDefeatBranch = true;
               i++;
@@ -7839,11 +8598,15 @@
             i++;
           }
 
+          if (winPending) {
+            mergePictureSnapshotsV10(pendingPictures, winPending, true, true);
+            updateLastNonEmptyPictures();
+          }
           if (options.length === 1) steps.push(...options[0].steps);
           else if (options.length > 1) {
             steps.push({
               type: "branch",
-              branchTitle: "⚔️ 전투 결과 분기",
+              branchTitle: "⚔️ 전투 프리패스 (턴제 전투를 생략하고 원하는 결과를 바로 선택하세요)",
               pictureSnapshot: buildCleanStepSnapshot(),
               options
             });
@@ -9597,6 +10360,12 @@
               return {
                 pageIndex: idx + 1,
                 conditionLabel: buildPageConditionSummaryLabel(idx, p, variableNames),
+                reqMeta: {
+                  switch1Id: (c.switch1Valid && c.switch1Id) ? Number(c.switch1Id) : 0,
+                  switch2Id: (c.switch2Valid && c.switch2Id) ? Number(c.switch2Id) : 0,
+                  varId: (c.variableValid && c.variableId) ? Number(c.variableId) : 0,
+                  varVal: (c.variableValid && c.variableId) ? Number(c.variableValue || 0) : 0
+                },
                 rawList: keepRawList ? (p.list || []) : [],
                 steps,
                 _compiled: true,
@@ -9645,6 +10414,10 @@
             const evRecord = {
               id: ev.id,
               mapId,
+              x: Number(ev.x ?? 0),
+              y: Number(ev.y ?? 0),
+              hasBattleProcessing: Boolean(metaTracker.hasBattleProcessing),
+              hasDefeatBranch: Boolean(metaTracker.hasDefeatBranch),
               name: `EV${String(ev.id).padStart(3, "0")}: ${ev.name || `EV${String(ev.id).padStart(3, "0")}`}`,
               isParallelOrHud: isParallel && totalStats.d === 0 && totalStats.c === 0,
               isAmbientOneLinerNpc,
@@ -9700,6 +10473,10 @@
               id: mapId,
               parentId: Number(mInfo.parentId) || 0,
               editorOrder: editorMapOrder,
+              width: Math.max(10, Number(data.width) || 17),
+              height: Math.max(8, Number(data.height) || 13),
+              parallaxName: String(data.parallaxName || ""),
+              bgmName: String(data.bgm?.name || ""),
               rawTitle: mapTitle,
               rootFolderName,
               chapterFolder,
@@ -10596,13 +11373,14 @@
     }
 
     function switchMainTab(tab) {
+      if (tab === "battle") tab = "mapboard";
       state.activeTab = tab;
       const views = {
         vn: ["tabVnMode", "viewVnContainer"],
+        mapboard: ["tabMapBoardMode", "viewMapBoardContainer"],
         order: ["tabOrderMode", "viewOrderContainer"],
         script: ["tabScriptMode", "viewScriptContainer"],
         gallery: ["tabGalleryMode", "viewGalleryContainer"],
-        battle: ["tabBattleMode", "viewBattleContainer"],
         status: ["tabStatusMode", "viewStatusContainer"],
         library: ["tabLibraryMode", "viewLibraryContainer"]
       };
@@ -10624,8 +11402,8 @@
       const mobBtns = {
         maps_mobile: "mobNavMaps",
         vn: "mobNavVn",
+        mapboard: "mobNavMapBoard",
         gallery: "mobNavGallery",
-        battle: "mobNavBattle",
         status: "mobNavStatus",
         library: "mobNavLibrary"
       };
@@ -10641,10 +11419,10 @@
       applyMobilePanelVisibility(tab);
 
       if (tab === "vn") renderActiveCgStage();
+      if (tab === "mapboard") renderMapBoardTab();
       if (tab === "order") renderStoryOrderTimeline();
       if (tab === "script") renderFullScriptView();
       if (tab === "gallery") renderGalleryView(false);
-      if (tab === "battle") renderBattleSimulatorTab();
       if (tab === "status") renderStatusViewerTab();
       if (tab === "library") renderLibraryTab();
     }
@@ -10699,10 +11477,10 @@
       autoRestoreFromIndexedDb();
 
       document.getElementById("tabVnMode").addEventListener("click", () => switchMainTab("vn"));
+      document.getElementById("tabMapBoardMode")?.addEventListener("click", () => switchMainTab("mapboard"));
       document.getElementById("tabOrderMode").addEventListener("click", () => switchMainTab("order"));
       document.getElementById("tabScriptMode").addEventListener("click", () => switchMainTab("script"));
       document.getElementById("tabGalleryMode").addEventListener("click", () => switchMainTab("gallery"));
-      document.getElementById("tabBattleMode").addEventListener("click", () => switchMainTab("battle"));
       document.getElementById("tabStatusMode").addEventListener("click", () => switchMainTab("status"));
       document.getElementById("tabLibraryMode").addEventListener("click", () => switchMainTab("library"));
       document.getElementById("btnSwitchToScript").addEventListener("click", () => switchMainTab("script"));
@@ -10710,8 +11488,8 @@
 
       document.getElementById("mobNavMaps").addEventListener("click", () => switchMainTab("maps_mobile"));
       document.getElementById("mobNavVn").addEventListener("click", () => switchMainTab("vn"));
+      document.getElementById("mobNavMapBoard")?.addEventListener("click", () => switchMainTab("mapboard"));
       document.getElementById("mobNavGallery").addEventListener("click", () => switchMainTab("gallery"));
-      document.getElementById("mobNavBattle").addEventListener("click", () => switchMainTab("battle"));
       document.getElementById("mobNavStatus").addEventListener("click", () => switchMainTab("status"));
       document.getElementById("mobNavLibrary").addEventListener("click", () => switchMainTab("library"));
 
@@ -11020,16 +11798,36 @@
       }
 
       function toggleLandscapeSplitMode() {
-        if (document.body.classList.contains("force-landscape-split")) {
+        const splitBtn = document.getElementById("btnFsToggleSplit");
+        if (!document.body.classList.contains("force-landscape-split") && !document.body.classList.contains("force-portrait-stack")) {
+          document.body.classList.add("force-landscape-split");
+          if (splitBtn) splitBtn.textContent = "📐 72:28분할";
+          showToast("📐 72:28 와이드 분할(좌측 72% 와이드 CG · 우측 28% 슬림 대사창) 모드로 전환했습니다!");
+        } else if (document.body.classList.contains("force-landscape-split")) {
           document.body.classList.remove("force-landscape-split");
           document.body.classList.add("force-portrait-stack");
-          showToast("상하(세로형) 기본 뷰어 레이아웃으로 전환했습니다.");
+          if (splitBtn) splitBtn.textContent = "📱 상하배치";
+          showToast("📱 상하 기본 뷰어 레이아웃으로 전환했습니다.");
         } else {
-          document.body.classList.add("force-landscape-split");
           document.body.classList.remove("force-portrait-stack");
-          showToast("🔄 가로 좌우 분할(좌측 CG · 우측 대사창) 시네마 레이아웃으로 전환했습니다!");
+          document.body.classList.remove("force-landscape-split");
+          if (splitBtn) splitBtn.textContent = "🎬 와이드자막";
+          showToast("🎬 100% 풀와이드 CG + 슬림 하단 투명 자막 모드로 전환했습니다!");
         }
         setTimeout(() => renderActiveCgStage(), 60);
+      }
+
+      function togglePortraitRotated90Mode() {
+        const isRot = document.body.classList.toggle("portrait-rotated-landscape");
+        if (isRot) {
+          document.body.classList.add("immersive-fullscreen-mode");
+          document.body.classList.remove("force-portrait-stack");
+          showToast("🔄 90° 세로고정 가로회전 와이드 모드 ON! (폰을 세로로 든 채 사파리 가로 탭바 없이 16:9 풀화면으로 즐기세요)");
+        } else {
+          showToast("일반 화면 방향으로 복귀했습니다.");
+        }
+        syncVisualViewportHeight();
+        setTimeout(() => renderActiveCgStage(), 80);
       }
 
       function toggleDialogueVisibilityMode() {
@@ -11332,85 +12130,92 @@
         }
       });
 
-      document.getElementById("battleEnemySelect").addEventListener("change", (e) => {
-        state.selectedBattleTroopIdx = Number(e.target.value);
-        renderBattleSimulatorTab();
+      // Map Board, Free-Pass, 90-Degree Portrait Rotation & iOS Safari Toolbar Hide Listeners
+      document.getElementById("btnViewerOpenMapBoard")?.addEventListener("click", () => switchMainTab("mapboard"));
+      document.getElementById("btnFsMapBoard")?.addEventListener("click", () => {
+        if (document.body.classList.contains("immersive-fullscreen-mode")) toggleAppImmersiveFullscreen();
+        switchMainTab("mapboard");
       });
-      document.getElementById("battleHeroineCutinSelect")?.addEventListener("change", (e) => {
-        state.selectedBattleCutinKey = e.target.value;
-        renderBattleSimulatorTab();
+      document.getElementById("btnViewerFreePassUnlock")?.addEventListener("click", () => {
+        const ev = getCurrentEvent();
+        if (ev) executeFreePassForEvent(ev);
       });
-      document.getElementById("btnBattleNextTurn").addEventListener("click", () => {
-        const troops = state.project.battleTroops || [];
-        const tr = troops[state.selectedBattleTroopIdx] || troops[0];
-        if (tr && tr.pages && tr.pages[0]) {
-          ensurePageCompiled(tr, tr.pages[0]);
-          state.activeSteps = JSON.parse(JSON.stringify(tr.pages[0].steps || []));
-          state.currentStepIndex = 0;
-          document.getElementById("activeEventTitle").textContent = translateJpName(tr.name);
-          switchMainTab("vn");
-          renderCurrentStep();
-        } else {
-          const bList = state.project.battleScenesList || [];
-          if (bList[0]) {
-            state.selectedMapId = bList[0].mapId;
-            renderMapsList();
-            selectEvent(bList[0].eventId, bList[0].pageIdx || 0, bList[0].stepIdx || 0);
-            switchMainTab("vn");
-          } else {
-            document.getElementById("battleLogMessage").textContent = "전투 턴 진행: 적과 대치하며 공방을 주고받습니다!";
-          }
-        }
+      document.getElementById("btnFsFreePass")?.addEventListener("click", () => {
+        const ev = getCurrentEvent();
+        if (ev) executeFreePassForEvent(ev);
       });
-      document.getElementById("btnBattleEnemySkill").addEventListener("click", async () => {
-        const troops = state.project.battleTroops || [];
-        const tr = troops[state.selectedBattleTroopIdx] || troops[0];
-        const trSkills = (tr && tr.skills && tr.skills.length) ? tr.skills : (state.project.battleSkills || []);
-        const sk = trSkills[Math.floor(Math.random() * Math.max(1, trSkills.length))];
-        if (sk && sk.linkedEvent) {
-          state.selectedMapId = sk.linkedEvent.mapId;
+      document.getElementById("btnMapBoardUnlockAll")?.addEventListener("click", () => unlockAllGameConditionsFreePass());
+      document.getElementById("btnMapBoardBackToVn")?.addEventListener("click", () => switchMainTab("vn"));
+      document.getElementById("mapBoardSelect")?.addEventListener("change", (e) => {
+        state.selectedMapId = Number(e.target.value);
+        state.selectedMapBoardEvId = null;
+        renderMapsList();
+        const curMap = getCurrentMap();
+        const firstEvs = getFilteredAndMergedEvents(curMap);
+        if (firstEvs[0]) selectEvent(firstEvs[0].id);
+        renderMapBoardTab();
+      });
+      document.getElementById("btnCourseMainStory")?.addEventListener("click", () => {
+        state.sortOrderMode = "progress_chain";
+        state.sceneFilter = "all";
+        const timeline = buildStoryTimeline();
+        if (timeline[0]) {
+          state.selectedMapId = timeline[0].mapId;
           renderMapsList();
-          selectEvent(sk.linkedEvent.eventId);
+          selectEvent(timeline[0].eventId);
           switchMainTab("vn");
-        } else {
-          document.getElementById("battleLogMessage").textContent = sk
-            ? `💥 적 특수 스킬 발동: [${translateJpName(sk.name)}] — ${translateJpName(sk.message || "특수 구속 공격!")}`
-            : "💥 적이 특수 구속/상태이상 스킬을 발동했습니다!";
-          const cutinSel = document.getElementById("battleHeroineCutinSelect");
-          if (cutinSel && cutinSel.options.length > 1) {
-            const nextIdx = (cutinSel.selectedIndex + 1) % cutinSel.options.length;
-            cutinSel.selectedIndex = nextIdx;
-            state.selectedBattleCutinKey = cutinSel.value;
-            renderBattleSimulatorTab();
-          }
+          showToast(`❗ 메인 스토리 직행 코스 시작! (#1: ${timeline[0].eventName})`);
         }
       });
-      document.getElementById("btnBattleStateChange").addEventListener("click", async () => {
-        const states = state.project.battleStates || [];
-        const st = states[Math.floor(Math.random() * Math.max(1, states.length))];
-        document.getElementById("battleLogMessage").textContent = st
-          ? `💫 상태이상/컷인 전환: [${translateJpName(st.name)}] ${translateJpName(st.message1 || "")}`
-          : "💫 캐릭터의 전투 컷인/복장 상태가 전환되었습니다!";
-        const cutinSel = document.getElementById("battleHeroineCutinSelect");
-        if (cutinSel && cutinSel.options.length > 1) {
-          const nextIdx = (cutinSel.selectedIndex + 1) % cutinSel.options.length;
-          cutinSel.selectedIndex = nextIdx;
-          state.selectedBattleCutinKey = cutinSel.value;
-          renderBattleSimulatorTab();
-        }
-      });
-      document.getElementById("btnBattleDefeatScene").addEventListener("click", () => {
-        const bList = state.project.battleScenesList || [];
-        const defeatItem = bList.find(x => /패배|敗北|lose|defeat/i.test(x.title || x.badge)) || bList[0];
-        if (defeatItem) {
-          state.selectedMapId = defeatItem.mapId;
+      document.getElementById("btnCourseHScenes")?.addEventListener("click", () => {
+        const timeline = buildStoryTimeline().filter(t => (t.stats?.cgCount || 0) > 0);
+        if (timeline[0]) {
+          state.selectedMapId = timeline[0].mapId;
           renderMapsList();
-          selectEvent(defeatItem.eventId, defeatItem.pageIdx || 0, defeatItem.stepIdx || 0);
+          selectEvent(timeline[0].eventId);
           switchMainTab("vn");
-          showToast(`패배/전투 이벤트 '${translateJpName(defeatItem.title)}'을(를) 실행했습니다!`);
-          return;
+          showToast(`🔞 H·CG 하이라이트 직행 코스! (총 ${timeline.length}개 CG 이벤트 중 첫 장면으로 이동)`);
+        } else {
+          showToast("CG가 포함된 이벤트가 없습니다.");
         }
-        document.getElementById("btnBattleNextTurn").click();
+      });
+      document.getElementById("btnCourseBossDefeat")?.addEventListener("click", () => {
+        const bList = state.project?.battleScenesList || [];
+        if (bList[0]) {
+          state.selectedMapId = bList[0].mapId;
+          renderMapsList();
+          selectEvent(bList[0].eventId, bList[0].pageIdx || 0, bList[0].stepIdx || 0);
+          switchMainTab("vn");
+          showToast(`⚔️ 보스·패배 분기 직행 코스! (${translateJpName(bList[0].title)})`);
+        } else {
+          showToast("별도 보스/패배 분기 이벤트가 감지되지 않았습니다.");
+        }
+      });
+
+      document.getElementById("btnFsRotate90")?.addEventListener("click", togglePortraitRotated90Mode);
+      document.getElementById("btnStageRotate90")?.addEventListener("click", togglePortraitRotated90Mode);
+      document.getElementById("btnModalActivateRotate90")?.addEventListener("click", () => {
+        document.getElementById("iosToolbarHelperModal")?.classList.add("hidden");
+        if (!document.body.classList.contains("portrait-rotated-landscape")) togglePortraitRotated90Mode();
+      });
+
+      document.getElementById("btnFsHideSafariBar")?.addEventListener("click", () => {
+        document.body.classList.add("ios-scroll-runway");
+        setTimeout(() => window.scrollTo({ top: 90, behavior: "smooth" }), 50);
+        document.getElementById("iosToolbarHelperModal")?.classList.remove("hidden");
+      });
+      document.getElementById("btnCloseIosHelperModal")?.addEventListener("click", () => {
+        document.getElementById("iosToolbarHelperModal")?.classList.add("hidden");
+      });
+
+      document.getElementById("btnFsCollapseHud")?.addEventListener("click", () => {
+        const lBox = document.getElementById("fsHudLeftCollapsible");
+        const rBox = document.getElementById("fsHudRightCollapsible");
+        const btn = document.getElementById("btnFsCollapseHud");
+        if (!lBox || !rBox || !btn) return;
+        const isHidden = lBox.classList.toggle("hidden");
+        rBox.classList.toggle("hidden", isHidden);
+        btn.textContent = isHidden ? "☰ 메뉴 펼치기" : "▾";
       });
 
       document.getElementById("btnPurgeUnusedCgs").addEventListener("click", () => {
@@ -11666,7 +12471,7 @@
       renderMapsList();
       selectEvent(11);
       renderGalleryView(true);
-      renderBattleSimulatorTab();
+      renderMapBoardTab();
       renderStatusViewerTab();
       renderLibraryTab();
       renderStoryOrderTimeline();
