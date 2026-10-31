@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0b0f17" />
   <link rel="manifest" href="manifest.json" />
-  <title>RPG Story Player &amp; Extractor Pro v17</title>
+  <title>RPG Story Player &amp; Extractor Pro v18</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
@@ -91,10 +91,19 @@
       user-select: none !important;
     }
 
-    /* v17 Mobile Fullscreen & Landscape Split-View Modes (`IMG_4193.jpg` Fix!)
-       Uses `--app-vvh` (synced live with `window.visualViewport.height`) and hides ALL overhead sub-toolbars
-       so Safari's address/tab bar never crushes or clips the CG Stage and Dialogue Box! */
+    /* v18 Mobile Fullscreen, VisualViewport Exact Locking & Dynamic Island Safe-Area (`IMG_4195.jpg` Fix!)
+       1) Locks body to exact `visualViewport` (`--app-vv-top`, `--app-vv-left`, `--app-vvw`, `--app-vvh`) so iOS Safari's address/tab bar never pushes content off-screen.
+       2) Reserves `--island-safe-left` / `--island-safe-right` (default 54px in mobile landscape) so iPhone's Dynamic Island never covers `#fullscreenFloatingHud` or the Dialogue Box.
+       3) Enforces `min-width: 0 !important` on flex items so `<canvas id="cgCanvas">` never pushes `#vnRightDialogueColumn` off the right edge! */
+    :root {
+      --island-safe-left: 54px;
+      --island-safe-right: 54px;
+    }
     body.immersive-fullscreen-mode {
+      position: fixed !important;
+      top: var(--app-vv-top, 0px) !important;
+      left: var(--app-vv-left, 0px) !important;
+      width: var(--app-vvw, 100vw) !important;
       height: var(--app-vvh, 100dvh) !important;
       max-height: var(--app-vvh, 100dvh) !important;
       overflow: hidden !important;
@@ -108,9 +117,19 @@
       display: none !important;
     }
     body.immersive-fullscreen-mode > main {
-      padding: 2px !important;
-      max-width: 100vw !important;
+      padding-top: max(2px, env(safe-area-inset-top, 0px)) !important;
+      padding-bottom: max(2px, env(safe-area-inset-bottom, 0px)) !important;
+      padding-left: max(4px, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(4px, env(safe-area-inset-right, 0px)) !important;
+      max-width: 100% !important;
+      width: 100% !important;
       height: var(--app-vvh, 100dvh) !important;
+    }
+    @media (orientation: landscape) and (max-width: 1024px) {
+      body.immersive-fullscreen-mode > main {
+        padding-left: max(var(--island-safe-left, 54px), env(safe-area-inset-left, 0px)) !important;
+        padding-right: max(var(--island-safe-right, 54px), env(safe-area-inset-right, 0px)) !important;
+      }
     }
     body.immersive-fullscreen-mode #fullscreenFloatingHud {
       display: flex !important;
@@ -119,6 +138,10 @@
     /* Landscape Split-View Cinema Mode (auto on mobile landscape or manual toggle) */
     @media (max-height: 580px) and (orientation: landscape) {
       body:not(.force-portrait-stack) {
+        position: fixed !important;
+        top: var(--app-vv-top, 0px) !important;
+        left: var(--app-vv-left, 0px) !important;
+        width: var(--app-vvw, 100vw) !important;
         height: var(--app-vvh, 100dvh) !important;
         max-height: var(--app-vvh, 100dvh) !important;
         overflow: hidden !important;
@@ -132,31 +155,51 @@
         display: none !important;
       }
       body:not(.force-portrait-stack) > main {
-        padding: 2px !important;
+        padding-top: 2px !important;
+        padding-bottom: max(2px, env(safe-area-inset-bottom, 0px)) !important;
+        padding-left: max(var(--island-safe-left, 54px), env(safe-area-inset-left, 0px)) !important;
+        padding-right: max(var(--island-safe-right, 54px), env(safe-area-inset-right, 0px)) !important;
+        width: 100% !important;
+        max-width: 100% !important;
         height: var(--app-vvh, 100dvh) !important;
       }
       body:not(.force-portrait-stack) #vnStageAndDialogueWrapper {
         flex-direction: row !important;
         align-items: stretch !important;
         padding: 2px !important;
-        gap: 4px !important;
+        gap: 6px !important;
+        width: 100% !important;
+        min-width: 0 !important;
       }
       body:not(.force-portrait-stack) #cgStageContainer {
-        flex: 1 1 58% !important;
+        flex: 1 1 56% !important;
+        min-width: 0 !important;
         min-height: 0 !important;
         height: 100% !important;
       }
       body:not(.force-portrait-stack) #vnRightDialogueColumn {
-        width: 42% !important;
-        max-width: 430px !important;
+        flex: 0 0 44% !important;
+        width: 44% !important;
+        max-width: 420px !important;
+        min-width: 0 !important;
         height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-end !important;
+        gap: 3px !important;
+      }
+      body:not(.force-portrait-stack) #sceneEndBanner {
+        padding: 3px 8px !important;
       }
       body:not(.force-portrait-stack) #dialogueBoxPro {
-        height: 100% !important;
-        flex: 1 1 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        flex: 1 1 0% !important;
+        padding: 6px 8px !important;
+      }
+      body:not(.force-portrait-stack) #dialogueBottomControls button {
+        padding: 4px 6px !important;
+        font-size: 11px !important;
       }
       body:not(.force-portrait-stack) #fullscreenFloatingHud {
         display: flex !important;
@@ -166,23 +209,28 @@
     body.force-landscape-split #vnStageAndDialogueWrapper {
       flex-direction: row !important;
       align-items: stretch !important;
+      min-width: 0 !important;
     }
     body.force-landscape-split #cgStageContainer {
-      flex: 1 1 60% !important;
+      flex: 1 1 58% !important;
+      min-width: 0 !important;
       min-height: 0 !important;
       height: 100% !important;
     }
     body.force-landscape-split #vnRightDialogueColumn {
-      width: 40% !important;
-      max-width: 460px !important;
+      flex: 0 0 42% !important;
+      width: 42% !important;
+      max-width: 450px !important;
+      min-width: 0 !important;
       height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: flex-end !important;
     }
     body.force-landscape-split #dialogueBoxPro {
-      height: 100% !important;
-      flex: 1 1 auto !important;
+      height: auto !important;
+      min-height: 0 !important;
+      flex: 1 1 0% !important;
     }
 
     /* Hidden / Transparent Dialogue Overlay Mode for Unobstructed CG Viewing */
@@ -204,7 +252,7 @@
   <header class="flex-shrink-0 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 py-1.5 z-30">
     <div class="max-w-[1860px] mx-auto flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-1 min-w-0">
-        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v17</span>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] sm:text-[11px] flex-shrink-0">v18</span>
         <select id="gameLibrarySelect" class="bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 max-w-[105px] sm:max-w-[220px] truncate"></select>
         <button id="btnToggleFullscreenHeader" type="button" class="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-[11px] text-emerald-200 hover:text-white border border-emerald-500/40 font-bold flex-shrink-0" title="전체화면 / 몰입 모드 전환 (모바일 주소창·탭바 가림 해결)">
           ⛶ 전체화면
@@ -565,6 +613,7 @@
                   <button id="btnFsPartsModal" type="button" class="px-2 py-0.5 rounded bg-amber-600/40 hover:bg-amber-600 text-[10px] font-bold text-amber-200 whitespace-nowrap">🎨 파츠</button>
                   <button id="btnFsToggleTools" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300 font-semibold whitespace-nowrap">🛠️ 도구</button>
                   <button id="btnFsToggleSplit" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-sky-300 font-semibold whitespace-nowrap">🔄 분할</button>
+                  <button id="btnFsIslandMargin" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-amber-300 font-semibold whitespace-nowrap" title="다이나믹 아일랜드·노치 안전 여백 조절 (양쪽/좌측/우측/최소)">🏝️ 여백:양쪽</button>
                 </div>
                 <div class="flex items-center gap-1 pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-1.5 py-0.5 shadow-lg whitespace-nowrap flex-shrink-0">
                   <button id="btnFsToggleDialogueVis" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-indigo-200 font-semibold whitespace-nowrap">👁 대사</button>
@@ -659,7 +708,7 @@
                   <div class="flex items-center gap-1 flex-1">
                     <button id="btnFirstStep" type="button" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300">처음</button>
                     <button id="btnPrevStep" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200">← 이전</button>
-                    <button id="btnNextStep" type="button" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow" title="클릭: 다음 대사 · 길게 누르기: 고속 스킵">다음 (터치/길게:스킵) →</button>
+                    <button id="btnNextStep" type="button" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow whitespace-nowrap" title="탭: 다음 대사 · 길게 누르기: 고속 스킵">다음 (길게:스킵) →</button>
                     <button id="btnToggleAutoPlay" type="button" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-emerald-300 border border-emerald-500/30">
                       ▶ 오토
                     </button>
@@ -716,7 +765,8 @@
                 <button id="galCatAll" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">📦 전체 표시</button>
                 <button id="galCatImages" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🖼️ 이미지만</button>
                 <button id="galCatMovies" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">🎬 동영상만</button>
-                <button id="galCatUnused" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30">🔍 미사용 CG 확인</button>
+                <button id="galCatUnused" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30">🔍 미사용</button>
+                <button id="btnToggleGalleryGroupVariants" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow transition" title="동일 CG·스탠딩의 표정/효과 차분을 대표 카드 1개로 묶어서 보기">🗂️ 표정·차분 묶기: ON</button>
               </div>
               <div class="flex items-center gap-1.5">
                 <button id="btnPurgeUnusedCgs" type="button" class="px-2 py-1 rounded-lg bg-rose-900/50 hover:bg-rose-700 text-rose-200 text-[11px] font-semibold border border-rose-500/40">
@@ -1812,6 +1862,9 @@
       sortOrderMode: "progress_chain",
       sceneFilter: "all",
       galleryCategory: "all",
+      groupGalleryVariants: true,
+      galleryGroupIndexMap: {},
+      islandMarginMode: "both",
       statusVarCategory: "key",
       selectedNativeStatusPageIdx: 0,
       autoTranslateJp: true,
@@ -1873,7 +1926,7 @@
     const CURRENT_EXTRACTOR_VERSION = "v17.0";
 
     // Upgraded in v17:
-    // 1) Saves `cleanProj` (stamped with `extractorVersion: "v17.0"`) in its own dedicated transaction FIRST on ALL devices (including iPhone/iPad Safari!)
+    // 1) Saves `cleanProj` (stamped with `extractorVersion: "v18.0"`) in its own dedicated transaction FIRST on ALL devices (including iPhone/iPad Safari!)
     //    so Safari refreshes NEVER lose saved games even if Safari rejects storing a 1.5GB raw File handle in `zipFiles`!
     // 2) Saves `zipFiles` in a separate isolated transaction so a quota/File clone error on mobile Safari cannot roll back the `projects` save!
     async function autoSaveProjectToIndexedDb(proj, rawZipFile = null) {
@@ -2388,11 +2441,14 @@
       if (!s) return true;
       if (/^(?:system_ui|mapui|battle_ui|system_event_window|onomatope|backeffect00blank|0_暗幕|0_黒帯|暗幕|黒帯)/i.test(s)) return true;
       if (/(?:_hud\d*|^hud_|^ui_frame|^mes_frame|^msg_frame)/i.test(s)) return true;
+      // Filter pure black screen dimmers / fade curtains (`S_effect_back black`, `Center black fade`, `back black`) and map-wide weather color tints (`オーバーレイ*`, `光1`, `日光1`)
+      if (/(?:^|[_\s-])(?:back\s*black|black\s*back|black\s*screen|screen\s*black|fade\s*black|center\s*black\s*fade\d*|暗転|黒背景|黒画面)(?:$|[_\s-])/i.test(s)) return true;
+      if (/^(?:オーバーレイ|光1$|日光1$)/i.test(s)) return true;
       return /^(?:bg_black|bg_white|black|white|darkness|fade|blank|empty|dummy|none|clear|暗転|暗幕|黒帯|黒|白|透明|window|msgwin|meswin|talkwin|textbox|fukidashi|win_bg|mes_bg|gauge|hud|cursor|number|icon|coin|cup)$/i.test(s);
     }
 
     function isGlassesOrOptionalOverlayName(name) {
-      return /(?:^|_|\/)(?:grass|glass|glasses|megane|effect|option|chinge|bote|seieki|semen|siru|ase|namida|debuff|안경|メガネ|汗|涙|鼻血|精液|ボテ)/i.test(String(name || ""));
+      return /(?:^|_|\/)(?:grass|glass|glasses|megane|option|chinge|bote|seieki|semen|siru|ase|namida|debuff|안경|メガネ|汗|涙|鼻血|精液|ボテ)/i.test(String(name || ""));
     }
 
     function extractCharacterStem(picName) {
@@ -2470,6 +2526,43 @@
         return { charName: "chara_heroine", partPrefix: s.replace(/\d+$/, ""), category: "안경/이펙트(Acc)" };
       }
 
+      // 2.5) Numbered Z-Layer Standing Systems (e.g. `야에즈 이문기담`: `0_body_long`, `1_half_frown`, `2_mouth_close`, `3_body top layer hair`, `4_decoration_blush`, `5_cloth_teacher_blouse`, `6_top layer steam screen`, plus `Iku0_..6_` and `Hina0_..6_`)
+      const zLayerMatch = s.match(/^(iku|hina)?([0-6])_(.+)$/i);
+      if (zLayerMatch) {
+        const cPrefix = (zLayerMatch[1] || "heroine").toLowerCase();
+        const zIdx = zLayerMatch[2];
+        const rest = zLayerMatch[3].toLowerCase();
+        if (zIdx === "0" && rest.startsWith("body")) {
+          return { charName: cPrefix, partPrefix: `${cPrefix}_0_body`, category: "몸통(Base)" };
+        }
+        if (zIdx === "1") {
+          return { charName: cPrefix, partPrefix: `${cPrefix}_1_eyes`, category: "눈(Eyes)" };
+        }
+        if (zIdx === "2" && rest.startsWith("mouth")) {
+          return { charName: cPrefix, partPrefix: `${cPrefix}_2_mouth`, category: "입(Mouth)" };
+        }
+        if (zIdx === "3" || rest.includes("hair")) {
+          return { charName: cPrefix, partPrefix: `${cPrefix}_3_hair`, category: "앞머리(FrontHair)" };
+        }
+        if (zIdx === "4") {
+          const decSub = rest.replace(/^decoration_/, "").split(/[_\s]/)[0] || "acc";
+          return { charName: cPrefix, partPrefix: `${cPrefix}_4_${decSub}`, category: "안경/이펙트(Acc)" };
+        }
+        if (zIdx === "5" && rest.startsWith("cloth")) {
+          const clothSub = rest.replace(/^cloth_/, "");
+          if (/glasses|megane/i.test(clothSub)) {
+            return { charName: cPrefix, partPrefix: `${cPrefix}_5_glasses`, category: "안경/이펙트(Acc)" };
+          }
+          if (/panty|bra|under|loincloth/i.test(clothSub) && !/pantyhose/i.test(clothSub)) {
+            return { charName: cPrefix, partPrefix: `${cPrefix}_5_${clothSub.split("_")[0]}`, category: "속옷(Under)" };
+          }
+          return { charName: cPrefix, partPrefix: `${cPrefix}_5_${clothSub}`, category: "복장(Cloth)" };
+        }
+        if (zIdx === "6") {
+          return { charName: cPrefix, partPrefix: `${cPrefix}_6_${rest}`, category: "안경/이펙트(Acc)" };
+        }
+      }
+
       // 3) Standard `CharName_PartName_01` (Dragon Conquista etc.)
       const m = s.match(/^([A-Za-z0-9가-힣\u3040-\u30ff\u4e00-\u9fff]+)_([A-Za-z]+)/);
       if (m && !/^(?:cgevent|mod|system|battle|ero|ev\d+)/i.test(m[1])) {
@@ -2527,7 +2620,8 @@
     }
 
     function isDetachedSubPartFile(picName) {
-      const s = String(picName || "");
+      const s = String(picName || "").split("/").pop();
+      if (/^(?:iku|hina)?[1-6]_/i.test(s)) return true;
       return /_(?:eyes|eye|mouth|cheek|mayu|brow|fronthair|backhair|arm|hand|bust|grass|glass|effect|kuchi|hoho|ude|kao|seieki)[0-9_(\b]/i.test(s);
     }
 
@@ -3144,15 +3238,47 @@
       }
       if (relinkOverlay) relinkOverlay.classList.add("hidden");
 
-      // Compute Union Visible Bounding Box (Using Non-Transparent Pixel Bounds!)
+      // Helper: detect if an effect/steam/smoke/light image has an opaque black background intended for Screen/Additive blending
+      const detectAutoBlendMode = (item) => {
+        const explicitBm = Number(item.spec?.blendMode || 0);
+        if (explicitBm === 1) return "lighter";
+        if (explicitBm === 2) return "multiply";
+        if (explicitBm === 3) return "screen";
+        const k = String(item.effectiveKey || "");
+        if (/(?:steam|smoke|fog|mist|sunshine|light|湯気|煙|霧)/i.test(k) && !/not\s*screen/i.test(k)) {
+          return "screen";
+        }
+        if (/(?:multiplication|_shadow\d*$)/i.test(k) && !/man\s*shadow|day\s*shadow|hut\s*shadow|homeless\s*shadow|death\s*shadow/i.test(k)) {
+          return "multiply";
+        }
+        return "source-over";
+      };
+
+      const isAuxiliaryEffectLayer = (item) => {
+        if (item.isTextPicture) return false;
+        const bm = Number(item.spec?.blendMode || 0);
+        if (bm > 0) return true;
+        const k = String(item.effectiveKey || "");
+        return /(?:^S_effect_|steam|smoke|fog|vignette|line\s+up|center\s+line|湯気|煙)/i.test(k);
+      };
+
+      // Compute Union Visible Bounding Box:
+      // CRITICAL FIX IN v18 (`image_b63c1d.jpg` 1/4 Top-Left Corner Shrink Fix!):
+      // When core illustration/standing layers exist, compute the stage bounding box from the core layers
+      // so oversized (`x2`) steam/effect/line overlays never expand `bboxW x bboxH` to 2x and shrink the main CG into the top-left 1/4!
+      const coreLayers = loadedLayers.filter(l => !isAuxiliaryEffectLayer(l));
+      const bboxSourceLayers = coreLayers.length > 0 ? coreLayers : loadedLayers;
+
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const l of loadedLayers) {
+      for (const l of bboxSourceLayers) {
         if (l.visMinX < minX) minX = l.visMinX;
         if (l.visMinY < minY) minY = l.visMinY;
         if (l.visMaxX > maxX) maxX = l.visMaxX;
         if (l.visMaxY > maxY) maxY = l.visMaxY;
       }
 
+      // If a camera-panned 2x CG (`Ev_bb 1st 57` at `x = -480, y = -100, lw = 1632, lh = 1248`) is paired with 1x screen overlays at `(0, 0)`,
+      // or if `minX < 0` on a camera pan, clamp the viewport window to the intended screen camera frame `[0, 0, 816..1280, 624..720]` when appropriate
       const bboxW = Math.max(64, maxX - minX);
       const bboxH = Math.max(64, maxY - minY);
 
@@ -3172,6 +3298,7 @@
         const { img, spec, lx, ly, lw, lh, flipX, flipY, isTextPicture } = item;
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, (spec.opacity ?? 255) / 255));
+        ctx.globalCompositeOperation = detectAutoBlendMode(item);
         const dx = offsetX + (lx - minX) * finalScale;
         const dy = offsetY + (ly - minY) * finalScale;
         if (isTextPicture) {
@@ -4092,6 +4219,18 @@
       });
     }
 
+    function getExpressionGroupStem(rawKey) {
+      const norm = String(rawKey || "").replace(/\\/g, "/");
+      const dir = norm.includes("/") ? norm.slice(0, norm.lastIndexOf("/") + 1) : "";
+      const base = norm.split("/").pop();
+      const zMatch = base.match(/^(iku|hina)?([0-6])_(.+)$/i);
+      if (zMatch) return `${dir}${(zMatch[1] || "heroine").toLowerCase()}_${zMatch[2]}`;
+      return dir + base
+        .replace(/(?:[_\s-]+(?:0*\d{1,3}[a-z]?|[a-z]|normal|smile|angry|frown|pain|close|open|ahe|cry|blush|sweat|diff|差分))+$/i, "")
+        .replace(/\d{2,3}$/, "")
+        .trim();
+    }
+
     function renderSceneKeyframeBar() {
       const bar = document.getElementById("sceneKeyframeBar");
       if (!bar) return;
@@ -4101,56 +4240,98 @@
         return;
       }
 
-      const keyframes = [];
+      const rawKeyframes = [];
       let prevSig = "";
       for (let idx = 0; idx < steps.length; idx++) {
         const s = steps[idx];
         let sig = "";
+        let mainK = "";
         if (s.pictureSnapshot) {
-          sig = Object.entries(s.pictureSnapshot)
-            .filter(([, v]) => v && v.key && !isDummyBlackOrSystemPicture(v.key))
-            .map(([k, v]) => `${k}:${v.key}`)
-            .join("|");
+          const validEntries = Object.entries(s.pictureSnapshot)
+            .filter(([, v]) => v && v.key && !v.isTextPicture && !isDummyBlackOrSystemPicture(v.key) && (v.opacity ?? 255) > 0)
+            .sort((a, b) => Number(a[0]) - Number(b[0]));
+          sig = validEntries.map(([k, v]) => `${k}:${v.key}`).join("|");
+          const coreEntry = [...validEntries].reverse().find(([, v]) => !isDetachedSubPartFile(v.key) && !/(?:^S_effect_|steam|smoke|splash|shadow|line)/i.test(v.key))
+            || validEntries.find(([, v]) => !isDetachedSubPartFile(v.key))
+            || validEntries[validEntries.length - 1];
+          mainK = coreEntry ? coreEntry[1].key : "";
         } else if (s.cgKey && !isDummyBlackOrSystemPicture(s.cgKey)) {
           sig = `cg:${s.cgKey}`;
+          mainK = s.cgKey;
         }
         if ((sig && sig !== prevSig) || idx === 0 || s.type === "branch") {
           prevSig = sig || prevSig;
           let label = `#${idx + 1}`;
-          if (s.type === "branch") label += ` ❖분기`;
-          else if (s.cgKey) label += ` 🎬${s.cgKey.slice(0, 10)}`;
-          else if (s.pictureSnapshot) {
-            const keys = Object.values(s.pictureSnapshot).filter(v => v && v.key && !isDummyBlackOrSystemPicture(v.key)).map(v => v.key);
-            const mainK = keys.find(k => !isDetachedSubPartFile(k)) || keys[keys.length - 1] || "장면";
-            label += ` 🖼${mainK.slice(0, 10)}`;
+          let groupStem = "";
+          if (s.type === "branch") {
+            label += ` ❖분기`;
+            groupStem = `__branch_${idx}`;
+          } else if (s.type === "movie" && s.cgKey) {
+            label += ` 🎬${s.cgKey.split("/").pop().slice(0, 10)}`;
+            groupStem = `__movie_${s.cgKey}`;
+          } else if (mainK) {
+            label += ` 🖼${mainK.split("/").pop().slice(0, 10)}`;
+            groupStem = getExpressionGroupStem(mainK).toLowerCase();
           } else {
             label += ` 도입`;
+            groupStem = `__intro_${idx}`;
           }
-          keyframes.push({ stepIdx: idx, label });
+          rawKeyframes.push({ stepIdx: idx, endStepIdx: idx, label, groupStem, count: 1 });
         }
       }
 
-      if (keyframes.length <= 1) {
+      if (rawKeyframes.length <= 1) {
         bar.classList.add("hidden");
         return;
       }
 
+      const keyframes = [];
+      if (state.groupGalleryVariants) {
+        for (const kf of rawKeyframes) {
+          const prev = keyframes[keyframes.length - 1];
+          if (prev && prev.groupStem && prev.groupStem === kf.groupStem && !kf.groupStem.startsWith("__")) {
+            prev.count++;
+            prev.endStepIdx = kf.stepIdx;
+          } else {
+            keyframes.push({ ...kf });
+          }
+        }
+      } else {
+        keyframes.push(...rawKeyframes);
+      }
+
       bar.classList.remove("hidden");
-      bar.innerHTML = `<span class="text-slate-400 font-semibold flex-shrink-0">🎬 장면 점프:</span>` +
-        keyframes.slice(0, 24).map(kf => {
+      bar.innerHTML = `
+        <button type="button" id="btnToggleSceneBarGroup" class="px-1.5 py-0.5 rounded border text-[10px] font-bold flex-shrink-0 transition ${
+          state.groupGalleryVariants
+            ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-300"
+            : "bg-slate-800 border-slate-700 text-slate-300"
+        }" title="연속된 표정·미세 차분 스텝을 하나로 묶거나 펼치기">
+          🗂️ 차분묶기:${state.groupGalleryVariants ? "ON" : "OFF"}
+        </button>
+      ` +
+        keyframes.slice(0, 30).map(kf => {
+          const isExact = state.currentStepIndex >= kf.stepIdx && state.currentStepIndex <= (kf.endStepIdx ?? kf.stepIdx);
           const isCur = state.currentStepIndex >= kf.stepIdx;
+          const suffix = kf.count > 1 ? ` (+${kf.count - 1})` : "";
           return `
             <button type="button" data-kf-jump="${kf.stepIdx}" class="px-2 py-0.5 rounded border flex-shrink-0 transition ${
-              state.currentStepIndex === kf.stepIdx
+              isExact
                 ? "bg-emerald-600 border-emerald-400 text-white font-bold"
                 : isCur
                   ? "bg-slate-800 border-slate-700 text-emerald-300 hover:bg-slate-700"
                   : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
             }">
-              ${escapeHtml(kf.label)}
+              ${escapeHtml(kf.label + suffix)}
             </button>
           `;
         }).join("");
+
+      bar.querySelector("#btnToggleSceneBarGroup")?.addEventListener("click", () => {
+        state.groupGalleryVariants = !state.groupGalleryVariants;
+        renderSceneKeyframeBar();
+        if (state.activeTab === "gallery") renderGalleryView(true);
+      });
 
       bar.querySelectorAll("[data-kf-jump]").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -4231,21 +4412,32 @@
       });
     }
 
+    // CRITICAL FIX IN v18 (`image_b63fc0.jpg` Two Heads Overlap & `image_b63b48.jpg` Floating Eyes Fix!):
+    // 1) Each `s.pictureSnapshot` produced by `buildCleanStepSnapshot()` is a COMPLETE snapshot of visible layers at step `i`.
+    //    Replace `state.activePictureSlots` with `clonePicMapFast(s.pictureSnapshot)` instead of accumulating erased/faded slots from earlier steps!
+    // 2) When `s.type === "cg" || s.type === "movie"`, preserve the existing slot's `(x, y, origin, scaleX, scaleY, opacity, blendMode)` from `s.pictureSnapshot`
+    //    so standing parts (e.g. `#21: 1_half_frown` at `x=400, y=15, scale=72%`) are NEVER reset to `(x=0, y=0, scale=100%)`!
     function syncPictureSlotsAtStep(stepIndex) {
       state.activePictureSlots = {};
       const steps = state.activeSteps || [];
       for (let i = 0; i <= stepIndex && i < steps.length; i++) {
         const s = steps[i];
-        if (s.pictureSnapshot) {
-          for (const [slot, val] of Object.entries(s.pictureSnapshot)) {
-            if (val === null) delete state.activePictureSlots[slot];
-            else state.activePictureSlots[slot] = val;
-          }
+        if (s.pictureSnapshot && Object.keys(s.pictureSnapshot).length > 0) {
+          state.activePictureSlots = clonePicMapFast(s.pictureSnapshot);
         }
         if (s.type === "cg" || s.type === "movie") {
-          state.activePictureSlots[s.slot || 1] = {
-            key: s.cgKey, x: s.x || 0, y: s.y || 0, origin: s.origin || 0,
-            scaleX: s.scaleX ?? 100, scaleY: s.scaleY ?? 100, opacity: s.opacity ?? 255
+          const slot = s.slot || 1;
+          const existing = state.activePictureSlots[slot];
+          state.activePictureSlots[slot] = {
+            ...(existing || {}),
+            key: s.cgKey,
+            x: s.x ?? existing?.x ?? 0,
+            y: s.y ?? existing?.y ?? 0,
+            origin: s.origin ?? existing?.origin ?? 0,
+            scaleX: s.scaleX ?? existing?.scaleX ?? 100,
+            scaleY: s.scaleY ?? existing?.scaleY ?? 100,
+            opacity: s.opacity ?? existing?.opacity ?? 255,
+            blendMode: s.blendMode ?? existing?.blendMode ?? 0
           };
         }
       }
@@ -4546,9 +4738,16 @@
 
     function getFilteredGalleryAssets() {
       updateGalleryCategoryCounts();
+      const btnGrp = document.getElementById("btnToggleGalleryGroupVariants");
+      if (btnGrp) {
+        btnGrp.textContent = `🗂️ 표정·차분 묶기: ${state.groupGalleryVariants ? "ON" : "OFF"}`;
+        btnGrp.className = state.groupGalleryVariants
+          ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow transition"
+          : "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition";
+      }
       const q = (document.getElementById("gallerySearchInput")?.value || "").trim().toLowerCase();
       const cat = state.galleryCategory || "all";
-      return Object.values(state.project.cgAssets || {}).filter(a => {
+      const rawList = Object.values(state.project.cgAssets || {}).filter(a => {
         if (!a || !a.name || state.deletedCgKeys.has(a.name) || isDummyBlackOrSystemPicture(a.name)) return false;
 
         if (cat === "images" && a.mediaType === "video") return false;
@@ -4560,6 +4759,40 @@
         const label = (a.label || "").toLowerCase();
         return a.name.toLowerCase().includes(q) || koName.includes(q) || label.includes(q);
       });
+
+      if (!state.groupGalleryVariants) return rawList;
+
+      const groupMap = new Map();
+      for (const a of rawList) {
+        if (a.mediaType === "video") {
+          groupMap.set(`__video__${a.name}`, [a]);
+          continue;
+        }
+        const gKey = getExpressionGroupStem(a.name).toLowerCase();
+        if (!groupMap.has(gKey)) groupMap.set(gKey, []);
+        groupMap.get(gKey).push(a);
+      }
+
+      const groupedOut = [];
+      for (const [gKey, memberList] of groupMap.entries()) {
+        const curIdx = Math.min(memberList.length - 1, Math.max(0, Number(state.galleryGroupIndexMap?.[gKey] || 0)));
+        const chosen = memberList[curIdx] || memberList[0];
+        const mergedUsed = [];
+        const seenEv = new Set();
+        for (const m of memberList) {
+          for (const u of getEffectiveUsedListForAsset(m)) {
+            const uk = `${u.mapId}_${u.eventId}`;
+            if (!seenEv.has(uk)) { seenEv.add(uk); mergedUsed.push(u); }
+          }
+        }
+        groupedOut.push(Object.assign({}, chosen, {
+          usedInEvents: mergedUsed.length > 0 ? mergedUsed : chosen.usedInEvents,
+          __groupKey: gKey,
+          __groupMembers: memberList,
+          __groupIndex: curIdx
+        }));
+      }
+      return groupedOut;
     }
 
     async function renderGalleryView(resetLimit = true) {
@@ -4601,6 +4834,13 @@
                   ? (sceneCount > 0 ? `🎬 영상 (${sceneCount}곳)` : "🎬 동영상")
                   : (sceneCount > 0 ? `✓ ${sceneCount}곳 등장` : (a.systemUsage ? escapeHtml(a.systemUsage.badge) : "미사용 후보"))}
               </span>
+              ${(a.__groupMembers && a.__groupMembers.length > 1) ? `
+                <div class="absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 bg-slate-950/90 border border-emerald-500/50 rounded-lg px-1.5 py-0.5 text-[10px] font-bold text-emerald-300 shadow">
+                  <button type="button" data-gal-grp-prev="${escapeHtml(a.__groupKey)}" class="px-1 hover:text-white">◀</button>
+                  <span>📚 차분 ${(a.__groupIndex || 0) + 1}/${a.__groupMembers.length}</span>
+                  <button type="button" data-gal-grp-next="${escapeHtml(a.__groupKey)}" class="px-1 hover:text-white">▶</button>
+                </div>
+              ` : ""}
               <button type="button" data-del-cg="${escapeHtml(a.name)}" class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded bg-rose-700/90 hover:bg-rose-600 text-white text-[10px] font-bold">
                 🗑
               </button>
@@ -4626,6 +4866,24 @@
         `;
       }).join("");
 
+      grid.querySelectorAll("[data-gal-grp-prev]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const gk = btn.getAttribute("data-gal-grp-prev");
+          const cur = Number(state.galleryGroupIndexMap[gk] || 0);
+          state.galleryGroupIndexMap[gk] = Math.max(0, cur - 1);
+          renderGalleryView(false);
+        });
+      });
+      grid.querySelectorAll("[data-gal-grp-next]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const gk = btn.getAttribute("data-gal-grp-next");
+          const cur = Number(state.galleryGroupIndexMap[gk] || 0);
+          state.galleryGroupIndexMap[gk] = cur + 1;
+          renderGalleryView(false);
+        });
+      });
       grid.querySelectorAll("[data-del-cg]").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -5022,6 +5280,60 @@
       const refSwitches = new Set();
       const slots = {};
       let pendingDText = null;
+
+      // Architecture 2.5: `CBR_eroStatus_1..9` Plugin-configured Ero-Status (`야에즈 이문기담` etc.)
+      if (activePageObj && activePageObj.type === "cbr_plugin_status") {
+        // Also run `CE #182 (エロステータス計算)` if present so derived sums (`\V[301] = \V[302] + \V[305]`) update live!
+        for (const ce of Object.values(state.project?.commonEventsMap || {})) {
+          if (ce && /エロステータス計算|에로스테이터스\s*계산/i.test(ce.name || "")) {
+            for (const c of (ce.list || [])) {
+              if (c && c.code === 122) {
+                const p = c.parameters || [];
+                const v1 = Number(p[0]) || 0, v2 = Number(p[1]) || v1, op = Number(p[2]) || 0, opType = Number(p[3]) || 0;
+                const val = opType === 0 ? (Number(p[4]) || 0) : (Number(simVars[Number(p[4])]) || 0);
+                for (let v = v1; v <= v2; v++) {
+                  if (op === 0) simVars[v] = val;
+                  else if (op === 1) simVars[v] = (Number(simVars[v]) || 0) + val;
+                }
+              }
+            }
+          }
+        }
+        const picList = activePageObj.cbrPic ? [activePageObj.cbrPic] : (activePageObj.cbrPics || []);
+        let sIdx = 1;
+        for (const p of picList) {
+          const asset = resolveCgAssetSmart(p.name);
+          if (asset) {
+            slots[sIdx++] = { key: asset.name, origin: p.origin || 0, x: p.x || 0, y: p.y || 0, scaleX: p.scale || 100, scaleY: p.scale || 100, opacity: p.opacity || 255 };
+          }
+        }
+        // Compose StatusBustImage heroine standing layers on the right (`M0_body_long`, `M1_1`, `M5_teacher`) if present in `cgAssets`
+        for (const bKey of ["M0_body_long", "M1_1", "M5_teacher"]) {
+          const bAsset = resolveCgAssetSmart(bKey);
+          if (bAsset) {
+            slots[20 + sIdx++] = { key: bAsset.name, origin: 0, x: 640, y: 0, scaleX: 100, scaleY: 100, opacity: 255 };
+          }
+        }
+        let tSlot = 100;
+        for (const t of (activePageObj.cbrTexts || [])) {
+          const vMatches = String(t.subject || "").matchAll(/\\[vV]\[(\d+)\]/g);
+          for (const vm of vMatches) refVars.add(Number(vm[1]));
+          slots[tSlot++] = {
+            key: "__dtext__",
+            isTextPicture: true,
+            dText: substituteSimVarsInText(t.subject, simVars),
+            fontSize: t.size || 26,
+            textAlign: t.origin === "right" ? "right" : (t.origin === "center" ? "center" : "left"),
+            origin: 0,
+            x: t.x || 0,
+            y: t.y || 0,
+            scaleX: 100,
+            scaleY: 100,
+            opacity: 255
+          };
+        }
+        return { snapshot: slots, referencedVars: Array.from(refVars), referencedSwitches: Array.from(refSwitches) };
+      }
 
       // Architecture 3: Prison Hero `SceneLewdStatus` (`lewd_status/background`, `lewd_status/body/stage_1..4`, `LewdStatus.json`)
       if (activePageObj && activePageObj.type === "scene_lewd_status") {
@@ -6421,7 +6733,7 @@
       return out;
     }
 
-    function evaluateBranchInSimState(p, simVars, simSwitches) {
+    function evaluateBranchInSimState(p, simVars, simSwitches, simState = null) {
       const condType = p[0];
       if (condType === 0) {
         const swVal = Boolean(simSwitches[p[1]]);
@@ -6448,7 +6760,16 @@
         }
       }
       if (condType === 2) return p[2] === 1;
-      if (condType === 4 && p[2] === 0) return true;
+      if (condType === 4) {
+        if (p[2] === 0) return true; // In party
+        // `p[2] === 5`: Actor has Armor `p[3]` equipped (e.g. `CE #53..#65` in `야에즈 이문기담`!)
+        // Default to Armor #1 (the protagonist's primary outfit) unless changed via `Code 319` or `changeEquipById`!
+        if (p[2] === 5) {
+          const eqArmor = Number(simState?.equippedArmorId ?? 1);
+          return Number(p[3]) === eqArmor;
+        }
+        return false;
+      }
       if (condType === 7 || condType === 8 || condType === 9 || condType === 10) return true;
       if (condType === 12) {
         const sc = String(p[1] || "");
@@ -6665,9 +6986,9 @@
             existing.origin = bSpec.origin;
             existing.scaleX = bSpec.scaleX;
             existing.scaleY = bSpec.scaleY;
-            existing.opacity = (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : (existing.opacity || 255);
-          } else {
-            if (!existing.opacity || existing.opacity <= 0) existing.opacity = bSpec.opacity || 255;
+            existing.blendMode = bSpec.blendMode ?? existing.blendMode ?? 0;
+            // CRITICAL FIX IN v18: Never turn `bSpec.opacity === 0` back into `255`!
+            existing.opacity = (bSpec.opacity !== undefined && bSpec.opacity !== null) ? Number(bSpec.opacity) : (existing.opacity ?? 255);
           }
           continue;
         }
@@ -6676,7 +6997,8 @@
         if (isWinningBranch) {
           targetPending[slot] = {
             ...bSpec,
-            opacity: (bSpec.opacity !== undefined && bSpec.opacity > 0) ? bSpec.opacity : 255,
+            blendMode: bSpec.blendMode ?? 0,
+            opacity: (bSpec.opacity !== undefined && bSpec.opacity !== null) ? Number(bSpec.opacity) : 255,
             variants: bSpec.variants ? [...bSpec.variants] : [bSpec.key]
           };
           continue;
@@ -7022,10 +7344,8 @@
           const y = coordMode === 0 ? (Number(p[5]) || 0) : (Number(simState.vars[p[5]]) || 0);
           const scaleX = Number(p[6] ?? 100);
           const scaleY = Number(p[7] ?? 100);
-          // CRITICAL FIX IN v17 (`image_c19887.jpg` & Universal Preload Opacity=0 Fix!):
-          // Honor `p[8] === 0` (`opacity = 0`)! In RPG Maker MV/MZ, games preload 10-30 CG/expression layers using `Code 231` with `opacity = 0`
-          // and also hide active layers using `Code 231` with `opacity = 0`!
           const opacity = (p[8] !== undefined && p[8] !== null) ? Number(p[8]) : 255;
+          const blendMode = Number(p[9] || 0);
 
           if (!rawPicParam && pendingDText) {
             const isHudOverlaySlot = slotNum >= 50 && (ceDepth > 0 || x >= 600);
@@ -7082,12 +7402,22 @@
               (pendingPictures[slotNum].opacity ?? 255) > 0 &&
               pendingPictures[slotNum].key &&
               pendingPictures[slotNum].key !== picName &&
-              !isDetachedSubPartFile(picName)
+              !isDetachedSubPartFile(picName) &&
+              getPartCategoryAndPrefix(picName).category === "기본 이미지" &&
+              x === 0 && y === 0
             ) {
+              const prevSpec = pendingPictures[slotNum];
               steps.push({
                 type: "cg",
                 slot: slotNum,
-                cgKey: pendingPictures[slotNum].key,
+                cgKey: prevSpec.key,
+                x: prevSpec.x || 0,
+                y: prevSpec.y || 0,
+                origin: prevSpec.origin || 0,
+                scaleX: prevSpec.scaleX ?? 100,
+                scaleY: prevSpec.scaleY ?? 100,
+                opacity: prevSpec.opacity ?? 255,
+                blendMode: prevSpec.blendMode ?? 0,
                 pictureSnapshot: buildCleanStepSnapshot(),
                 source: "연속 CG 연출"
               });
@@ -7148,7 +7478,7 @@
             }
 
             pendingPictures[slotNum] = {
-              key: picName, origin, x, y, scaleX, scaleY, opacity,
+              key: picName, origin, x, y, scaleX, scaleY, opacity, blendMode,
               isOptionalAcc: isGlassesOrOptionalOverlayName(picName),
               variants: prevVariants
             };
@@ -7170,9 +7500,16 @@
         if (code === 232) {
           const slotNum = Number(p[0]) || 1;
           const newOp = (p[8] !== undefined && p[8] !== null) ? Number(p[8]) : 255;
-          // CRITICAL FIX IN v17:
-          // Keep `pendingPictures[slotNum]` in memory with `opacity = newOp` (`0` when faded out, `> 0` when faded in)
-          // so slots preloaded at `opacity = 0` or faded out and faded back in (`CE#83` in Magic Village) work identically to RPG Maker's Game_Screen!
+          const newBm = (p[9] !== undefined && p[9] !== null) ? Number(p[9]) : undefined;
+          // CRITICAL FIX IN v18 (`CE #50: 立ち絵消し` Fade-Out Erase Fix!):
+          // If `Code 232` fades a slot to `newOp <= 0` inside an isolated CommonEvent (`isoPic`) where `pendingPictures[slotNum]` wasn't created in the same CE,
+          // record `pendingPictures[slotNum] = null` so merging the CE erases that slot from the caller's stage!
+          if (!pendingPictures[slotNum] && newOp <= 0) {
+            pendingPictures[slotNum] = null;
+            slotsUpdatedInCurrentStep.delete(slotNum);
+            i++;
+            continue;
+          }
           if (pendingPictures[slotNum]) {
             const wasVisible = (pendingPictures[slotNum].opacity ?? 255) > 0;
             if (wasVisible && newOp <= 0) {
@@ -7185,6 +7522,7 @@
             pendingPictures[slotNum].scaleX = Number(p[6] ?? 100);
             pendingPictures[slotNum].scaleY = Number(p[7] ?? 100);
             pendingPictures[slotNum].opacity = newOp;
+            if (newBm !== undefined) pendingPictures[slotNum].blendMode = newBm;
 
             if (!wasVisible && newOp > 0) {
               // When fading a preloaded slot IN (`0 -> 255`, like `Opning_digest_scene01..08` in CE#25), hide earlier cross-faded slots of the same series!
@@ -7543,7 +7881,7 @@
 
           // FIXED IN v13 (`image_5c0939.jpg` Reiri Upper Arm Fix!):
           // Never auto-lock `Variable #10 == 4 (FullNaked)` or `Variable #8 == 1 (Dummy)` to `true` when the variable is `0`!
-          const condMet = evaluateBranchInSimState(p, simState.vars, simState.switches);
+          const condMet = evaluateBranchInSimState(p, simState.vars, simState.switches, simState);
 
           // Handle `Jump to Label (Code 119)` inside a winning `If` branch (e.g. `If Switch #202 == ON -> Jump to Label "メルメイア"` in CE #39/#40/#41!)
           const activeBranchCmds = condMet ? thenCmds : elseCmds;
@@ -7797,7 +8135,10 @@
             const isoSim = { ...simState, vars: { ...simState.vars }, switches: { ...simState.switches }, lockedVarBranches: {} };
 
             for (const c of ce.list) {
-              if (c && c.code === 235 && c.indent === 0) {
+              if (!c) continue;
+              if (c.code === 235 && c.indent === 0) {
+                isoPic[Number(c.parameters?.[0]) || 1] = null;
+              } else if (c.code === 232 && c.indent === 0 && Number(c.parameters?.[8] ?? 255) <= 0) {
                 isoPic[Number(c.parameters?.[0]) || 1] = null;
               }
             }
@@ -8184,6 +8525,12 @@
             scriptText = JSON.stringify(p);
           }
 
+          if (scriptText.includes("changeEquipById")) {
+            const eqMatch = scriptText.match(/changeEquipById\(\s*\d+\s*,\s*(\d+)\s*\)/);
+            if (eqMatch) {
+              simState.equippedArmorId = Number(eqMatch[1]);
+            }
+          }
           if (scriptText.includes("setValue")) {
             const varSetRegex = /\$gameVariables\.setValue\(\s*(\d+)\s*,\s*(-?\d+)\s*\)/g;
             let vm;
@@ -8310,8 +8657,15 @@
           const topImageEntry = [...fallbackEntries].reverse().find(([, v]) => v && v.key && !v.isTextPicture) || fallbackEntries[fallbackEntries.length - 1];
           steps.push({
             type: "cg",
-            slot: 1,
+            slot: Number(topImageEntry[0]) || 1,
             cgKey: topImageEntry[1].key || "스테이터스 화면",
+            x: topImageEntry[1].x || 0,
+            y: topImageEntry[1].y || 0,
+            origin: topImageEntry[1].origin || 0,
+            scaleX: topImageEntry[1].scaleX ?? 100,
+            scaleY: topImageEntry[1].scaleY ?? 100,
+            opacity: topImageEntry[1].opacity ?? 255,
+            blendMode: topImageEntry[1].blendMode ?? 0,
             pictureSnapshot: clonePicMapFast(snapToUse),
             source: "단독 CG 연출"
           });
@@ -8834,6 +9188,40 @@
                     const normals = JSON.parse(apObj.normalPictures).filter(Boolean);
                     if (normals.length > 0) actorPicturesMap[acId] = normals;
                   }
+                }
+              } else if (/^CBR_eroStatus_(\d+)$/i.test(pl.name)) {
+                const pageNum = parseInt(pl.name.match(/(\d+)$/)[1], 10) || 1;
+                const pics = [];
+                const texts = [];
+                for (let k = 1; k <= 99; k++) {
+                  const pName = String(pl.parameters[`picName_${k}`] || "").trim();
+                  if (pName && pl.parameters[`picShow_${k}`] !== "off") {
+                    pics.push({
+                      idx: k,
+                      name: pName,
+                      x: Number(pl.parameters[`picX_${k}`] || 0),
+                      y: Number(pl.parameters[`picY_${k}`] || 0),
+                      origin: pl.parameters[`picOrigin_${k}`] === "center" ? 1 : 0,
+                      opacity: Math.round(Number(pl.parameters[`picOpacity_${k}`] ?? 100) * 2.55),
+                      scale: Number(pl.parameters[`picZoom_${k}`] ?? 100)
+                    });
+                  }
+                  const tSub = String(pl.parameters[`txtSubject_${k}`] || "").trim();
+                  if (tSub && pl.parameters[`txtShow_${k}`] !== "off") {
+                    texts.push({
+                      idx: k,
+                      subject: tSub,
+                      x: Number(pl.parameters[`txtX_${k}`] || 0),
+                      y: Number(pl.parameters[`txtY_${k}`] || 0),
+                      size: Number(pl.parameters[`txtSize_${k}`] || 26),
+                      origin: String(pl.parameters[`txtOrigin_${k}`] || "left"),
+                      align: String(pl.parameters[`txtAlign_${k}`] || "top")
+                    });
+                  }
+                }
+                if (pics.length > 0 || texts.length > 0) {
+                  if (!window.__tempCbrPluginPages) window.__tempCbrPluginPages = [];
+                  window.__tempCbrPluginPages.push({ pageNum, pics, texts });
                 }
               }
             }
@@ -9386,6 +9774,31 @@
           showPicCount: 10
         });
       }
+      if (window.__tempCbrPluginPages && window.__tempCbrPluginPages.length > 0 && nativeStatusPages.length === 0) {
+        for (const cp of window.__tempCbrPluginPages) {
+          // If page has multiple background pictures (e.g. Ero Status 01, Ero Status 02, Ero Status 03), create a tab for each or combined
+          if (cp.pics.length >= 2 && cp.pics.every(p => p.x === 0 && p.y === 0)) {
+            cp.pics.forEach((bgPic, pIdx) => {
+              nativeStatusPages.push({
+                type: "cbr_plugin_status",
+                ceId: 800 + pIdx + 1,
+                cbrPic: bgPic,
+                cbrTexts: pIdx === 0 ? cp.texts : [],
+                title: `에로 스테이터스 Page ${pIdx + 1} (${bgPic.name})`
+              });
+            });
+          } else {
+            nativeStatusPages.push({
+              type: "cbr_plugin_status",
+              ceId: 800 + cp.pageNum,
+              cbrPics: cp.pics,
+              cbrTexts: cp.texts,
+              title: `에로 스테이터스 Page ${cp.pageNum}`
+            });
+          }
+        }
+        window.__tempCbrPluginPages = [];
+      }
       if (sceneLewdStatusConfig) {
         [1, 2, 3, 4].forEach(stg => {
           nativeStatusPages.push({
@@ -9884,7 +10297,8 @@
         if (/メニュースキン|ボツ|보츠|実験|실험|テスト|ダミー|デバッグ|템플릿|테스트|더미|디버그|template|debug|test/i.test(treePath)) return 950;
 
         // 3) Recollection / CG Gallery Room (Only when rootFolder or top-level rawTitle is a Recollection Room, NOT a mid-route story flashback like `ビル探索イベント / ビルルート（マリー回想）`!)
-        const isUnderMainOrRouteRoot = /ストーリー|스토리|메인|本編|メイン|探索|ルート|イベント|루트|이벤트|main|story|route/i.test(rootName) && !/^回想|^회상/i.test(rootName);
+        const isUnderMainStoryRoot = /ストーリー|스토리|메인|本編|メイン|main|story/i.test(rootName) && !/^回想|^회상/i.test(rootName);
+        const isUnderMainOrRouteRoot = (/ストーリー|스토리|메인|本編|メイン|探索|ルート|イベント|루트|이벤트|main|story|route/i.test(rootName) && !/^回想|^회상/i.test(rootName));
         if (!isUnderMainOrRouteRoot && /回想|회상|갤러리|cg|gallery|memory|room|기적의\s*방|추억/i.test(rootName || rawTitle)) {
           return 850;
         }
@@ -10537,12 +10951,43 @@
       // =====================================================================
       // v16 MOBILE FULLSCREEN, LANDSCAPE SPLIT, QUICK DRAWER & TOUCH GESTURES
       // =====================================================================
-      // Sync `--app-vvh` with `window.visualViewport.height` so iOS Safari's address/tab bar in landscape NEVER clips the bottom of the viewer!
-      function syncVisualViewportHeight() {
-        const vvh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        if (vvh > 100) {
-          document.documentElement.style.setProperty("--app-vvh", `${Math.round(vvh)}px`);
+      // Sync `--app-vvw`, `--app-vvh`, `--app-vv-top`, `--app-vv-left` with `window.visualViewport`
+      // and auto-detect Dynamic Island orientation (`90` vs `-90`/`270`) so iOS Safari's address bar and Dynamic Island NEVER cover the viewer!
+      function applyDynamicIslandMargins() {
+        const root = document.documentElement;
+        const mode = state.islandMarginMode || "both";
+        if (mode === "both") {
+          root.style.setProperty("--island-safe-left", "54px");
+          root.style.setProperty("--island-safe-right", "54px");
+        } else if (mode === "left") {
+          root.style.setProperty("--island-safe-left", "58px");
+          root.style.setProperty("--island-safe-right", "12px");
+        } else if (mode === "right") {
+          root.style.setProperty("--island-safe-left", "12px");
+          root.style.setProperty("--island-safe-right", "58px");
+        } else {
+          root.style.setProperty("--island-safe-left", "6px");
+          root.style.setProperty("--island-safe-right", "6px");
         }
+        const btn = document.getElementById("btnFsIslandMargin");
+        if (btn) {
+          const labels = { both: "🏝️ 여백:양쪽", left: "🏝️ 여백:좌측", right: "🏝️ 여백:우측", none: "🏝️ 여백:최소" };
+          btn.textContent = labels[mode] || "🏝️ 여백:양쪽";
+        }
+      }
+
+      function syncVisualViewportHeight() {
+        const vv = window.visualViewport;
+        const vvh = vv ? vv.height : window.innerHeight;
+        const vvw = vv ? vv.width : window.innerWidth;
+        const vvTop = vv ? vv.offsetTop : 0;
+        const vvLeft = vv ? vv.offsetLeft : 0;
+        const root = document.documentElement;
+        if (vvh > 100) root.style.setProperty("--app-vvh", `${Math.round(vvh)}px`);
+        if (vvw > 100) root.style.setProperty("--app-vvw", `${Math.round(vvw)}px`);
+        root.style.setProperty("--app-vv-top", `${Math.max(0, Math.round(vvTop))}px`);
+        root.style.setProperty("--app-vv-left", `${Math.max(0, Math.round(vvLeft))}px`);
+        applyDynamicIslandMargins();
       }
       syncVisualViewportHeight();
       window.addEventListener("resize", syncVisualViewportHeight);
@@ -10786,6 +11231,20 @@
           }
         }
       }, { passive: true });
+
+      document.getElementById("btnToggleGalleryGroupVariants")?.addEventListener("click", () => {
+        state.groupGalleryVariants = !state.groupGalleryVariants;
+        renderGalleryView(true);
+        renderSceneKeyframeBar();
+      });
+
+      document.getElementById("btnFsIslandMargin")?.addEventListener("click", () => {
+        const order = ["both", "left", "right", "none"];
+        const curIdx = order.indexOf(state.islandMarginMode || "both");
+        state.islandMarginMode = order[(curIdx + 1) % order.length];
+        applyDynamicIslandMargins();
+        setTimeout(() => renderActiveCgStage(), 60);
+      });
 
       document.getElementById("btnFsToggleTools")?.addEventListener("click", () => {
         document.body.classList.toggle("show-fs-tools");
