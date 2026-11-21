@@ -38,7 +38,16 @@ function playSound() {
     audio.play().catch(() => { unlocked = false; });
 }
 function unlock() {
-  if (!unlocked) { unlocked = true; playSound(); }
+  if (unlocked) return;
+  unlocked = true;
+  if (audio.hasAttribute('src')) { playSound(); return; }
+  // Prime the same media element during the gesture, even in silent scenes.
+  const silent = 'data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
+  audio.src = silent;
+  audio.play().then(() => {
+    if (audio.getAttribute('src') === silent) { audio.pause(); audio.removeAttribute('src'); }
+  }).catch(() => { if (audio.getAttribute('src') === silent) { audio.removeAttribute('src'); unlocked = false; } });
+
 }
 document.addEventListener('click',unlock,true);
 function mode(value) {
