@@ -1,10 +1,8 @@
-# GPT Work 인계 (v2 안정화 + MV/MZ 어댑터 반영)
+# 다음 작업 인계
 
-1. 첨부된 `v2/adapters/mv-mz/{extract.mjs,test.mjs,README.md}`와 갱신된 `v2/docs/STATE.md`를 `feat/v2-modular` 브랜치에 반영하고 `node v2/adapters/mv-mz/test.mjs` 통과를 확인한다.
-2. 교차 리뷰에서 발견된 아래 4건의 모바일/Safari 엣지케이스를 `v2/`에 패치한다:
-   - `v2/sw.js`: `activate`에서 현재 `cacheName` 이외의 이전 `star-theatre-` 캐시를 삭제하고 캐시 버전을 `-2`로 올린다.
-   - `v2/src/storage.js`: `slot()`의 `localStorage` 읽기/쓰기/파싱을 `try/catch`로 감싸 사생활 보호 모드·용량 초과·손상 JSON 시 안전하게 실패 처리한다.
-   - `v2/src/loader.js`: 비보안 HTTP 로컬 IP 테스트 환경을 위해 `crypto.subtle` 미지원 시 결정적 폴백 해시를 사용한다.
-   - `v2/src/ui.js`: `openBook()`에서 새 책을 열 때 `audio.pause()`, `soundKey = ''`를 명시적으로 초기화해 ZIP 연속 교체 시 오디오 상태 꼬임을 방지한다.
-3. `v2/adapters/mv-mz/extract.mjs`로 생성한 샘플 ZIP 번들을 `v2/` 보관함에서 가져오기 -> 재실행 -> 삭제 흐름으로 검증(가능 시 브라우저/실기기)한다.
-4. 커밋 후 `v2/docs/STATE.md`와 `v2/docs/HANDOFF.md`를 다음 목표(실제 MV/MZ 게임 암호화 리소스 대응 또는 VX Ace 어댑터)로 갱신한다.
+이번 변경과 테스트 범위는 STATE.md에 기록했다. 다음 개발 목표는 실제 MV/MZ 게임의 암호화 자산 지원이다.
+
+1. 테스트에 사용할 수 있는 MV·MZ 샘플에서 System.json의 암호화 플래그와 키, 그림·음원 확장자를 조사한다. 기존 평문 자산의 경로 및 오디오 선택 우선순위도 fixture로 고정한다.
+2. 어댑터에서 암호화 그림·음원을 브라우저가 읽을 수 있는 자산으로 출력한다. 암호화 여부 혼합, 키 누락·불일치, 잘린 파일을 시험하고 실패 위치를 report.json에 남긴다. 출력 ZIP에는 시나리오가 참조하는 미디어를 포함한다.
+3. 정상 미디어를 담은 ZIP을 iOS Safari에서 가져온 뒤 새로고침하여 보관함에서 다시 열고 삭제한다. 첫 터치 BGM, 두 ZIP 연속 교체, 사이트 저장 권한·용량 제한, 캐시 v1→v2 전환과 비행기 모드 재실행을 확인한다.
+4. 후속 VX Ace 어댑터도 동일한 scenario.json v1.0을 출력하도록 분리한다. 런타임 엔진 변경이 필요하면 SPEC.md 계약부터 검토한다.
