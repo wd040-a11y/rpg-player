@@ -25,6 +25,11 @@ export const bundles = {
 };
 export function slot(id,n,state) {
   const key = 'scenario:v1:'+id+':'+n;
-  if (state) localStorage.setItem(key,JSON.stringify(state));
-  else return JSON.parse(localStorage.getItem(key));
+  try {
+    if (state === undefined) return JSON.parse(localStorage.getItem(key));
+    localStorage.setItem(key,JSON.stringify(state));
+    return true;
+  } catch {
+    return state === undefined ? null : false;
+  }
 }

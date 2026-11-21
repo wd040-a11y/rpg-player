@@ -1,6 +1,10 @@
-# Gemini Task 인계
-1. v2/docs/SPEC.md와 sample/scenario.json을 기준으로 MV/MZ Map 및 CommonEvents JSON을 읽는 별도 추출기를 작성한다. 원본 이벤트 식별자로 안정적인 장면 ID를 만들고 이미지·오디오 상대경로를 보존한다.
-2. 연속 대사, 선택지 각 갈래와 합류, 중첩 조건, 공통 이벤트 호출의 복귀를 작은 fixture로 검증한다. 이동·전투는 notice로 치환한다. 계산식·스크립트 등 v1에서 표현할 수 없는 명령은 추출 보고서에 원본 위치와 함께 남긴다.
-3. ZIP 루트에 scenario.json과 참조 자산을 넣고 보관함에서 가져오기 → 재실행 → 삭제를 시험한다. 데모는 첫 선택에서 trust=1/shared=true, 둘째 선택에서 기본값으로 다른 엔딩에 도달해야 한다.
-4. Safari에서 첫 터치 전후 BGM, AAC/OGG, 회전·주소창·노치, 백그라운드 복귀, 대용량 ZIP 연속 교체 및 메모리, 저장 용량 초과, 비행기 모드 재실행, 슬롯 충돌 여부를 확인한다.
-5. Pages 소스가 해당 브랜치를 제공하는지 확인한다. 배포 갱신 시 sw.js 캐시 버전을 올린다. VX Ace 추출은 후속 범위다.
+# GPT Work 인계 (v2 안정화 + MV/MZ 어댑터 반영)
+
+1. 첨부된 `v2/adapters/mv-mz/{extract.mjs,test.mjs,README.md}`와 갱신된 `v2/docs/STATE.md`를 `feat/v2-modular` 브랜치에 반영하고 `node v2/adapters/mv-mz/test.mjs` 통과를 확인한다.
+2. 교차 리뷰에서 발견된 아래 4건의 모바일/Safari 엣지케이스를 `v2/`에 패치한다:
+   - `v2/sw.js`: `activate`에서 현재 `cacheName` 이외의 이전 `star-theatre-` 캐시를 삭제하고 캐시 버전을 `-2`로 올린다.
+   - `v2/src/storage.js`: `slot()`의 `localStorage` 읽기/쓰기/파싱을 `try/catch`로 감싸 사생활 보호 모드·용량 초과·손상 JSON 시 안전하게 실패 처리한다.
+   - `v2/src/loader.js`: 비보안 HTTP 로컬 IP 테스트 환경을 위해 `crypto.subtle` 미지원 시 결정적 폴백 해시를 사용한다.
+   - `v2/src/ui.js`: `openBook()`에서 새 책을 열 때 `audio.pause()`, `soundKey = ''`를 명시적으로 초기화해 ZIP 연속 교체 시 오디오 상태 꼬임을 방지한다.
+3. `v2/adapters/mv-mz/extract.mjs`로 생성한 샘플 ZIP 번들을 `v2/` 보관함에서 가져오기 -> 재실행 -> 삭제 흐름으로 검증(가능 시 브라우저/실기기)한다.
+4. 커밋 후 `v2/docs/STATE.md`와 `v2/docs/HANDOFF.md`를 다음 목표(실제 MV/MZ 게임 암호화 리소스 대응 또는 VX Ace 어댑터)로 갱신한다.

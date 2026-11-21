@@ -98,6 +98,11 @@ async function openBook(file,cache = false) {
   catch (e) { incoming.release(); throw e; }
   if (ticket !== generation) { incoming.release(); return; }
   mode('');
+  ++frame; // Discard pending asset reads from the previous book.
+  audio.pause();
+  soundKey = '';
+  audio.removeAttribute('src');
+  audio.load();
   const old = book;
   book = incoming; engine = next;
   old?.release();
@@ -166,7 +171,10 @@ function settings() {
 function slots() {
   panel('세이브 / 로드');
   for (let n = 1; n <= 3; n++) {
-    button('슬롯 '+n+' 저장',() => { slot(book.id,n,engine.state); slots(); });
+    button('슬롯 '+n+' 저장',() => {
+      if (!slot(book.id,n,engine.state)) throw Error('저장 실패: 브라우저 저장 권한과 남은 공간을 확인하세요.');
+      slots();
+    });
     const saved = slot(book.id,n);
     button('슬롯 '+n+(saved ? ' 불러오기' : ' · 비어 있음'),() => {
       engine.restore(saved); modal.close(); return render();

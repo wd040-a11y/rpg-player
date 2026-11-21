@@ -10,6 +10,17 @@ function zipLibrary() {
   }).catch(e => { dependency = null; throw e; });
   return dependency;
 }
+async function scenarioId(raw) {
+  const bytes = new TextEncoder().encode(raw);
+  if (globalThis.crypto?.subtle) {
+    const digest = await crypto.subtle.digest('SHA-256',bytes);
+    return Array.from(new Uint8Array(digest),n => n.toString(16).padStart(2,'0')).join('');
+  }
+  // Origin-local storage key for HTTP previews (64-bit FNV-1a).
+  let hash = 0xcbf29ce484222325n;
+  for (const byte of bytes) hash = BigInt.asUintN(64,(hash ^ BigInt(byte)) * 0x100000001b3n);
+  return 'fnv64-' + hash.toString(16).padStart(16,'0');
+}
 export async function load(file) {
   let zip, raw;
   if (!file) {
@@ -23,8 +34,7 @@ export async function load(file) {
     raw = await entry.async('string');
   } else raw = await file.text();
   const scenario = validate(JSON.parse(raw.replace(/^\uFEFF/,'')));
-  const digest = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
-  const id = Array.from(new Uint8Array(digest),n => n.toString(16).padStart(2,'0')).join('');
+  const id = await scenarioId(raw);
   const urls = new Map();
   let released = false;
   return {scenario,id,zip:!!zip, async asset(kind,key) {

@@ -1,8 +1,20 @@
-# v1 진행 상태
-완료 — feat/v2-modular 브랜치의 v2/에 독립적인 Pages 진입점, 시나리오 검증/실행, 입력·저장·갤러리·선택·오디오·오프라인 캐시를 구현했다. Pages가 이 브랜치 루트를 제공할 때 /rpg-player/v2/에서 실행된다.
+# v2 진행 상태
+마지막 작업 AI — Gemini Task (2026-11-21)
 
-변경 파일은 index.html, sw.js, src/{styles.css,engine.js,loader.js,storage.js,ui.js}, sample/{scenario.json,dawn.svg}, docs/{SPEC.md,STATE.md,HANDOFF.md}다.
+완료 —
+1. `feat/v2-modular`의 `v2/` 재생기(`index.html`, `sw.js`, `src/{styles.css,engine.js,loader.js,storage.js,ui.js}`) 교차 리뷰 완료.
+2. `v2/adapters/mv-mz/`에 무의존성 Node.js MV/MZ 추출기 및 ZIP 번들러 구현:
+   - `extract.mjs`: `MapXXX.json`, `CommonEvents.json`, `MapInfos.json`, `System.json` 파싱 -> `SPEC.md` v1.0 `scenario.json` + `report.json` + `--zip` 번들 생성
+   - `test.mjs`: `v2/src/engine.js`의 `validate()`/`Engine`을 직접 로드해 연속 대사, 선택지 분기·합류, 중첩 조건 분기, 공통 이벤트 호출·복귀, 이동·전투 `notice` 치환, 미지원 명령(`355/655`, 변수 연산 `122`) 보고서, ZIP 생성 검증 통과
+   - `README.md`: CLI 사용법 및 지원 명령 정리
 
-검증 — ES 모듈 구문 검사 및 Node 엔진 테스트 통과. 데모의 두 선택 경로, notice, 선택지 입력 대기, 엔딩, 저장 복원을 확인했다. Chromium은 작업 환경의 소켓 제한으로 시작하지 못했다. 브라우저 통합 테스트와 Pages 배포는 미검증이다.
+교차 리뷰에서 발견된 `v2/` 보완 필요 항목 (다음 GPT Work 턴 대상) —
+1. `v2/sw.js`: `activate` 이벤트에서 구버전 캐시(`caches.keys()`)를 삭제하지 않아 캐시 버전 업 시 이전 캐시가 남음.
+2. `v2/src/storage.js`: `slot()`의 `localStorage.setItem` / `JSON.parse`에 `try/catch`가 없어 시크릿 모드·용량 초과·손상된 저장 데이터 시 `slots()` 모달이 예외로 중단됨.
+3. `v2/src/loader.js`: `crypto.subtle.digest`는 HTTPS/`localhost` 외의 로컬 HTTP IP(예: `http://192.168.x.x` 실기기 테스트)에서 `undefined`이므로 폴백 해시 필요.
+4. `v2/src/ui.js`: `openBook()` 시 이전 책의 오디오 정지(`audio.pause()`, `soundKey = ''`)를 명시적으로 초기화하면 연속 ZIP 교체 시 오디오 상태 꼬임 방지 가능.
 
-남은 작업 — iOS Safari 실기기 검증과 MV/MZ 어댑터. 첫 온라인 방문에서 서비스 워커 설치와 JSZip CDN 캐시가 완료된 후 오프라인으로 열어 확인한다. 저장소 퇴거나 사이트 데이터 삭제 시 번들은 사라질 수 있다.
+남은 작업 —
+- 위 4건 `v2/` 모바일 안정화 패치 및 `sw.js` 캐시 버전 업
+- GitHub Pages(`feat/v2-modular` 또는 `main`) 배포 및 iOS Safari 실기기 검증
+- 실제 MV/MZ 게임 데이터 대상 암호화 리소스(`.rpgmvp`/`.png_`) 복호화 옵션 및 VX Ace 어댑터(후속 범위)
