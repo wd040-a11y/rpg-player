@@ -1,0 +1,5 @@
+{"version":"1.0","meta":{"title":"새벽의 관측소","sourceEngine":"demo","startScene":"arrival"},"assets":{"cg":{"dawn":"sample/dawn.svg"},"bgm":{}},"scenes":[
+{"id":"arrival","title":"마지막 열차","tag":"프롤로그","steps":[{"type":"cg","id":"dawn"},{"type":"text","speaker":"윤","text":"불이 켜진 창이 하나 있어. 저 위에서 아직 별을 보고 있나 봐."},{"type":"notice","text":"산길 이동과 경비병 전투를 건너뛰었습니다."},{"type":"choice","options":[{"label":"관측 기록을 건넨다","setFlag":{"key":"shared","value":true},"setVar":{"key":"trust","value":1},"goto":"door"},{"label":"기록을 간직한다","goto":"door"}]}]},
+{"id":"door","title":"관측실","tag":"첫째 밤","steps":[{"type":"branch","key":"trust","equals":1,"then":"light","else":"quiet"}]},
+{"id":"light","title":"함께 보는 별","tag":"엔딩","steps":[{"type":"text","speaker":"윤","text":"네 기록과 내 지도를 겹쳐 봐. 비어 있던 별자리가 이어졌어."}]},
+{"id":"quiet","title":"정적","tag":"엔딩","steps":[{"type":"text","speaker":"윤","text":"괜찮아. 해가 뜰 때까지 여기서 기다릴게."}]}]}
