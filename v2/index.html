@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17262b"><title>별밤극장 · 시나리오 플레이어</title><link rel="stylesheet" href="src/styles.css"></head>
+<body><main><header><strong>✦ 별밤극장</strong><span id="title"></span><button id="library">보관함</button></header>
+<section id="stage" aria-label="시나리오 재생"><button id="visual" aria-label="대사 진행 또는 UI 복귀"><img id="cg" alt="장면 일러스트" hidden></button>
+<article id="dialogue"><div id="chapter"></div><h1 id="speaker">불러오는 중</h1><p id="line" aria-live="polite"></p><div id="choices"></div>
+<button id="next">계속 ▸</button></article></section>
+<nav aria-label="재생 도구"><button id="auto">자동</button><button id="skip">스킵</button><button id="mute">음소거</button><button id="hide">UI 숨김</button><button id="settings">설정</button></nav>
+</main><dialog><div class="modalHead"><h2 id="modalTitle"></h2><button id="close">닫기</button></div><div id="panel"></div></dialog>
+<div id="status" role="status"></div><audio loop preload="none"></audio><script type="module" src="src/ui.js"></script></body></html>
